@@ -444,6 +444,61 @@ function ServiceCard({ item, category, gateways, integrations, onReload }) {
   );
 }
 
+/* Card informativo (somente leitura) sobre a validação de CNPJ via ReceitaWS.
+ * Não há chaves nem campos para configurar — é automático na verificação do vendedor. */
+function ReceitaWsCard() {
+  return (
+    <article className={styles.card}>
+      <header className={styles.cardHead}>
+        <span className={styles.cardIcon}>
+          <Icon name="shield" size={22} />
+        </span>
+        <div className={styles.cardTitle}>
+          <span className={styles.cardCat}>Validação de Documentos</span>
+          <h4>ReceitaWS — Validação de CNPJ</h4>
+          <p>
+            Consultada automaticamente para validar o CNPJ do vendedor durante a verificação da conta.
+          </p>
+        </div>
+        <span className={`${styles.badge} ${styles.badge_active}`}>
+          <Icon name="check" size={13} />
+          Automático
+        </span>
+      </header>
+
+      <div className={styles.help}>
+        <div className={styles.helpTitle}>
+          <Icon name="bulb" size={15} />
+          Como funciona:
+        </div>
+        <ul className={styles.steps}>
+          <li>
+            <strong>Não requer chave:</strong> é um serviço público e gratuito — não há nada a
+            configurar aqui.
+          </li>
+          <li>
+            <strong>Limite:</strong> cerca de 3 consultas por minuto no plano gratuito.
+          </li>
+          <li>
+            <strong>Cobertura:</strong> valida apenas CNPJ; o CPF passa só por validação de formato.
+          </li>
+          <li>
+            Para volume maior, a ReceitaWS oferece planos pagos com limites ampliados.
+          </li>
+        </ul>
+        <a
+          className={styles.helpLink}
+          href="https://receitaws.com.br/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          Saiba mais — receitaws.com.br
+        </a>
+      </div>
+    </article>
+  );
+}
+
 export default function AdminIntegrations() {
   const [loading, setLoading] = useState(true);
   const [unauth, setUnauth] = useState(false);
@@ -500,6 +555,7 @@ export default function AdminIntegrations() {
       </div>
 
       <div className={styles.grid}>
+        <ReceitaWsCard />
         {CATALOG.flatMap((group) =>
           group.items.map((item) => (
             <ServiceCard

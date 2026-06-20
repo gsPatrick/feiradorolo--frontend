@@ -24,6 +24,7 @@ import AdminPerformance from '@/components/organisms/admin/AdminPerformance/Admi
 import AdminCustomization from '@/components/organisms/admin/AdminCustomization/AdminCustomization';
 import AdminIntegrations from '@/components/organisms/admin/AdminIntegrations/AdminIntegrations';
 import AdminFinance from '@/components/organisms/admin/AdminFinance/AdminFinance';
+import AdminPlans from '@/components/organisms/admin/AdminPlans/AdminPlans';
 
 const TABS = [
   { k: 'orders', label: 'Pedidos', icon: 'package', Comp: AdminOrders },
@@ -32,6 +33,7 @@ const TABS = [
   { k: 'analytics', label: 'Analytics', icon: 'trending-up', Comp: AdminAnalytics },
   { k: 'revenue', label: 'Receitas', icon: 'dollar', Comp: AdminRevenue },
   { k: 'finance', label: 'Financeiro', icon: 'dollar', Comp: AdminFinance },
+  { k: 'plans', label: 'Planos', icon: 'package', Comp: AdminPlans },
   { k: 'emails', label: 'Emails', icon: 'mail', Comp: AdminEmails },
   { k: 'audit', label: 'Auditoria', icon: 'eye', Comp: AdminAudit },
   { k: 'specifications', label: 'Especificações', icon: 'grid', Comp: AdminSpecifications },
