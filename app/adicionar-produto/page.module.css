@@ -519,6 +519,144 @@
   color: #16a34a;
 }
 
+/* Localização / geo */
+.geoBox {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 18px;
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.geoBoxRequired {
+  border-color: var(--feira-red, #dc2626);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+}
+.geoHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.geoHead .panelTitle {
+  margin-bottom: 0;
+}
+.geoRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.geoCoords {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--foreground);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 6px 10px;
+}
+.geoClear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--feira-red, #dc2626);
+  text-decoration: underline;
+}
+.geoWarn {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--feira-red, #dc2626);
+}
+
+/* Modais (plano + upsell de destaque) */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-md);
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+}
+.modalWide {
+  max-width: 640px;
+}
+.modalTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 10px;
+}
+.modalText {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+}
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+.tierGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+.tierCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  background: var(--bg);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-lg);
+  padding: 16px 12px;
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.tierCard:hover {
+  border-color: var(--info);
+}
+.tierCard:disabled {
+  cursor: default;
+  opacity: 0.8;
+}
+.tierCardActive {
+  border-color: var(--info);
+  box-shadow: var(--ring-shadow);
+}
+.tierIcon {
+  font-size: 1.8rem;
+}
+.tierName {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+.tierDesc {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+.tierLoading {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--info);
+}
+
 /* Navegação */
 .nav {
   display: flex;
@@ -534,7 +672,8 @@
   .dimsGrid,
   .shipGrid,
   .priceGrid,
-  .feeGrid {
+  .feeGrid,
+  .tierGrid {
     grid-template-columns: 1fr;
   }
   .cardBody,

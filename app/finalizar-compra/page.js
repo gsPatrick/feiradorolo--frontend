@@ -7,7 +7,7 @@ import { cx } from '@/lib/cx';
 import { useCart } from '@/components/providers/CartProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { addressService, couponService, shipmentService, orderService } from '@/lib/api';
+import { addressService, couponService, shipmentService, orderService, paymentService } from '@/lib/api';
 import Button from '@/components/atoms/Button/Button';
 import Input from '@/components/atoms/Input/Input';
 import Select from '@/components/atoms/Select/Select';
@@ -41,10 +41,6 @@ const EMPTY_NEW_ADDRESS = {
   city: '',
   state: '',
 };
-
-const PIX_MOCK_CODE =
-  '00020126580014br.gov.bcb.pix0136a1f3c4e2-9b8d-47a6-bc12-feiradorolo520400005303986540' +
-  '5XXXXX5802BR5913FEIRA DO ROLO6009SAO PAULO62070503***6304ABCD';
 
 function maskCep(v) {
   const d = v.replace(/\D/g, '').slice(0, 8);
@@ -168,8 +164,6 @@ export default function FinalizarCompraPage() {
     : 0;
   const discount = Math.min(couponDiscount, totalPrice);
   const total = Math.max(0, totalPrice - discount + shippingCost);
-  const boletoCode = '34191.79001 01043.510047 91020.150008 9 99990000' +
-    String(Math.round(total * 100)).padStart(8, '0');
 
   // Loja vazia: redireciona convidando a comprar (não bloqueia render)
   const cartEmpty = items.length === 0;
@@ -272,6 +266,7 @@ export default function FinalizarCompraPage() {
     if (submitting) return;
     setSubmitting(true);
     try {
+      // 1) Cria a(s) ordem(ns).
       const created = await orderService.checkout({
         items: items.map((i) => ({ product_id: i.id, quantity: i.qty || i.quantity || 1 })),
         coupon_code: couponApplied || undefined,
@@ -282,23 +277,45 @@ export default function FinalizarCompraPage() {
       });
       const orders = Array.isArray(created) ? created : created ? [created] : [];
       const orderId = orders[0]?.id;
+      if (!orderId) {
+        throw new Error('Pedido criado sem identificador. Tente novamente.');
+      }
+
+      // 2) Cria a preferência de pagamento (Checkout Pro do Mercado Pago).
+      const pref = await paymentService.createPreference(orderId);
+      const initPoint = pref?.init_point || pref?.sandbox_init_point;
+      if (!initPoint) {
+        throw new Error('Não foi possível iniciar o pagamento. Tente novamente.');
+      }
+
+      // 3) Redireciona o navegador para o checkout do Mercado Pago.
+      // (cartão/Pix/boleto são tratados lá; a retirada presencial usa o mesmo fluxo de cobrança).
       setShowPix(false);
       setShowCard(false);
       setShowBoleto(false);
-      toast({
-        title: 'Pedido confirmado!',
-        description: 'Seu pagamento foi processado com sucesso.',
-        variant: 'success',
-      });
       if (typeof clear === 'function') clear();
-      router.push(`/pedido-confirmado/${orderId ?? ''}`);
+      window.location.href = initPoint;
+      // Mantém o loading ativo durante o redirect (não chega no finally por causa do return).
+      return;
     } catch (e) {
-      toast({
-        title: 'Não foi possível finalizar o pedido',
-        description: e?.message,
-        variant: 'destructive',
-      });
-    } finally {
+      // Gateway não configurado no painel admin (ex.: 503 / PAYMENT_NOT_CONFIGURED).
+      const notConfigured =
+        e?.status === 503 ||
+        e?.code === 'PAYMENT_NOT_CONFIGURED' ||
+        e?.code === 'GATEWAY_NOT_CONFIGURED';
+      if (notConfigured) {
+        toast({
+          title: 'Pagamento indisponível',
+          description: 'Configure o Mercado Pago no painel admin para concluir a compra.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Não foi possível finalizar o pedido',
+          description: e?.message,
+          variant: 'destructive',
+        });
+      }
       setSubmitting(false);
     }
   }
@@ -313,16 +330,7 @@ export default function FinalizarCompraPage() {
     } else if (paymentMethod === 'credit') {
       setShowCard(true);
     } else if (paymentMethod === 'boleto') {
-      setSubmitting(true);
       setShowBoleto(true);
-      setTimeout(() => setSubmitting(false), 800);
-    }
-  }
-
-  function copyToClipboard(text, label) {
-    if (navigator?.clipboard) {
-      navigator.clipboard.writeText(text);
-      toast({ title: label || 'Copiado!', variant: 'success', duration: 2000 });
     }
   }
 
@@ -966,25 +974,19 @@ export default function FinalizarCompraPage() {
         }
         footer={
           <>
-            <Button variant="outline" onClick={() => setShowPix(false)}>
+            <Button variant="outline" onClick={() => setShowPix(false)} disabled={submitting}>
               Fechar
             </Button>
-            <Button onClick={finishOrder}>Confirmar Pagamento</Button>
+            <Button onClick={finishOrder} loading={submitting}>
+              Ir para o pagamento
+            </Button>
           </>
         }
       >
         <div className={styles.pixQrWrap}>
-          <div className={styles.pixQr} aria-label="QR Code PIX (mock)">
-            <Icon name="grid" size={64} className={styles.pixQrIcon} />
+          <div className={styles.pixQr} aria-label="QR Code PIX">
+            <Icon name="pix" size={64} className={styles.pixQrIcon} />
           </div>
-        </div>
-
-        <label className={styles.label}>Código PIX (Copia e Cola)</label>
-        <div className={styles.copyRow}>
-          <Input value={PIX_MOCK_CODE} readOnly className={styles.copyInput} />
-          <Button variant="outline" onClick={() => copyToClipboard(PIX_MOCK_CODE, 'Código PIX copiado!')}>
-            Copiar
-          </Button>
         </div>
 
         <div className={styles.modalInfo}>
@@ -1003,9 +1005,9 @@ export default function FinalizarCompraPage() {
         </div>
 
         <ol className={styles.pixSteps}>
-          <li>Abra o app do seu banco</li>
-          <li>Escaneie o QR Code ou cole o código PIX</li>
-          <li>Confirme o pagamento</li>
+          <li>Clique em &quot;Ir para o pagamento&quot;</li>
+          <li>O QR Code e o Copia e Cola são gerados no Mercado Pago</li>
+          <li>Confirme o pagamento no app do seu banco</li>
         </ol>
         <p className={styles.pixHint}>O pagamento será confirmado automaticamente!</p>
       </Modal>
@@ -1023,10 +1025,12 @@ export default function FinalizarCompraPage() {
         }
         footer={
           <>
-            <Button variant="outline" onClick={() => setShowCard(false)}>
+            <Button variant="outline" onClick={() => setShowCard(false)} disabled={submitting}>
               Cancelar
             </Button>
-            <Button onClick={finishOrder}>Pagar com Cartão</Button>
+            <Button onClick={finishOrder} loading={submitting}>
+              Ir para o pagamento
+            </Button>
           </>
         }
       >
@@ -1098,11 +1102,11 @@ export default function FinalizarCompraPage() {
         }
         footer={
           <>
-            <Button variant="outline" onClick={() => setShowBoleto(false)}>
+            <Button variant="outline" onClick={() => setShowBoleto(false)} disabled={submitting}>
               Fechar
             </Button>
-            <Button onClick={finishOrder} disabled={submitting}>
-              Confirmar Pedido
+            <Button onClick={finishOrder} loading={submitting}>
+              Ir para o pagamento
             </Button>
           </>
         }
@@ -1110,24 +1114,18 @@ export default function FinalizarCompraPage() {
         {submitting ? (
           <div className={styles.loadingBox}>
             <Spinner size={32} />
-            <p>Gerando seu boleto...</p>
+            <p>Redirecionando para o pagamento seguro...</p>
           </div>
         ) : (
           <>
             <div className={styles.boletoBanner}>
-              <Icon name="check" size={22} className={styles.confirmIcon} />
+              <Icon name="barcode" size={22} className={styles.confirmIcon} />
               <div>
-                <div className={styles.confirmTitle}>Boleto gerado com sucesso!</div>
-                <div className={styles.confirmLine}>Vencimento em 3 dias úteis.</div>
+                <div className={styles.confirmTitle}>Boleto pelo Mercado Pago</div>
+                <div className={styles.confirmLine}>
+                  A linha digitável será emitida na próxima etapa, com vencimento em 3 dias úteis.
+                </div>
               </div>
-            </div>
-
-            <label className={styles.label}>Linha digitável</label>
-            <div className={styles.copyRow}>
-              <Input value={boletoCode} readOnly className={styles.copyInput} />
-              <Button variant="outline" onClick={() => copyToClipboard(boletoCode, 'Linha digitável copiada!')}>
-                Copiar
-              </Button>
             </div>
 
             <div className={styles.barcodeStrip} aria-hidden="true">

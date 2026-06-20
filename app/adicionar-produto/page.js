@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import { cx } from '@/lib/cx';
@@ -44,6 +44,12 @@ const SHIPPING_METHODS = [
 
 const STEPS = 3;
 
+const HIGHLIGHT_TIERS = [
+  { tier: 'silver', name: 'Prata', icon: '🥈', desc: 'Mais cliques e posição de destaque na busca.' },
+  { tier: 'gold', name: 'Ouro', icon: '🥇', desc: 'Visibilidade premium + selo de destaque.' },
+  { tier: 'diamond', name: 'Diamante', icon: '💎', desc: 'Topo absoluto, máxima exposição na home.' },
+];
+
 export default function AdicionarProdutoPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -56,7 +62,98 @@ export default function AdicionarProdutoPage() {
   const [saveAsDefault, setSaveAsDefault] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Geolocalização (opcional — exigida por algumas categorias).
+  const [geo, setGeo] = useState({ latitude: null, longitude: null });
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoRequired, setGeoRequired] = useState(false);
+  const geoRef = useRef(null);
+
+  // Modal de plano exigido pela categoria (PLAN_REQUIRED).
+  const [planModal, setPlanModal] = useState(false);
+
+  // Upsell de destaque pós-publicação.
+  const [createdProduct, setCreatedProduct] = useState(null);
+  const [highlightTier, setHighlightTier] = useState(null);
+  const [highlightLoading, setHighlightLoading] = useState(false);
+
   const set = (patch) => setForm((prev) => ({ ...prev, ...patch }));
+
+  function captureLocation() {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      toast({ title: 'Geolocalização indisponível neste navegador.', variant: 'destructive' });
+      return;
+    }
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGeo({
+          latitude: Number(pos.coords.latitude.toFixed(6)),
+          longitude: Number(pos.coords.longitude.toFixed(6)),
+        });
+        setGeoRequired(false);
+        setGeoLoading(false);
+        toast({ title: 'Localização capturada!', variant: 'success', duration: 2500 });
+      },
+      (err) => {
+        setGeoLoading(false);
+        toast({
+          title: 'Não foi possível obter sua localização',
+          description: err && err.message ? err.message : 'Permita o acesso à localização e tente novamente.',
+          variant: 'destructive',
+        });
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
+  function clearLocation() {
+    setGeo({ latitude: null, longitude: null });
+  }
+
+  function goToUpgrade() {
+    setPlanModal(false);
+    router.push('/upgrade-conta');
+  }
+
+  async function buyHighlight(tier) {
+    if (!createdProduct) return;
+    setHighlightTier(tier);
+    setHighlightLoading(true);
+    try {
+      const res = await productService.highlight(createdProduct.id, { tier });
+      const redirect = res && (res.init_point || res.redirect_url || res.checkout_url);
+      const pix = res && (res.pix_qr_code || res.qr_code || res.copy_paste);
+      if (redirect) {
+        toast({ title: 'Redirecionando para o pagamento...', variant: 'success', duration: 2500 });
+        window.location.href = redirect;
+        return;
+      }
+      if (pix) {
+        toast({
+          title: 'Pix gerado para o destaque!',
+          description: 'Use o código Pix retornado para concluir o pagamento.',
+          variant: 'success',
+          duration: 5000,
+        });
+      } else {
+        toast({ title: 'Destaque solicitado com sucesso!', variant: 'success' });
+      }
+      router.push('/minha-conta?tab=meus-produtos');
+    } catch (err) {
+      toast({
+        title: 'Erro ao contratar destaque',
+        description: err instanceof ApiError ? err.message : 'Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setHighlightLoading(false);
+    }
+  }
+
+  function skipHighlight() {
+    setCreatedProduct(null);
+    router.push('/minha-conta?tab=meus-produtos');
+  }
 
   // Comissão padrão real (refletindo o que o admin edita no painel).
   const [stdFee, setStdFee] = useState(10);
@@ -121,6 +218,11 @@ export default function AdicionarProdutoPage() {
       specifications: form.specifications,
       images: images.map((im) => im.preview),
       requires_shipping: true,
+      ...(geo.latitude != null && geo.longitude != null
+        ? { latitude: geo.latitude, longitude: geo.longitude }
+        : {}),
+      ...(form.city ? { city: form.city } : {}),
+      ...(form.state ? { state: form.state } : {}),
       weight_grams: form.packageWeight ? Math.round(Number(form.packageWeight) * 1000) : null,
       dimensions: {
         width: Number(form.packageWidth) || null,
@@ -144,13 +246,37 @@ export default function AdicionarProdutoPage() {
         description: `"${product?.title || form.title}" foi publicado.`,
         variant: 'success',
       });
-      router.push('/minha-conta?tab=meus-produtos');
+      // Em vez de redirecionar direto, abre o upsell de destaque.
+      setCreatedProduct({ id: product?.id, title: product?.title || form.title });
     } catch (err) {
-      toast({
-        title: 'Erro ao criar produto',
-        description: err instanceof ApiError ? err.message : 'Tente novamente.',
-        variant: 'destructive',
-      });
+      if (err instanceof ApiError && err.code === 'GEO_REQUIRED') {
+        setGeoRequired(true);
+        toast({
+          title: 'Localização obrigatória',
+          description: 'Esta categoria exige geolocalização. Use "Usar minha localização" na Etapa 2.',
+          variant: 'destructive',
+          duration: 6000,
+        });
+        setCurrentStep(2);
+        // Rola até a seção de geo após renderizar a etapa.
+        setTimeout(() => {
+          if (geoRef.current) geoRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 120);
+      } else if (err instanceof ApiError && err.code === 'PLAN_REQUIRED') {
+        setPlanModal(true);
+        toast({
+          title: 'Plano necessário',
+          description: 'Esta categoria exige um plano ativo para publicar produtos.',
+          variant: 'destructive',
+          duration: 6000,
+        });
+      } else {
+        toast({
+          title: 'Erro ao criar produto',
+          description: err instanceof ApiError ? err.message : 'Tente novamente.',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setSubmitting(false);
     }
@@ -273,6 +399,39 @@ export default function AdicionarProdutoPage() {
                     />
                   </div>
                 )}
+
+                {/* Localização (opcional / exigida por algumas categorias) */}
+                <div
+                  ref={geoRef}
+                  className={cx(styles.geoBox, geoRequired && styles.geoBoxRequired)}
+                >
+                  <div className={styles.geoHead}>
+                    <Icon name="map-pin" size={18} className={styles.info} />
+                    <h3 className={styles.panelTitle}>Localização (entrega)</h3>
+                  </div>
+                  <p className={styles.hint}>
+                    Capture sua localização para anúncios com retirada/entrega local. Algumas
+                    categorias exigem geolocalização para publicar.
+                  </p>
+                  <div className={styles.geoRow}>
+                    <Button variant="outline" size="sm" onClick={captureLocation} loading={geoLoading}>
+                      {geoLoading ? 'Capturando...' : 'Usar minha localização'}
+                    </Button>
+                    {geo.latitude != null && geo.longitude != null && (
+                      <>
+                        <span className={styles.geoCoords}>
+                          📍 {geo.latitude}, {geo.longitude}
+                        </span>
+                        <button type="button" className={styles.geoClear} onClick={clearLocation}>
+                          Limpar
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  {geoRequired && geo.latitude == null && (
+                    <p className={styles.geoWarn}>Esta categoria exige geolocalização para publicar.</p>
+                  )}
+                </div>
 
                 {/* Dados de envio */}
                 <div className={styles.field}>
@@ -542,6 +701,64 @@ export default function AdicionarProdutoPage() {
         onClose={() => setShowCategoryModal(false)}
         onConfirm={handleConfirmCategory}
       />
+
+      {/* Modal: categoria exige plano ativo */}
+      {planModal && (
+        <div className={styles.modalOverlay} onClick={() => setPlanModal(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.modalTitle}>Plano necessário</h3>
+            <p className={styles.modalText}>
+              A categoria selecionada exige um plano ativo para publicar produtos. Contrate um plano
+              para liberar a publicação nesta categoria.
+            </p>
+            <div className={styles.modalActions}>
+              <Button variant="outline" onClick={() => setPlanModal(false)}>
+                Agora não
+              </Button>
+              <Button onClick={goToUpgrade}>Ver planos</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: upsell de destaque pós-publicação */}
+      {createdProduct && (
+        <div className={styles.modalOverlay}>
+          <div className={cx(styles.modal, styles.modalWide)} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.modalTitle}>Destaque seu produto 🚀</h3>
+            <p className={styles.modalText}>
+              "{createdProduct.title}" foi publicado! Quer aparecer no topo e vender mais rápido?
+              Escolha um destaque:
+            </p>
+            <div className={styles.tierGrid}>
+              {HIGHLIGHT_TIERS.map((t) => (
+                <button
+                  key={t.tier}
+                  type="button"
+                  className={cx(
+                    styles.tierCard,
+                    highlightTier === t.tier && highlightLoading && styles.tierCardActive
+                  )}
+                  disabled={highlightLoading}
+                  onClick={() => buyHighlight(t.tier)}
+                >
+                  <span className={styles.tierIcon}>{t.icon}</span>
+                  <span className={styles.tierName}>{t.name}</span>
+                  <span className={styles.tierDesc}>{t.desc}</span>
+                  {highlightTier === t.tier && highlightLoading && (
+                    <span className={styles.tierLoading}>Processando...</span>
+                  )}
+                </button>
+              ))}
+            </div>
+            <div className={styles.modalActions}>
+              <Button variant="outline" onClick={skipHighlight} disabled={highlightLoading}>
+                Pular
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
