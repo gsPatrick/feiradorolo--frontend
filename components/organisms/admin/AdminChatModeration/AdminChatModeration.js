@@ -67,55 +67,10 @@ function CheckCircleIcon({ size = 32 }) {
   );
 }
 
-/* — DADOS MOCK — */
-const REPORTS = [
-  {
-    id: 1, status: 'pending', reason: 'spam',
-    createdAt: '2026-06-18',
-    questionText: 'Esse produto é original? Compre no meu site www.ofertas-imperdiveis.xyz com 90% OFF!!!',
-    questionUserName: 'mega_promo_22', productName: 'iPhone 14 Pro Max 256GB',
-    description: 'Usuário está divulgando link externo suspeito nas perguntas.',
-    reporterName: 'Carla Mendes',
-  },
-  {
-    id: 2, status: 'pending', reason: 'offensive',
-    createdAt: '2026-06-17',
-    questionText: 'Que produto lixo, o vendedor é um golpista e não merece estar aqui.',
-    questionUserName: 'joao_revoltado', productName: 'Tênis Nike Air Max',
-    description: 'Linguagem ofensiva direcionada ao vendedor.',
-    reporterName: 'TechStore Oficial',
-  },
-  {
-    id: 3, status: 'pending', reason: 'inappropriate',
-    createdAt: '2026-06-16',
-    questionText: 'Me passa seu WhatsApp e número da conta pra eu fazer o pagamento por fora?',
-    questionUserName: 'comprador_fantasma', productName: 'PlayStation 5 Slim',
-    description: 'Tentativa de negociação fora da plataforma.',
-    reporterName: 'Rodrigo Lima',
-  },
-  { id: 4, status: 'approved', reason: 'spam', createdAt: '2026-06-12' },
-  { id: 5, status: 'approved', reason: 'offensive', createdAt: '2026-06-10' },
-  { id: 6, status: 'rejected', reason: 'inappropriate', createdAt: '2026-06-09' },
-  { id: 7, status: 'rejected', reason: 'outros', createdAt: '2026-06-08' },
-];
-
-const SUSPICIOUS_MESSAGES = [
-  {
-    id: 1, category: 'Contato externo', timestamp: '2026-06-18',
-    content: 'Bora fechar por fora? Te chamo no zap 11 9 8888-7777, sai mais barato.',
-    senderName: 'vendedor_esperto', flagReason: 'Compartilhamento de telefone / negociação externa',
-  },
-  {
-    id: 2, category: 'Pagamento suspeito', timestamp: '2026-06-17',
-    content: 'Faz um Pix adiantado pra essa chave que eu reservo o produto pra você.',
-    senderName: 'oferta_relampago', flagReason: 'Solicitação de pagamento antecipado fora do checkout',
-  },
-  {
-    id: 3, category: 'Linguagem ofensiva', timestamp: '2026-06-16',
-    content: 'Você é muito lerdo pra responder, seu atendimento é uma vergonha.',
-    senderName: 'cliente_nervoso', flagReason: 'Palavras detectadas pelo filtro automático de ofensas',
-  },
-];
+// Denúncias de conteúdo ainda não têm endpoint dedicado na API — sem mock.
+const REPORTS = [];
+// Mensagens suspeitas vêm de adminService.flaggedChats() (dado real).
+const SUSPICIOUS_MESSAGES = [];
 
 const TABS = [
   { k: 'reports', l: 'Denúncias', icon: 'flag' },
@@ -303,7 +258,7 @@ export default function AdminChatModeration() {
   const pending = reports.filter((r) => r.status === 'pending');
   const approved = reports.filter((r) => r.status === 'approved');
   const rejected = reports.filter((r) => r.status === 'rejected');
-  const blockedUsers = 5;
+  const blockedUsers = '—';
 
   function approve(id) {
     setReports((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'approved' } : r)));

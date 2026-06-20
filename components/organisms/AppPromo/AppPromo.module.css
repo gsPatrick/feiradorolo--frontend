@@ -102,3 +102,19 @@
   font-size: 0.82rem;
   color: var(--text-dim);
 }
+
+/* Selo "Em breve" */
+.soonPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #92400e;
+  background: var(--feira-yellow-soft, #fef9c3);
+  border: 1px solid var(--feira-yellow, #ffd700);
+  border-radius: 999px;
+}

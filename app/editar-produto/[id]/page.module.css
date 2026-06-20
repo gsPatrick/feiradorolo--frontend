@@ -563,3 +563,42 @@
     padding-right: 18px;
   }
 }
+
+/* Estados de carregamento / erro (carregando produto real da API) */
+.stateBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  padding: 64px 28px;
+  min-height: 280px;
+}
+.stateIcon {
+  color: var(--muted-foreground, #94a3b8);
+}
+.stateTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+.stateText {
+  font-size: 0.95rem;
+  color: var(--muted-foreground, #64748b);
+  max-width: 420px;
+  line-height: 1.5;
+}
+.spinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary, #2563eb);
+  animation: editProductSpin 0.7s linear infinite;
+}
+@keyframes editProductSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}

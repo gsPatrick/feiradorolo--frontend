@@ -35,24 +35,26 @@ export default function AppPromo() {
           ))}
         </div>
 
+        <span className={styles.soonPill}>🚀 Em breve</span>
+
         <div className={styles.badges}>
-          <a href={links.google_play || '#'} className={styles.badge}>
+          <a href="/aplicativo" className={styles.badge}>
             <img src="/app/googleplay.png" alt="" className={styles.badgeImg} />
             <span className={styles.badgeText}>
-              <small>DISPONÍVEL NO</small>
+              <small>EM BREVE NO</small>
               <strong>Google Play</strong>
             </span>
           </a>
-          <a href={links.app_store || '#'} className={styles.badge}>
+          <a href="/aplicativo" className={styles.badge}>
             <img src="/app/apple.png" alt="" className={`${styles.badgeImg} ${styles.badgeImgWhite}`} />
             <span className={styles.badgeText}>
-              <small>BAIXAR NA</small>
+              <small>EM BREVE NA</small>
               <strong>App Store</strong>
             </span>
           </a>
         </div>
 
-        <span className={styles.note}>{note}</span>
+        <span className={styles.note}>Estamos finalizando o app — disponível em breve para Android e iOS.</span>
       </div>
     </section>
   );

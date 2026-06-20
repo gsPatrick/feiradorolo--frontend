@@ -14,9 +14,13 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { orderService, favoriteService, userService, addressService, productService, uploadImage, mapProduct, ApiError } from '@/lib/api';
 import { maskPhone, maskCPF, maskCNPJ, onlyDigits, isEmail, isPhone, isCPF, isCNPJ } from '@/lib/masks';
-import {
-  USER, SELLER_STATS, RECENT_SALES, STATUS_LABELS,
-} from '@/lib/mock-account';
+// Rótulos de status dos pedidos (mapa estático de UI).
+const STATUS_LABELS = {
+  paid: { label: 'Pago', variant: 'info' },
+  shipped: { label: 'Enviado', variant: 'brand' },
+  delivered: { label: 'Entregue', variant: 'success' },
+  cancelled: { label: 'Cancelado', variant: 'danger' },
+};
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -708,20 +712,20 @@ function ProfileTab({ onEdit, user }) {
 /* — Vendas: Dashboard — */
 function SalesDashboard({ sales = [], salesState = 'idle', onRetry, onAuth }) {
   const hasData = salesState === 'ready' && sales.length > 0;
-  // Estatísticas reais derivadas dos pedidos de venda; sem dado, mantém o mock.
-  const revenue = hasData ? sales.reduce((acc, s) => acc + (Number(s.total) || 0), 0) : SELLER_STATS.today;
-  const soldCount = hasData ? sales.length : SELLER_STATS.sold;
+  // Estatísticas reais derivadas dos pedidos de venda; sem dado, zera (sem mock).
+  const revenue = hasData ? sales.reduce((acc, s) => acc + (Number(s.total) || 0), 0) : 0;
+  const soldCount = hasData ? sales.length : 0;
   const pendingCount = hasData
     ? sales.filter((s) => s.status === 'pending' || s.status === 'paid').length
-    : SELLER_STATS.pending;
-  // Vendas recentes reais (até 5); sem dado, mantém o mock.
+    : 0;
+  // Vendas recentes reais (até 5); sem dado, lista vazia (sem mock).
   const recent = hasData
     ? sales.slice(0, 5).map((s) => {
         const items = Array.isArray(s.items) ? s.items : [];
         const title = (items[0] && items[0].title_snapshot) || `Pedido ${s.id}`;
         return { id: s.id, title, time: formatOrderDate(s.created_at), price: Number(s.total) || 0, status: s.status };
       })
-    : RECENT_SALES;
+    : [];
 
   return (
     <>

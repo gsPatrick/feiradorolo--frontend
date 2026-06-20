@@ -12,7 +12,14 @@ import EmptyState from '@/components/molecules/EmptyState/EmptyState';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { orderService, escrowService } from '@/lib/api';
-import { STATUS_LABELS } from '@/lib/mock-account';
+
+// Rótulos de status dos pedidos (mapa estático de UI).
+const STATUS_LABELS = {
+  paid: { label: 'Pago', variant: 'info' },
+  shipped: { label: 'Enviado', variant: 'brand' },
+  delivered: { label: 'Entregue', variant: 'success' },
+  cancelled: { label: 'Cancelado', variant: 'default' },
+};
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const DATE = new Intl.DateTimeFormat('pt-BR');

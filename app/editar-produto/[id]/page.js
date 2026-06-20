@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import styles from './page.module.css';
 import { cx } from '@/lib/cx';
+import { productService, getToken, ApiError } from '@/lib/api';
 import { useToast } from '@/components/providers/ToastProvider';
 import Button from '@/components/atoms/Button/Button';
 import Input from '@/components/atoms/Input/Input';
@@ -26,43 +27,47 @@ const SHIPPING_METHODS = [
 
 const STEPS = 3;
 
-// MOCK: monta um produto a partir do id (sem backend real)
-const MOCK_TITLES = [
-  'iPhone 13 Pro Max 256GB',
-  'Tênis de corrida edição limitada Aurora',
-  'Relógio analógico aço inoxidável',
-  'Fone Bluetooth com cancelamento de ruído',
-  'Cadeira gamer ergonômica reclinável',
-];
-const MOCK_CONDITIONS = ['new', 'used', 'refurbished'];
+const EMPTY_FORM = {
+  title: '',
+  description: '',
+  price: '',
+  stock: '',
+  condition: 'new',
+  categoryId: null,
+  packageWeight: '',
+  packageWidth: '',
+  packageHeight: '',
+  packageLength: '',
+  platformFee: '10',
+  shippingMethods: [],
+  specifications: {},
+  customOrder: false,
+  customOrderDays: '3',
+};
 
-function buildMockProduct(id) {
-  const n = Math.max(1, parseInt(id, 10) || 1);
-  const idx = (n - 1) % MOCK_TITLES.length;
-  const title = MOCK_TITLES[idx];
+/** Mapeia o produto retornado pela API para o estado do formulário desta página. */
+function productToForm(p) {
+  const meta = p.metadata || {};
+  const dims = p.dimensions || {};
+  const fee = meta.platform_fee != null ? String(meta.platform_fee) : '10';
   return {
-    title,
-    description:
-      'Produto em excelente estado, com garantia e envio rápido. Ideal para o dia a dia, ' +
-      'combinando qualidade, durabilidade e o melhor custo-benefício do marketplace.',
-    price: String((199.9 + n * 30).toFixed(2)),
-    stock: String(((n * 3) % 25) + 1),
-    condition: MOCK_CONDITIONS[(n - 1) % MOCK_CONDITIONS.length],
-    categoryId: 1,
-    packageWeight: '1.0',
-    packageWidth: '20',
-    packageHeight: '15',
-    packageLength: '25',
-    platformFee: n % 2 === 0 ? '15' : '10',
-    shippingMethods: ['correios-pac', 'correios-sedex'],
-    specifications: {},
-    customOrder: false,
-    customOrderDays: '3',
+    title: p.title || '',
+    description: p.description || '',
+    price: p.price != null ? String(p.price) : '',
+    stock: p.stock != null ? String(p.stock) : '',
+    condition: p.condition || 'new',
+    categoryId: p.category_id || (p.category && p.category.id) || null,
+    packageWeight: p.weight_grams != null ? String(p.weight_grams / 1000) : '',
+    packageWidth: dims.width != null ? String(dims.width) : '',
+    packageHeight: dims.height != null ? String(dims.height) : '',
+    packageLength: dims.length != null ? String(dims.length) : '',
+    platformFee: fee === '15' ? '15' : '10',
+    shippingMethods: Array.isArray(meta.shipping_methods) ? meta.shipping_methods : [],
+    specifications: p.specifications || {},
+    customOrder: !!meta.custom_order,
+    customOrderDays: meta.custom_order_days != null ? String(meta.custom_order_days) : '3',
   };
 }
-
-// Caminho de categoria mockado para exibir no botão de categoria
-const MOCK_CATEGORY_PATH = [{ id: 1, name: 'Eletrônicos', icon: '📱' }];
 
 export default function EditarProdutoPage() {
   const router = useRouter();
@@ -72,16 +77,56 @@ export default function EditarProdutoPage() {
   const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
 
   const [currentStep, setCurrentStep] = useState(1);
-  const [form, setForm] = useState(() => buildMockProduct(id));
+  const [form, setForm] = useState(EMPTY_FORM);
   const [images, setImages] = useState([]);
-  const [categoryPath, setCategoryPath] = useState(MOCK_CATEGORY_PATH);
+  const [categoryPath, setCategoryPath] = useState([]);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [saveAsDefault, setSaveAsDefault] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  // Carregamento do produto real.
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+
   const set = (patch) => setForm((prev) => ({ ...prev, ...patch }));
+
+  // Busca o produto real na API e popula o formulário.
+  useEffect(() => {
+    if (!id) return;
+    let active = true;
+    setLoading(true);
+    setLoadError(null);
+    productService
+      .getById(id)
+      .then((p) => {
+        if (!active) return;
+        if (!p) {
+          setLoadError({ code: 'PRODUCT_NOT_FOUND', message: 'Produto não encontrado.' });
+          return;
+        }
+        setForm(productToForm(p));
+        const imgs = Array.isArray(p.images) ? p.images : [];
+        setImages(imgs.map((url, i) => ({ id: `existing-${i}`, url, preview: url })));
+        const cat = p.category;
+        setCategoryPath(cat ? [{ id: cat.id, name: cat.name, icon: cat.icon || null }] : []);
+      })
+      .catch((err) => {
+        if (!active) return;
+        setLoadError(
+          err instanceof ApiError
+            ? { code: err.code, status: err.status, message: err.message }
+            : { message: 'Erro ao carregar o produto.' }
+        );
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [id]);
 
   const feePercent = form.platformFee === '15' ? 0.15 : 0.1;
   const price = Number(form.price) || 0;
@@ -124,17 +169,60 @@ export default function EditarProdutoPage() {
       toast({ title: 'Selecione uma categoria na Etapa 1.', variant: 'destructive' });
       return;
     }
+    if (!getToken()) {
+      toast({ title: 'Faça login para salvar as alterações.', variant: 'destructive' });
+      router.push('/login');
+      return;
+    }
+
+    const payload = {
+      title: form.title.trim(),
+      description: form.description,
+      price: Number(form.price) || 0,
+      stock: Number(form.stock) || 0,
+      condition: form.condition,
+      category_id: form.categoryId,
+      specifications: form.specifications,
+      images: images.map((im) => im.preview),
+      requires_shipping: true,
+      weight_grams: form.packageWeight ? Math.round(Number(form.packageWeight) * 1000) : null,
+      dimensions: {
+        width: Number(form.packageWidth) || null,
+        height: Number(form.packageHeight) || null,
+        length: Number(form.packageLength) || null,
+      },
+      metadata: {
+        platform_fee: form.platformFee,
+        shipping_methods: form.shippingMethods,
+        save_shipping_as_default: saveAsDefault,
+        custom_order: form.customOrder,
+        custom_order_days: form.customOrder ? Number(form.customOrderDays) : null,
+      },
+    };
 
     setSubmitting(true);
-    // Simula persistência (sem backend real neste mock)
-    await new Promise((r) => setTimeout(r, 500));
-    toast({
-      title: 'Alterações salvas com sucesso!',
-      description: `"${form.title}" foi atualizado.`,
-      variant: 'success',
-    });
-    setSubmitting(false);
-    router.push('/minha-conta?tab=meus-produtos');
+    try {
+      await productService.update(id, payload);
+      toast({
+        title: 'Alterações salvas com sucesso!',
+        description: `"${form.title}" foi atualizado.`,
+        variant: 'success',
+      });
+      router.push('/minha-conta?tab=meus-produtos');
+    } catch (err) {
+      const notOwner = err instanceof ApiError && (err.status === 403 || err.code === 'NOT_PRODUCT_OWNER');
+      toast({
+        title: notOwner ? 'Você não pode editar este produto' : 'Erro ao salvar alterações',
+        description: notOwner
+          ? 'Apenas o dono do anúncio pode editá-lo.'
+          : err instanceof ApiError
+          ? err.message
+          : 'Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   async function handleDelete() {
@@ -144,6 +232,54 @@ export default function EditarProdutoPage() {
     setShowDeleteModal(false);
     toast({ title: 'Produto excluído', variant: 'success' });
     router.push('/minha-conta?tab=meus-produtos');
+  }
+
+  // Estado de carregamento: não exibe o formulário enquanto busca o produto real.
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.container}>
+          <div className={styles.card}>
+            <div className={styles.stateBox}>
+              <span className={styles.spinner} aria-hidden="true" />
+              <p className={styles.stateText}>Carregando produto...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Estado de erro (404 / 403 / falha de rede) com mensagem amigável e botão de voltar.
+  if (loadError) {
+    const notOwner = loadError.status === 403 || loadError.code === 'NOT_PRODUCT_OWNER';
+    const notFound = loadError.status === 404 || loadError.code === 'PRODUCT_NOT_FOUND';
+    const title = notOwner
+      ? 'Você não pode editar este produto'
+      : notFound
+      ? 'Produto não encontrado'
+      : 'Erro ao carregar';
+    const message = notOwner
+      ? 'Apenas o dono do anúncio pode editá-lo.'
+      : notFound
+      ? 'O produto que você tentou editar não existe ou foi removido.'
+      : loadError.message || 'Não foi possível carregar o produto. Tente novamente.';
+    return (
+      <div className={styles.page}>
+        <div className={styles.container}>
+          <div className={styles.card}>
+            <div className={styles.stateBox}>
+              <Icon name="package" size={32} className={styles.stateIcon} />
+              <h1 className={styles.stateTitle}>{title}</h1>
+              <p className={styles.stateText}>{message}</p>
+              <Button onClick={() => router.push('/minha-conta?tab=meus-produtos')}>
+                Voltar para meus produtos
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
