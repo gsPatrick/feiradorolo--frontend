@@ -34,15 +34,41 @@
   justify-content: center;
   width: 38px;
   height: 38px;
-  border: none;
+  border: 1px solid var(--border, #e2e8f0);
   border-radius: var(--r-md);
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
+  background: #fff;
+  color: #0f172a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   cursor: pointer;
   transition: background var(--t-fast) var(--ease);
 }
 .close:hover {
-  background: rgba(255, 255, 255, 0.28);
+  background: #f1f5f9;
+}
+
+/* Seletor de tipo de conta (PF/PJ) no cadastro */
+.acctType {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.acctBtn {
+  flex: 1;
+  padding: 9px 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--muted-foreground, #64748b);
+  background: var(--bg-1, #f8fafc);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: var(--r-md, 10px);
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease);
+}
+.acctBtnActive {
+  color: #0f172a;
+  background: var(--feira-yellow-soft, #fef9c3);
+  border-color: var(--feira-yellow, #ffd700);
 }
 
 /* ---- Caixas de formulário ---- */

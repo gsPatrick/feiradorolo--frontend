@@ -170,18 +170,6 @@ export default function AuthForm({ initialMode = 'login', showTestAccounts = fal
         {isLogin ? 'Entrar' : 'Criar conta'}
       </Button>
 
-      <div className={styles.divider}>
-        <span>ou continue com</span>
-      </div>
-      <div className={styles.social}>
-        <button type="button" className={styles.socialBtn}>
-          <span className={styles.gmark}>G</span> Google
-        </button>
-        <button type="button" className={styles.socialBtn}>
-          <Icon name="facebook" size={18} /> Facebook
-        </button>
-      </div>
-
       {showTestAccounts && (
         <div className={styles.testBox}>
           <span className={styles.testTitle}>Contas de teste · senha 123456</span>

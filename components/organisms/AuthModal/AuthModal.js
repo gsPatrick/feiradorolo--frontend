@@ -8,12 +8,7 @@ import Button from '../../atoms/Button/Button';
 import Icon from '../../atoms/Icon/Icon';
 import { authService, setToken } from '@/lib/api';
 import { useToast } from '../../providers/ToastProvider';
-
-const IApple = (p) => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" {...p}>
-    <path d="M16.36 1.43c.05 1.07-.36 2.1-1.07 2.86-.74.8-1.94 1.42-3.06 1.33-.13-1.04.39-2.12 1.05-2.82.74-.79 2.02-1.38 3.08-1.37ZM20.5 17.2c-.55 1.27-.82 1.84-1.53 2.96-.99 1.57-2.39 3.52-4.12 3.53-1.54.02-1.94-1-4.03-.99-2.09.01-2.53 1.01-4.07.99-1.73-.02-3.05-1.78-4.04-3.34C-.06 16.01-.35 10.9 1.34 8.19c1.2-1.93 3.1-3.06 4.88-3.06 1.82 0 2.96 1 4.46 1 1.46 0 2.35-1 4.45-1 1.59 0 3.27.86 4.47 2.35-3.93 2.15-3.29 7.76.4 9.72Z" />
-  </svg>
-);
+import { maskPhone, maskCPF, maskCNPJ, onlyDigits } from '@/lib/masks';
 
 export default function AuthModal({ open, onClose, initialMode = 'login', onAuthenticated }) {
   const { toast } = useToast();
@@ -21,7 +16,7 @@ export default function AuthModal({ open, onClose, initialMode = 'login', onAuth
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [login, setLogin] = useState({ email: '', password: '' });
-  const [reg, setReg] = useState({ name: '', email: '', password: '' });
+  const [reg, setReg] = useState({ name: '', accountType: 'individual', document: '', phone: '', email: '', password: '' });
   const [forgotEmail, setForgotEmail] = useState('');
   const [showPwd, setShowPwd] = useState(false);
 
@@ -79,10 +74,19 @@ export default function AuthModal({ open, onClose, initialMode = 'login', onAuth
   async function doRegister(e) {
     e.preventDefault();
     setError('');
-    if (!reg.name || !reg.email || !reg.password) return setError('Preencha todos os campos.');
+    if (!reg.name || !reg.email || !reg.password) return setError('Preencha nome, e-mail e senha.');
+    if (!reg.document) return setError(reg.accountType === 'company' ? 'Informe o CNPJ.' : 'Informe o CPF.');
     setLoading(true);
     try {
-      const data = await authService.register({ name: reg.name, email: reg.email, password: reg.password });
+      const data = await authService.register({
+        name: reg.name,
+        email: reg.email,
+        password: reg.password,
+        phone: reg.phone ? onlyDigits(reg.phone) : undefined,
+        person_type: reg.accountType,
+        cpf: reg.accountType === 'individual' ? onlyDigits(reg.document) : undefined,
+        cnpj: reg.accountType === 'company' ? onlyDigits(reg.document) : undefined,
+      });
       if (data && data.token) finish(data, 'Conta criada!');
       else {
         toast({ title: 'Conta criada!', description: 'Verifique seu e-mail.', variant: 'success' });
@@ -102,17 +106,6 @@ export default function AuthModal({ open, onClose, initialMode = 'login', onAuth
     toast({ title: 'Link enviado!', description: 'Confira seu e-mail para redefinir a senha.', variant: 'success' });
     setMode('login');
   }
-
-  const social = (
-    <div className={styles.social}>
-      <button type="button" className={styles.socialBtn} onClick={() => toast({ title: 'Login social em breve' })} aria-label="Entrar com Google">
-        <span className={styles.gIcon}>G</span> Google
-      </button>
-      <button type="button" className={styles.socialBtn} onClick={() => toast({ title: 'Login social em breve' })} aria-label="Entrar com Apple">
-        <IApple /> Apple
-      </button>
-    </div>
-  );
 
   const isRegister = mode === 'register';
 
@@ -141,8 +134,6 @@ export default function AuthModal({ open, onClose, initialMode = 'login', onAuth
               <span className={styles.brand}>Feira do Rolo</span>
               <h2 className={styles.h2}>Bem-vindo de volta</h2>
               <p className={styles.formSub}>Entre para acompanhar pedidos, favoritos e cupons.</p>
-              {social}
-              <span className={styles.or}>ou entre com seu e-mail</span>
               <div className={styles.field}>
                 <Input type="email" placeholder="E-mail" leftIcon="mail" value={login.email} onChange={(e) => setLogin((p) => ({ ...p, email: e.target.value }))} />
               </div>
@@ -162,10 +153,44 @@ export default function AuthModal({ open, onClose, initialMode = 'login', onAuth
             <span className={styles.brand}>Feira do Rolo</span>
             <h2 className={styles.h2}>Criar conta</h2>
             <p className={styles.formSub}>Cadastre-se e ganhe acesso a ofertas e cupons exclusivos.</p>
-            {social}
-            <span className={styles.or}>ou use seu e-mail</span>
+
+            {/* Tipo de conta: Pessoa Física (CPF) ou Jurídica (CNPJ) */}
+            <div className={styles.acctType}>
+              <button
+                type="button"
+                className={cx(styles.acctBtn, reg.accountType === 'individual' && styles.acctBtnActive)}
+                onClick={() => setReg((p) => ({ ...p, accountType: 'individual', document: '' }))}
+              >
+                Pessoa Física
+              </button>
+              <button
+                type="button"
+                className={cx(styles.acctBtn, reg.accountType === 'company' && styles.acctBtnActive)}
+                onClick={() => setReg((p) => ({ ...p, accountType: 'company', document: '' }))}
+              >
+                Pessoa Jurídica
+              </button>
+            </div>
+
             <div className={styles.field}>
-              <Input placeholder="Seu nome" leftIcon="user" value={reg.name} onChange={(e) => setReg((p) => ({ ...p, name: e.target.value }))} />
+              <Input placeholder={reg.accountType === 'company' ? 'Razão social / Nome' : 'Seu nome'} leftIcon="user" value={reg.name} onChange={(e) => setReg((p) => ({ ...p, name: e.target.value }))} />
+            </div>
+            <div className={styles.field}>
+              <Input
+                placeholder={reg.accountType === 'company' ? 'CNPJ' : 'CPF'}
+                leftIcon="shield"
+                inputMode="numeric"
+                value={reg.document}
+                onChange={(e) =>
+                  setReg((p) => ({
+                    ...p,
+                    document: p.accountType === 'company' ? maskCNPJ(e.target.value) : maskCPF(e.target.value),
+                  }))
+                }
+              />
+            </div>
+            <div className={styles.field}>
+              <Input placeholder="Telefone (opcional)" leftIcon="smartphone" inputMode="tel" value={reg.phone} onChange={(e) => setReg((p) => ({ ...p, phone: maskPhone(e.target.value) }))} />
             </div>
             <div className={styles.field}>
               <Input type="email" placeholder="E-mail" leftIcon="mail" value={reg.email} onChange={(e) => setReg((p) => ({ ...p, email: e.target.value }))} />
