@@ -16,7 +16,7 @@ export default function LoginPage({ searchParams }) {
           <p className={styles.tag}>Sua conta no maior rolo do Brasil</p>
         </div>
         <div className={styles.cardBody}>
-          <AuthForm initialMode={mode} showTestAccounts />
+          <AuthForm initialMode={mode} />
         </div>
       </div>
       <Link href="/" className={styles.backHome}>

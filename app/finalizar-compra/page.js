@@ -7,7 +7,7 @@ import { cx } from '@/lib/cx';
 import { useCart } from '@/components/providers/CartProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { addressService, couponService, shipmentService, orderService, paymentService } from '@/lib/api';
+import { addressService, couponService, shipmentService, orderService, paymentService, ApiError } from '@/lib/api';
 import Button from '@/components/atoms/Button/Button';
 import Input from '@/components/atoms/Input/Input';
 import Select from '@/components/atoms/Select/Select';
@@ -23,12 +23,6 @@ const UF_OPTIONS = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS',
   'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC',
   'SP', 'SE', 'TO',
-];
-
-const SHIPPING_OPTIONS = [
-  { id: 'pac', name: 'PAC', company: 'Correios', price: 14.8, deliveryTime: '5-8 dias úteis' },
-  { id: 'sedex', name: 'SEDEX', company: 'Correios', price: 25.9, deliveryTime: '2-3 dias úteis' },
-  { id: 'jadlog', name: 'Expresso', company: 'Jadlog', price: 21.7, deliveryTime: '3-5 dias úteis' },
 ];
 
 const EMPTY_NEW_ADDRESS = {
@@ -83,10 +77,11 @@ export default function FinalizarCompraPage() {
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponLoading, setCouponLoading] = useState(false);
 
-  // Frete
+  // Frete — opções REAIS do Melhor Envio (array vindo de shipmentService.quote)
   const [shippingLoading, setShippingLoading] = useState(false);
-  const [shippingFallback, setShippingFallback] = useState(null);
-  const [selectedShippingId, setSelectedShippingId] = useState('pac');
+  const [shippingOptions, setShippingOptions] = useState([]);
+  const [shippingUnavailable, setShippingUnavailable] = useState(false);
+  const [selectedShippingId, setSelectedShippingId] = useState(null);
 
   // Pagamento
   const [paymentMethod, setPaymentMethod] = useState('pix');
@@ -151,16 +146,14 @@ export default function FinalizarCompraPage() {
   }, [addressMode, newAddress, selectedAddressId, addresses]);
 
   const selectedShipping = useMemo(
-    () => SHIPPING_OPTIONS.find((o) => o.id === selectedShippingId) || null,
-    [selectedShippingId]
+    () => shippingOptions.find((o) => o.service_code === selectedShippingId) || null,
+    [shippingOptions, selectedShippingId]
   );
 
   const shippingCost = isPickup
     ? 0
-    : shippingFallback != null
-    ? shippingFallback
     : selectedShipping
-    ? selectedShipping.price
+    ? (selectedShipping.free_shipping ? 0 : Number(selectedShipping.price) || 0)
     : 0;
   const discount = Math.min(couponDiscount, totalPrice);
   const total = Math.max(0, totalPrice - discount + shippingCost);
@@ -199,20 +192,42 @@ export default function FinalizarCompraPage() {
 
   async function loadShipping() {
     setShippingLoading(true);
-    setShippingFallback(null);
-    setSelectedShippingId((id) => id || 'pac');
+    setShippingUnavailable(false);
+    setShippingOptions([]);
+    setSelectedShippingId(null);
     const toZip = (selectedAddress?.cep || '').replace(/\D/g, '');
     try {
-      const quote = await shipmentService.quote({
+      // shipmentService.quote retorna um ARRAY de opções reais do Melhor Envio.
+      const result = await shipmentService.quote({
         from_zip: '01001000',
         to_zip: toZip,
-        weight: Math.max(0.3, totalItems * 0.5),
+        products: items.map((i) => ({
+          quantity: i.qty || i.quantity || 1,
+          weight: 0.5, // peso estimado por item (kg)
+        })),
+        order_amount: totalPrice,
+        category_ids: [],
       });
-      const price = quote?.price ?? quote?.cost ?? quote?.value;
-      // Cotação OK: usa o valor; vazio/erro cai no fallback (frete grátis).
-      setShippingFallback(price != null ? Number(price) : 0);
-    } catch {
-      setShippingFallback(0); // provider indisponível → frete grátis (não bloqueia o checkout)
+      const options = Array.isArray(result) ? result : [];
+      setShippingOptions(options);
+      if (options.length > 0) {
+        setSelectedShippingId(options[0].service_code);
+      }
+    } catch (e) {
+      // 503 / SHIPPING_NOT_CONFIGURED → cálculo indisponível (sem opções falsas).
+      const notConfigured =
+        e instanceof ApiError &&
+        (e.status === 503 || e.code === 'SHIPPING_NOT_CONFIGURED');
+      setShippingUnavailable(true);
+      setShippingOptions([]);
+      setSelectedShippingId(null);
+      toast({
+        title: 'Cálculo de frete indisponível',
+        description: notConfigured
+          ? 'Cálculo de frete indisponível no momento.'
+          : e?.message || 'Não foi possível calcular o frete.',
+        variant: 'destructive',
+      });
     } finally {
       setShippingLoading(false);
     }
@@ -274,6 +289,16 @@ export default function FinalizarCompraPage() {
         address_id:
           !isPickup && addressMode === 'saved' ? selectedAddressId || undefined : undefined,
         delivery_method: deliveryMethod,
+        // Frete escolhido (apenas para envio; retirada presencial não tem frete).
+        shipping_option:
+          !isPickup && selectedShipping
+            ? {
+                service_code: selectedShipping.service_code,
+                service_name: selectedShipping.service_name,
+                price: shippingCost,
+                cost: shippingCost,
+              }
+            : undefined,
       });
       const orders = Array.isArray(created) ? created : created ? [created] : [];
       const orderId = orders[0]?.id;
@@ -705,7 +730,25 @@ export default function FinalizarCompraPage() {
             {shippingLoading ? (
               <div className={styles.loadingBox}>
                 <Spinner size={32} />
-                <p>Calculando opções de frete...</p>
+                <p>Calculando frete…</p>
+              </div>
+            ) : shippingUnavailable ? (
+              <div className={styles.panel}>
+                <h3 className={styles.panelTitle}>
+                  <Icon name="truck" size={20} className={styles.panelIcon} />
+                  Opções de entrega
+                </h3>
+                <p className={styles.fieldError}>Cálculo de frete indisponível no momento.</p>
+              </div>
+            ) : shippingOptions.length === 0 ? (
+              <div className={styles.panel}>
+                <h3 className={styles.panelTitle}>
+                  <Icon name="truck" size={20} className={styles.panelIcon} />
+                  Opções de entrega
+                </h3>
+                <p className={styles.fieldError}>
+                  Nenhuma opção de frete disponível para este endereço.
+                </p>
               </div>
             ) : (
               <div className={styles.panel}>
@@ -714,27 +757,32 @@ export default function FinalizarCompraPage() {
                   Opções de entrega
                 </h3>
                 <div className={styles.shippingList}>
-                  {SHIPPING_OPTIONS.map((opt) => {
-                    const sel = selectedShippingId === opt.id;
+                  {shippingOptions.map((opt) => {
+                    const sel = selectedShippingId === opt.service_code;
+                    const isFree = !!opt.free_shipping || Number(opt.price) === 0;
                     return (
                       <button
-                        key={opt.id}
+                        key={opt.service_code}
                         type="button"
                         className={cx(styles.shippingRow, sel && styles.shippingRowSel)}
-                        onClick={() => setSelectedShippingId(opt.id)}
+                        onClick={() => setSelectedShippingId(opt.service_code)}
                       >
                         <span className={styles.shippingLeft}>
                           <span className={cx(styles.radio, sel && styles.radioOn)}>
                             {sel && <span className={styles.radioDot} />}
                           </span>
                           <span>
-                            <span className={styles.shippingName}>{opt.name}</span>
+                            <span className={styles.shippingName}>{opt.service_name}</span>
                             <span className={styles.shippingSub}>{opt.company}</span>
-                            <span className={styles.shippingSub}>{opt.deliveryTime}</span>
+                            {opt.delivery_time != null && (
+                              <span className={styles.shippingSub}>
+                                {opt.delivery_time} dia{Number(opt.delivery_time) === 1 ? '' : 's'} úteis
+                              </span>
+                            )}
                           </span>
                         </span>
                         <span className={styles.shippingPrice}>
-                          {opt.price === 0 ? 'GRÁTIS' : BRL.format(opt.price)}
+                          {isFree ? 'Grátis' : BRL.format(Number(opt.price) || 0)}
                         </span>
                       </button>
                     );
@@ -800,11 +848,16 @@ export default function FinalizarCompraPage() {
                       Método de entrega
                     </h3>
                     <div className={styles.reviewLines}>
-                      <div className={styles.reviewStrong}>{selectedShipping?.name}</div>
+                      <div className={styles.reviewStrong}>{selectedShipping?.service_name}</div>
                       <div className={styles.reviewSub}>{selectedShipping?.company}</div>
-                      <div className={styles.reviewSub}>{selectedShipping?.deliveryTime}</div>
+                      {selectedShipping?.delivery_time != null && (
+                        <div className={styles.reviewSub}>
+                          {selectedShipping.delivery_time} dia
+                          {Number(selectedShipping.delivery_time) === 1 ? '' : 's'} úteis
+                        </div>
+                      )}
                       <div className={styles.reviewShip}>
-                        Frete: {shippingCost === 0 ? 'GRÁTIS' : BRL.format(shippingCost)}
+                        Frete: {shippingCost === 0 ? 'Grátis' : BRL.format(shippingCost)}
                       </div>
                     </div>
                   </div>

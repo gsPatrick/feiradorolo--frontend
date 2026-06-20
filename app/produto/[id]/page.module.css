@@ -581,3 +581,100 @@
 }
 .pickupNote strong { color: var(--foreground); }
 .pickupNote svg { flex-shrink: 0; margin-top: 2px; color: var(--feira-yellow-strong); }
+
+/* — Q&A inline + denúncia — */
+.qaAnswer {
+  margin: 6px 0 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--border);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+.qaAnswer strong { color: var(--foreground); }
+
+.reportBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding: 2px 6px;
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.reportBtn:hover {
+  color: #dc2626;
+  background: var(--muted);
+}
+.reportBtn svg { flex-shrink: 0; }
+
+/* Formulário do modal de denúncia */
+.reportForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.reportLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-top: 4px;
+}
+.reportSelect,
+.reportTextarea {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md, 10px);
+  background: var(--background, var(--bg));
+  color: var(--foreground);
+  font-size: 14px;
+  font-family: inherit;
+}
+.reportTextarea {
+  resize: vertical;
+  min-height: 64px;
+  line-height: 1.5;
+}
+.reportSelect:focus,
+.reportTextarea:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+.reportActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+.reportCancel,
+.reportSubmit {
+  padding: 9px 16px;
+  border-radius: var(--r-md, 10px);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+.reportCancel {
+  border: 1px solid var(--border);
+  background: var(--background, var(--bg));
+  color: var(--foreground);
+}
+.reportCancel:hover { background: var(--muted); }
+.reportSubmit {
+  border: 1px solid #dc2626;
+  background: #dc2626;
+  color: #fff;
+}
+.reportSubmit:hover { background: #b91c1c; border-color: #b91c1c; }
+.reportCancel:disabled,
+.reportSubmit:disabled { opacity: 0.6; cursor: not-allowed; }

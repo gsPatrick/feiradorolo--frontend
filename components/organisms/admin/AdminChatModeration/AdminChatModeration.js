@@ -67,7 +67,7 @@ function CheckCircleIcon({ size = 32 }) {
   );
 }
 
-// Denúncias de conteúdo ainda não têm endpoint dedicado na API — sem mock.
+// Denúncias de conteúdo vêm de adminService.reports() (dado real).
 const REPORTS = [];
 // Mensagens suspeitas vêm de adminService.flaggedChats() (dado real).
 const SUSPICIOUS_MESSAGES = [];
@@ -79,7 +79,34 @@ const TABS = [
   { k: 'stats', l: 'Estatísticas', icon: 'bar' },
 ];
 
-const REASON_LABEL = { spam: 'Spam', offensive: 'Ofensivo', inappropriate: 'Inapropriado', outros: 'Outros' };
+const REASON_LABEL = {
+  spam: 'Spam',
+  offensive: 'Ofensivo',
+  inappropriate: 'Inapropriado',
+  fraud: 'Fraude',
+  external_contact: 'Contato externo',
+  other: 'Outro',
+  outros: 'Outros',
+};
+
+/* Normaliza uma denúncia da API para o formato esperado pelo render. */
+function mapReport(item) {
+  if (!item || typeof item !== 'object') return null;
+  const snapshot = item.snapshot || {};
+  const reporter = item.reporter || {};
+  return {
+    id: item.id,
+    target_type: item.target_type,
+    reason: item.reason,
+    description: item.description || '',
+    status: item.status || 'pending',
+    createdAt: item.created_at || item.createdAt || null,
+    questionText: snapshot.text || '',
+    questionUserName: snapshot.authorName || 'Usuário',
+    productName: snapshot.productName || '',
+    reporterName: reporter.name || 'Anônimo',
+  };
+}
 
 function fmtDate(s) {
   if (!s) return '';
@@ -144,8 +171,29 @@ export default function AdminChatModeration() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('reports');
   const [reports, setReports] = useState(REPORTS);
+  const [loadingReports, setLoadingReports] = useState(true);
+  const [reportsError, setReportsError] = useState(null); // 'auth' | 'generic' | null
   const [messages, setMessages] = useState(SUSPICIOUS_MESSAGES);
   const [loadingMessages, setLoadingMessages] = useState(true);
+
+  const loadReports = useCallback(async () => {
+    setLoadingReports(true);
+    setReportsError(null);
+    try {
+      const data = await adminService.reports();
+      const list = Array.isArray(data) ? data : (data && data.reports) || [];
+      setReports(list.map(mapReport).filter(Boolean));
+    } catch (err) {
+      setReports([]);
+      setReportsError(err instanceof ApiError && (err.status === 401 || err.status === 403) ? 'auth' : 'generic');
+    } finally {
+      setLoadingReports(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadReports();
+  }, [loadReports]);
 
   const loadFlagged = useCallback(async () => {
     setLoadingMessages(true);
@@ -260,13 +308,35 @@ export default function AdminChatModeration() {
   const rejected = reports.filter((r) => r.status === 'rejected');
   const blockedUsers = '—';
 
+  const [resolvingId, setResolvingId] = useState(null);
+
+  async function resolve(id, status, successMsg) {
+    if (resolvingId) return;
+    setResolvingId(id);
+    try {
+      await adminService.resolveReport(id, { status });
+      toast({ title: successMsg.title, description: successMsg.description, variant: successMsg.variant, duration: 2000 });
+      await loadReports();
+    } catch (err) {
+      const desc = err instanceof ApiError ? err.message : 'Não foi possível concluir a ação.';
+      toast({ title: 'Erro na denúncia', description: desc, variant: 'destructive', duration: 2500 });
+    } finally {
+      setResolvingId(null);
+    }
+  }
+
   function approve(id) {
-    setReports((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'approved' } : r)));
-    toast({ title: '✅ Denúncia aprovada', description: 'Pergunta removida com sucesso.', variant: 'success', duration: 2000 });
+    resolve(id, 'approved', {
+      title: '✅ Denúncia aprovada',
+      description: 'Conteúdo removido com sucesso.',
+      variant: 'success',
+    });
   }
   function reject(id) {
-    setReports((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'rejected' } : r)));
-    toast({ title: '❌ Denúncia rejeitada', description: 'Pergunta mantida na plataforma.', duration: 2000 });
+    resolve(id, 'rejected', {
+      title: '❌ Denúncia rejeitada',
+      description: 'Conteúdo mantido na plataforma.',
+    });
   }
 
   return (
@@ -324,7 +394,23 @@ export default function AdminChatModeration() {
             {activeTab === 'reports' && (
               <div className={styles.section}>
                 <h3 className={styles.sectionTitle}>Denúncias de Perguntas</h3>
-                {pending.length === 0 ? (
+                {loadingReports ? (
+                  <div className={styles.empty}>
+                    <span className={styles.emptyIcon}><FlagIcon size={48} /></span>
+                    <p>Carregando…</p>
+                  </div>
+                ) : reportsError === 'auth' ? (
+                  <div className={styles.empty}>
+                    <span className={styles.emptyIcon}><Icon name="shield" size={48} /></span>
+                    <p>Faça login como administrador</p>
+                  </div>
+                ) : reportsError ? (
+                  <div className={styles.empty}>
+                    <span className={styles.emptyIcon}><FlagIcon size={48} /></span>
+                    <p>Não foi possível carregar as denúncias</p>
+                    <Button size="sm" variant="outline" onClick={loadReports}>Tentar novamente</Button>
+                  </div>
+                ) : pending.length === 0 ? (
                   <div className={styles.empty}>
                     <span className={styles.emptyIcon}><FlagIcon size={48} /></span>
                     <p>Nenhuma denúncia pendente</p>
@@ -359,10 +445,10 @@ export default function AdminChatModeration() {
                             </div>
                           </div>
                           <div className={styles.actions}>
-                            <Button size="sm" variant="danger" onClick={() => approve(report.id)}>
+                            <Button size="sm" variant="danger" disabled={resolvingId === report.id} onClick={() => approve(report.id)}>
                               <ThumbsUpIcon size={16} /> Aprovar
                             </Button>
-                            <Button size="sm" variant="outline" onClick={() => reject(report.id)}>
+                            <Button size="sm" variant="outline" disabled={resolvingId === report.id} onClick={() => reject(report.id)}>
                               <ThumbsDownIcon size={16} /> Rejeitar
                             </Button>
                           </div>

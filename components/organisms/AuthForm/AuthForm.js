@@ -11,11 +11,7 @@ import Icon from '../../atoms/Icon/Icon';
 import { authService, setToken } from '@/lib/api';
 import { useToast } from '../../providers/ToastProvider';
 
-const TEST_ACCOUNTS = [
-  { label: '👤 Comprador', email: 'comprador@teste.com', role: 'individual' },
-  { label: '🏪 Vendedor', email: 'usuario2@teste.com', role: 'seller' },
-  { label: '🛡️ Admin', email: 'admin@teste.com', role: 'admin' },
-];
+const TEST_ACCOUNTS = [];
 
 const reqs = (p) => ({
   len: p.length >= 8,

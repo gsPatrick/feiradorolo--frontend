@@ -13,10 +13,32 @@ import Skeleton from '@/components/atoms/Skeleton/Skeleton';
 import EmptyState from '@/components/molecules/EmptyState/EmptyState';
 import ReviewForm from '@/components/organisms/ReviewForm/ReviewForm';
 import ProductQA from '@/components/organisms/ProductQA/ProductQA';
+import Modal from '@/components/organisms/Modal/Modal';
 import { useCart } from '@/components/providers/CartProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { productService, reviewService, questionService, chatService, mapProduct, ApiError } from '@/lib/api';
+import { productService, reviewService, questionService, chatService, reportService, mapProduct, ApiError } from '@/lib/api';
+
+/* Motivos de denúncia aceitos pela API + rótulos pt-BR. */
+/* Ícone "bandeira" inline (lucide) — não existe no Icon.js. */
+function FlagIcon({ size = 13 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+      <line x1="4" y1="22" x2="4" y2="15" />
+    </svg>
+  );
+}
+
+const REPORT_REASONS = [
+  { value: 'spam', label: 'Spam' },
+  { value: 'offensive', label: 'Ofensivo' },
+  { value: 'inappropriate', label: 'Inapropriado' },
+  { value: 'fraud', label: 'Fraude' },
+  { value: 'external_contact', label: 'Contato externo' },
+  { value: 'other', label: 'Outro' },
+];
 
 /** Formata uma data ISO no padrão pt-BR (curto). */
 function formatDate(value) {
@@ -87,6 +109,46 @@ export default function ProdutoPage() {
   const [reviewFormOpen, setReviewFormOpen] = useState(false);
   const [questions, setQuestions] = useState(null);
   const [qaOpen, setQaOpen] = useState(false);
+  // Denúncia de pergunta: { id } | null + formulário
+  const [reportTarget, setReportTarget] = useState(null);
+  const [reportReason, setReportReason] = useState('spam');
+  const [reportDescription, setReportDescription] = useState('');
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+
+  function openReport(questionId) {
+    setReportTarget(questionId);
+    setReportReason('spam');
+    setReportDescription('');
+  }
+
+  async function submitReport(e) {
+    e?.preventDefault?.();
+    if (reportTarget == null || reportSubmitting) return;
+    setReportSubmitting(true);
+    try {
+      await reportService.create({
+        target_type: 'question',
+        target_id: reportTarget,
+        reason: reportReason,
+        description: reportDescription.trim() || undefined,
+      });
+      setReportTarget(null);
+      toast({ title: 'Denúncia enviada', description: 'Obrigado, nossa equipe vai analisar.', variant: 'success', duration: 2000 });
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        toast({ title: 'Faça login para denunciar', variant: 'destructive', duration: 2500 });
+      } else {
+        toast({
+          title: 'Não foi possível enviar',
+          description: (err && err.message) || 'Tente novamente.',
+          variant: 'destructive',
+          duration: 2500,
+        });
+      }
+    } finally {
+      setReportSubmitting(false);
+    }
+  }
 
   const loadReviews = useCallback(() => {
     if (!id) return Promise.resolve();
@@ -386,6 +448,44 @@ export default function ProdutoPage() {
                   </ul>
                 )}
               </section>
+
+              {mappedQuestions.length > 0 && (
+                <section className={styles.card}>
+                  <div className={styles.reviewsHead}>
+                    <h2 className={styles.cardTitle}>Perguntas e respostas</h2>
+                    <div className={styles.reviewsActions}>
+                      <button className={styles.reviewBtn} onClick={() => setQaOpen(true)}>
+                        <Icon name="chat" size={16} /> Fazer pergunta
+                      </button>
+                    </div>
+                  </div>
+                  <ul className={styles.reviewsList}>
+                    {mappedQuestions.map((qa) => (
+                      <li key={qa.id} className={styles.reviewItem}>
+                        <div className={styles.reviewMeta}>
+                          <span className={styles.reviewUser}>{qa.userName}</span>
+                          {qa.createdAt && <span className={styles.reviewDate}>{qa.createdAt}</span>}
+                          <button
+                            type="button"
+                            className={styles.reportBtn}
+                            onClick={() => openReport(qa.id)}
+                            title="Denunciar esta pergunta"
+                            aria-label="Denunciar esta pergunta"
+                          >
+                            <FlagIcon size={13} /> Denunciar
+                          </button>
+                        </div>
+                        <p className={styles.reviewComment}>{qa.question}</p>
+                        {qa.isAnswered && qa.answer && (
+                          <p className={styles.qaAnswer}>
+                            <strong>{qa.sellerName}:</strong> {qa.answer}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
             </div>
 
             <aside className={styles.sidebar}>
@@ -535,6 +635,51 @@ export default function ProdutoPage() {
         questions={mappedQuestions}
         onSubmit={handleQuestionSubmit}
       />
+
+      <Modal
+        open={reportTarget != null}
+        onClose={() => (reportSubmitting ? null : setReportTarget(null))}
+        title="Denunciar pergunta"
+        size="sm"
+      >
+        <form className={styles.reportForm} onSubmit={submitReport}>
+          <label className={styles.reportLabel} htmlFor="report-reason">Motivo</label>
+          <select
+            id="report-reason"
+            className={styles.reportSelect}
+            value={reportReason}
+            onChange={(e) => setReportReason(e.target.value)}
+          >
+            {REPORT_REASONS.map((r) => (
+              <option key={r.value} value={r.value}>{r.label}</option>
+            ))}
+          </select>
+
+          <label className={styles.reportLabel} htmlFor="report-desc">Descrição (opcional)</label>
+          <textarea
+            id="report-desc"
+            className={styles.reportTextarea}
+            value={reportDescription}
+            onChange={(e) => setReportDescription(e.target.value.slice(0, 500))}
+            placeholder="Conte o que há de errado com esta pergunta…"
+            rows={3}
+          />
+
+          <div className={styles.reportActions}>
+            <button
+              type="button"
+              className={styles.reportCancel}
+              onClick={() => setReportTarget(null)}
+              disabled={reportSubmitting}
+            >
+              Cancelar
+            </button>
+            <button type="submit" className={styles.reportSubmit} disabled={reportSubmitting}>
+              {reportSubmitting ? 'Enviando…' : 'Enviar denúncia'}
+            </button>
+          </div>
+        </form>
+      </Modal>
 
     </main>
   );
