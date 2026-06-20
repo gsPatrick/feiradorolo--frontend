@@ -1,0 +1,64 @@
+.title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.titleIcon {
+  color: var(--info);
+  flex-shrink: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Campo do Select (Estado) — espelha o FormField */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+.required {
+  color: var(--destructive);
+  margin-left: 3px;
+}
+
+.default {
+  margin-top: 2px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+/* Botão Salvar — azul (--info), como o bg-blue-600 do front antigo */
+.btnSave {
+  background: var(--info);
+  color: #fff;
+  border-color: var(--info);
+}
+.btnSave:hover:not(:disabled) {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+@media (max-width: 480px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}

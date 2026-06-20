@@ -1,0 +1,252 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.container {
+  position: relative;
+  width: min(900px, 96vw);
+  height: min(580px, 90vh);
+  background: var(--bg);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 200;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: var(--r-md);
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+.close:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* ---- Caixas de formulário ---- */
+.formBox {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.6s ease-in-out, opacity 0.6s ease-in-out;
+}
+.signIn { left: 0; z-index: 2; }
+.signUp { left: 0; z-index: 1; opacity: 0; }
+.container.active .signIn { transform: translateX(100%); opacity: 0; z-index: 1; }
+.container.active .signUp { transform: translateX(100%); opacity: 1; z-index: 5; }
+
+.form {
+  width: 100%;
+  max-width: 340px;
+  padding: 0 36px;
+  display: flex;
+  flex-direction: column;
+}
+.brand {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #f5b400;
+  letter-spacing: -0.01em;
+  margin-bottom: 14px;
+}
+.h2 {
+  font-size: 1.7rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--foreground);
+  margin-bottom: 6px;
+}
+.formSub {
+  font-size: 0.88rem;
+  color: var(--muted-foreground);
+  line-height: 1.45;
+  margin-bottom: 18px;
+}
+
+.social {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.socialBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  height: 42px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--foreground);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.socialBtn:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
+}
+.gIcon {
+  font-weight: 700;
+  color: #4285f4;
+}
+.or {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.field {
+  margin-bottom: 12px;
+}
+.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 0.83rem;
+  font-weight: 500;
+  padding: 9px 12px;
+  border-radius: var(--r-md);
+  margin-bottom: 12px;
+}
+.forgot {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+.forgot:hover {
+  color: #b8860b;
+  text-decoration: underline;
+}
+.link {
+  align-self: center;
+  background: none;
+  border: none;
+  font-size: 0.82rem;
+  color: var(--muted-foreground);
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 14px;
+}
+
+/* ---- Painel promo (slate + amarelo) ---- */
+.overlayWrap {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  transition: transform 0.6s ease-in-out;
+  z-index: 100;
+}
+.container.active .overlayWrap {
+  transform: translateX(-100%);
+}
+.overlayInner {
+  position: relative;
+  left: -100%;
+  width: 200%;
+  height: 100%;
+  transform: translateX(0);
+  transition: transform 0.6s ease-in-out;
+  background: linear-gradient(160deg, #1e293b 0%, #0f172a 100%);
+}
+.container.active .overlayInner {
+  transform: translateX(50%);
+}
+.overlayPanel {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 44px;
+  color: #fff;
+}
+.overlayLeft { left: 0; }
+.overlayRight { right: 0; }
+
+.promoLogo {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #f5b400;
+  margin-bottom: 16px;
+}
+.promoH {
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 12px;
+}
+.promoP {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 26px;
+}
+.brandBtn {
+  align-self: flex-start;
+  padding: 12px 28px;
+  background: var(--feira-yellow);
+  border: none;
+  border-radius: var(--r-md);
+  color: #1a1a1a;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+.brandBtn:hover {
+  background: var(--feira-yellow-strong);
+  transform: translateY(-1px);
+}
+
+/* ---- Mobile: empilha ---- */
+@media (max-width: 720px) {
+  .container { height: auto; min-height: min(560px, 92vh); }
+  .formBox { position: relative; width: 100%; height: auto; opacity: 1 !important; transform: none !important; }
+  .signUp { display: none; }
+  .container.active .signIn { display: none; }
+  .container.active .signUp { display: flex; }
+  .overlayWrap { display: none; }
+  .form { padding: 44px 28px; max-width: none; }
+  .close { background: var(--secondary); color: var(--foreground); }
+}

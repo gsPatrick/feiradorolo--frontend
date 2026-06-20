@@ -1,0 +1,146 @@
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  letter-spacing: -0.005em;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease),
+    border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease),
+    opacity var(--t-fast) var(--ease);
+}
+
+.button:focus-visible {
+  outline: none;
+  box-shadow: var(--ring-shadow);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.label {
+  display: inline-block;
+}
+
+/* — Tamanhos (shadcn) — */
+.sm {
+  height: 36px;
+  padding: 0 12px;
+  font-size: 0.82rem;
+}
+.md {
+  height: 40px;
+  padding: 0 16px;
+}
+.lg {
+  height: 44px;
+  padding: 0 32px;
+}
+
+.iconOnly.sm {
+  width: 36px;
+  padding: 0;
+}
+.iconOnly.md {
+  width: 40px;
+  padding: 0;
+}
+.iconOnly.lg {
+  width: 44px;
+  padding: 0;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+/* — primary: slate escuro (default shadcn) — */
+.primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.primary:hover:not(:disabled) {
+  background: hsl(222, 47%, 16%);
+}
+
+/* — accent: amarelo da marca (CTA Entrar/Carrinho) — */
+.accent {
+  background: var(--feira-yellow);
+  color: var(--brand-foreground);
+  font-weight: 600;
+}
+.accent:hover:not(:disabled) {
+  background: var(--feira-yellow-strong);
+}
+.accent:focus-visible {
+  box-shadow: var(--ring-brand);
+}
+
+/* — secondary — */
+.secondary {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+}
+.secondary:hover:not(:disabled) {
+  background: #e6ebf2;
+}
+
+/* — outline — */
+.outline {
+  background: var(--bg);
+  color: var(--foreground);
+  border-color: var(--input);
+}
+.outline:hover:not(:disabled) {
+  background: var(--muted);
+}
+
+/* — ghost — */
+.ghost {
+  background: transparent;
+  color: var(--foreground);
+}
+.ghost:hover:not(:disabled) {
+  background: var(--muted);
+}
+
+/* — link — */
+.link {
+  background: transparent;
+  color: var(--primary);
+  height: auto;
+  padding: 0;
+}
+.link:hover:not(:disabled) {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* — danger — */
+.danger {
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+}
+.danger:hover:not(:disabled) {
+  background: hsl(0, 84%, 54%);
+}
+.danger:focus-visible {
+  box-shadow: var(--ring-danger);
+}
+
+.loading {
+  cursor: progress;
+}
+.spinner {
+  border-top-color: currentColor;
+}

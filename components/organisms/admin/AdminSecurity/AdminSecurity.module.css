@@ -1,0 +1,252 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* — Cards de estatística — */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+}
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  min-width: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+}
+.stat > div {
+  min-width: 0;
+}
+.statIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.iconBlue { color: #3b82f6; }
+.iconOrange { color: #f97316; }
+.iconRed { color: #ef4444; }
+.iconRedDark { color: #dc2626; }
+.iconYellow { color: #eab308; }
+.iconGreen { color: #22c55e; }
+
+.statLabel {
+  font-size: 0.72rem;
+  color: var(--muted-foreground);
+  line-height: 1.2;
+}
+.statValue {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--foreground);
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+/* — Sub-abas — */
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  padding: 5px;
+  background: #f1f5f9;
+  border-radius: var(--r-lg);
+}
+.tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  border-radius: var(--r-md);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease);
+}
+.tab:hover {
+  color: var(--foreground);
+}
+.tabActive {
+  background: var(--bg);
+  color: var(--foreground);
+  box-shadow: var(--shadow-sm);
+}
+
+.tabContent {
+  animation: fadeInUp var(--t-base) var(--ease);
+}
+
+/* — Card raiz — */
+.card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+}
+.cardHeader {
+  padding: 20px 24px 0;
+}
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+.cardBody {
+  padding: 20px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* — Adicionar palavra — */
+.addRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: stretch;
+}
+.addInput {
+  flex: 1 1 200px;
+  min-width: 160px;
+}
+.addSelect {
+  flex: 0 1 150px;
+  min-width: 120px;
+  max-width: 100%;
+}
+.addRow > button {
+  flex: 0 0 auto;
+}
+
+/* — Lista — */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 24rem;
+  overflow-y: auto;
+}
+
+/* — Linha de palavra — */
+.wordRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.wordMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.code {
+  padding: 4px 8px;
+  background: var(--bg-2);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--foreground);
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.actions :global(svg) {
+  margin-right: 2px;
+}
+
+/* — Linha de log — */
+.logRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.logMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.logAction {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--foreground);
+}
+.date {
+  font-size: 0.82rem;
+  color: var(--muted-foreground);
+}
+.logInfo {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+.logDetails {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  word-break: break-all;
+}
+
+/* — Alerta / empty — */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--bg-2);
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+.alert svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* — Responsivo — */
+@media (max-width: 640px) {
+  .addRow {
+    flex-direction: column;
+  }
+  .wordRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .actions {
+    width: 100%;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

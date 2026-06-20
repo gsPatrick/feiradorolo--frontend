@@ -1,0 +1,174 @@
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.statIcon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+.statIcon[data-c='blue'] { background: #dbeafe; color: #2563eb; }
+.statIcon[data-c='green'] { background: #dcfce7; color: #16a34a; }
+.statIcon[data-c='gold'] { background: var(--feira-yellow-soft); color: #b8860b; }
+.stat strong {
+  display: block;
+  font-size: 1.3rem;
+  color: var(--foreground);
+}
+.stat span {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.filter {
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg);
+  border-radius: var(--r-pill);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+.filterActive {
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: #fff !important;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.sale {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--r-md);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.info {
+  flex: 1;
+  min-width: 0;
+}
+.info strong {
+  display: block;
+  color: var(--foreground);
+}
+.info span {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+.badge {
+  margin-top: 8px;
+}
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* — Liberação por token (retirada presencial) — */
+.pickupRelease {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--info-soft);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: var(--r-md);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pickupReleaseLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.pickupReleaseRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.pickupInput {
+  width: 120px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.2em;
+  text-align: center;
+}
+.finance {
+  width: 220px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  padding-left: 16px;
+}
+.fRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.84rem;
+  color: var(--muted-foreground);
+  padding: 2px 0;
+}
+.fRow em {
+  font-style: normal;
+  color: var(--destructive);
+}
+.net {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--border);
+}
+.net strong {
+  color: #15803d;
+}
+.saleActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+@media (max-width: 700px) {
+  .stats {
+    grid-template-columns: 1fr;
+  }
+  .sale {
+    flex-direction: column;
+  }
+  .finance {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    padding-left: 0;
+    padding-top: 12px;
+  }
+}

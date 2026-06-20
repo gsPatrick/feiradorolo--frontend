@@ -1,0 +1,112 @@
+.page {
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-1);
+  padding: 48px 20px;
+}
+.card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-md);
+  padding: 36px 32px;
+  text-align: center;
+}
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-pill);
+  background: var(--feira-yellow-soft);
+  color: #b8860b;
+  margin-bottom: 18px;
+}
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 8px;
+}
+.sub {
+  font-size: 0.92rem;
+  color: var(--muted-foreground);
+  margin-bottom: 22px;
+}
+.warn {
+  font-size: 0.82rem;
+  color: #b45309;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: var(--r-md);
+  padding: 10px;
+  margin-bottom: 18px;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+}
+.label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--foreground);
+  margin-bottom: 6px;
+}
+.checklist {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.rule {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  transition: color var(--t-fast) var(--ease);
+}
+.ruleOk {
+  color: var(--success);
+}
+.ruleDot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid var(--border-strong);
+  color: #fff;
+  flex-shrink: 0;
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.ruleOk .ruleDot {
+  background: var(--success);
+  border-color: var(--success);
+}
+.err {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--destructive);
+  margin-top: 6px;
+}
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 22px;
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+.back:hover {
+  color: var(--foreground);
+}

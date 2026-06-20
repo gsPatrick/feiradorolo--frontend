@@ -1,0 +1,462 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+/* ── Cabeçalho ───────────────────────────────────────────────── */
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.subtitle {
+  margin-top: 4px;
+  font-size: 0.95rem;
+  color: var(--muted-foreground);
+}
+
+.periodSelect {
+  width: 128px;
+}
+
+.loadingHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 10px;
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  vertical-align: middle;
+}
+
+.errorHint {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 10px;
+  font-size: 0.85rem;
+  color: var(--destructive);
+  vertical-align: middle;
+}
+
+.empty {
+  padding: 40px 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+}
+
+.spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--border, currentColor);
+  border-top-color: var(--primary, currentColor);
+  border-radius: 50%;
+  animation: adminAnalyticsSpin 0.7s linear infinite;
+}
+
+@keyframes adminAnalyticsSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── KPI Cards ───────────────────────────────────────────────── */
+.kpiGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.kpiCard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
+}
+
+.kpiHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.kpiTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.kpiIcon {
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+.kpiValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  line-height: 1.2;
+}
+
+.kpiHint {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+/* ── Tabs ────────────────────────────────────────────────────── */
+.tabsList {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  padding: 4px;
+  background: var(--muted);
+  border-radius: var(--r-lg);
+}
+
+.tabTrigger {
+  appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  border-radius: var(--r-md);
+  transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease),
+    box-shadow var(--t-fast) var(--ease);
+}
+
+.tabTrigger:hover {
+  color: var(--foreground);
+}
+
+.tabActive {
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Card genérico ───────────────────────────────────────────── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
+}
+
+.cardHead {
+  margin-bottom: 20px;
+}
+
+.cardTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.cardDesc {
+  margin-top: 4px;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+/* ── Gráfico de linha ────────────────────────────────────────── */
+.chartWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chart {
+  width: 100%;
+  height: 400px;
+}
+
+.gridLine {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.lineRevenue {
+  fill: none;
+  stroke: var(--info);
+  stroke-width: 2;
+}
+
+.lineCommission {
+  fill: none;
+  stroke: var(--feira-green);
+  stroke-width: 2;
+}
+
+.dotRevenue {
+  fill: var(--info);
+}
+
+.dotCommission {
+  fill: var(--feira-green);
+}
+
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legendDot {
+  width: 12px;
+  height: 3px;
+  border-radius: var(--r-pill);
+}
+
+.legendRevenue {
+  background: var(--info);
+}
+
+.legendCommission {
+  background: var(--feira-green);
+}
+
+/* ── Top Vendedores ──────────────────────────────────────────── */
+.sellerList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sellerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+
+.sellerLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  background: var(--brand-soft);
+  flex-shrink: 0;
+}
+
+.rank span {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.sellerName {
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.sellerMeta {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.sellerRight {
+  text-align: right;
+}
+
+.sellerRevenue {
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.sellerCommission {
+  font-size: 0.875rem;
+  color: var(--feira-green);
+}
+
+/* ── Crescimento ─────────────────────────────────────────────── */
+.growthGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, 1fr);
+  margin-bottom: 24px;
+}
+
+.growthCard {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+
+.growthLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.growthLabel h3 {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.growthValue {
+  margin-top: 8px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.growthDelta {
+  margin-top: 4px;
+  font-size: 0.875rem;
+}
+
+/* ── Comissões ───────────────────────────────────────────────── */
+.commGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: 24px;
+}
+
+.commCard {
+  padding: 16px;
+  border-radius: var(--r-lg);
+  border: 1px solid;
+}
+
+.commCard h3 {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.commCard p {
+  margin-top: 4px;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.commGreen {
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+.commGreen h3 { color: #166534; }
+.commGreen p { color: #16a34a; }
+
+.commBlue {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+.commBlue h3 { color: #1e40af; }
+.commBlue p { color: #2563eb; }
+
+.commPurple {
+  background: rgba(147, 51, 234, 0.08);
+  border-color: rgba(147, 51, 234, 0.3);
+}
+.commPurple h3 { color: #6b21a8; }
+.commPurple p { color: #9333ea; }
+
+.commYellow {
+  background: rgba(234, 179, 8, 0.1);
+  border-color: rgba(234, 179, 8, 0.35);
+}
+.commYellow h3 { color: #854d0e; }
+.commYellow p { color: #ca8a04; }
+
+/* ── Como funciona ───────────────────────────────────────────── */
+.howItWorks {
+  padding: 24px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.06), rgba(37, 99, 235, 0.06));
+}
+
+.howTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 16px;
+}
+
+.howList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.howList li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.bullet {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-pill);
+  flex-shrink: 0;
+}
+
+.bgGreen { background: var(--feira-green); }
+.bgBlue { background: var(--info); }
+.bgPurple { background: #9333ea; }
+.bgYellow { background: var(--feira-yellow); }
+
+/* ── Cores utilitárias ───────────────────────────────────────── */
+.green { color: var(--feira-green); }
+.red { color: var(--destructive); }
+.blue { color: var(--info); }
+.orange { color: #ea580c; }
+
+/* ── Responsivo ──────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .kpiGrid { grid-template-columns: repeat(2, 1fr); }
+  .commGrid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .growthGrid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .kpiGrid { grid-template-columns: 1fr; }
+  .commGrid { grid-template-columns: 1fr; }
+}

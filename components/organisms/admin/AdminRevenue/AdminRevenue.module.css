@@ -1,0 +1,343 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* — Card base (shadcn) — */
+.card {
+  background: var(--card, var(--bg));
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.cardHeader {
+  padding: 24px 24px 0;
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+
+.cardTitle svg {
+  flex-shrink: 0;
+  color: var(--foreground);
+}
+
+.cardBody {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* — Campos de formulário — */
+.label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--foreground);
+}
+
+.settingField {
+  display: flex;
+  flex-direction: column;
+}
+
+.settingsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.filterGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.filterAction {
+  display: flex;
+  align-items: flex-end;
+}
+
+@media (min-width: 768px) {
+  .settingsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .filterGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* — Cards de resumo — */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .summaryGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.summaryBody {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.summaryText {
+  min-width: 0;
+}
+
+.summaryLabel {
+  margin: 0 0 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.summaryValue {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.accentValue {
+  color: var(--info);
+}
+
+.summaryIcon {
+  flex-shrink: 0;
+  display: inline-flex;
+}
+
+.tone_green {
+  color: var(--feira-green);
+}
+.tone_blue {
+  color: var(--info);
+}
+.tone_purple {
+  color: #9333ea;
+}
+.tone_orange {
+  color: #ea580c;
+}
+
+/* — Ranking de vendedores — */
+.vendorList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.vendorRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  transition: background var(--t-fast) var(--ease);
+}
+
+.vendorRow:hover {
+  background: var(--bg-1);
+}
+
+.vendorLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.rankBadge {
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 4px 12px;
+}
+
+.vendorName {
+  margin: 0;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.vendorMeta {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.vendorRight {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.vendorRevenue {
+  margin: 0;
+  font-weight: 700;
+  color: var(--feira-green);
+}
+
+/* — Estado de carregamento das listas — */
+.listLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.emptyState {
+  padding: 24px;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-top-color: var(--feira-green);
+  border-radius: 50%;
+  animation: adminRevenueSpin 0.7s linear infinite;
+}
+
+@keyframes adminRevenueSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* — Cabeçalho de seção com ação (Adicionar) — */
+.cardHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* — Ações por linha (Editar / status) — */
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* — Editor (modal) — */
+.editorForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.editorGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .editorGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.editorFull {
+  grid-column: 1 / -1;
+}
+
+.fieldHint {
+  margin: 6px 0 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.editorCheck {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.editorCheck input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--feira-green);
+}
+
+/* — Markup em evidência — */
+.editorHighlight {
+  grid-column: 1 / -1;
+  padding: 12px;
+  border: 1px solid var(--feira-yellow);
+  border-radius: var(--r-lg);
+  background: color-mix(in srgb, var(--feira-yellow) 12%, transparent);
+}
+
+@media (min-width: 640px) {
+  .editorHighlight {
+    grid-column: span 1;
+  }
+}
+
+.markupHint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 12px;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--feira-yellow) 16%, transparent);
+  border: 1px solid var(--feira-yellow);
+  border-radius: var(--r-lg);
+}
+
+.markupHint svg {
+  flex-shrink: 0;
+  color: var(--foreground);
+}
+
+/* — Rodapé do editor — */
+.editorFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.editorFooterRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}

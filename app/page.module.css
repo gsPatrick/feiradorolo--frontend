@@ -1,0 +1,77 @@
+.content {
+  background: #f6f7f9;
+}
+
+.container {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 28px;
+}
+
+.heroWrap {
+  padding-top: 28px;
+}
+
+.cardsWrap {
+  padding: 28px 0 4px;
+}
+
+.sectionWrap {
+  padding: 40px 0;
+}
+
+.storeWrap {
+  padding: 8px 0 44px;
+}
+
+.cream {
+  background: #fffaf0;
+}
+
+.lavender {
+  background: #f6f4ff;
+}
+
+.categoriesWrap {
+  padding: 44px 0 64px;
+}
+
+/* — Footer — */
+.footer {
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+.footerInner {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.footerBrand {
+  font-weight: 800;
+  color: #f5b400;
+}
+.footerLinks {
+  display: flex;
+  gap: 20px;
+  font-size: 0.88rem;
+  color: var(--muted-foreground);
+}
+.footerLinks a:hover {
+  color: var(--foreground);
+}
+.copy {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+@media (max-width: 680px) {
+  .footerInner {
+    flex-direction: column;
+    text-align: center;
+  }
+}

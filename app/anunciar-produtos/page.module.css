@@ -1,0 +1,287 @@
+/* ============================================================
+   /anunciar-produtos — landing/atalho para anunciar
+   Replica fiel do front antigo (Tailwind → CSS Modules + tokens)
+   ============================================================ */
+
+.page {
+  min-height: 100vh;
+  background: var(--bg-1); /* bg-gray-50 */
+}
+
+.container {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding-left: 16px;
+  padding-right: 16px;
+  width: 100%;
+}
+
+/* — Breadcrumb bar — */
+.crumbBar {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding-top: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 0;
+}
+
+/* — Header — */
+.header {
+  text-align: center;
+  margin-top: 32px;
+  margin-bottom: 48px;
+}
+.title {
+  font-size: 2.25rem; /* text-4xl */
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 16px;
+}
+.subtitle {
+  font-size: 1.25rem; /* text-xl */
+  color: var(--muted-foreground);
+  max-width: 42rem;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* — Steps section — */
+.stepsSection {
+  margin-bottom: 48px;
+}
+.sectionTitle {
+  font-size: 1.5rem; /* text-2xl */
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 24px;
+  color: var(--foreground);
+}
+.stepsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+.stepCard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
+  text-align: center;
+  transition: box-shadow var(--t-base) var(--ease);
+}
+.stepCard:hover {
+  box-shadow: var(--shadow-lg);
+}
+.stepCardHead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.stepIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-pill);
+  background: var(--feira-yellow);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.stepBadge {
+  margin-bottom: 8px;
+}
+.stepTitle {
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 600;
+  color: var(--foreground);
+}
+.stepDesc {
+  font-size: 0.875rem; /* text-sm */
+  color: var(--muted-foreground);
+  margin-top: 12px;
+}
+
+/* — Main layout (form + sidebar) — */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  padding-bottom: 48px;
+}
+
+/* — Card primitives — */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+}
+.card + .card {
+  margin-top: 24px;
+}
+.cardHead {
+  padding: 24px 24px 0;
+}
+.cardTitle {
+  display: flex;
+  align-items: center;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.cardTitleLg {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.cardTitleIcon {
+  color: var(--feira-yellow);
+  margin-right: 8px;
+}
+.cardDesc {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin-top: 6px;
+}
+.cardBody {
+  padding: 24px;
+}
+
+/* — Form blocks — */
+.block + .block {
+  margin-top: 24px;
+}
+.blockTitle {
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--foreground);
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+}
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  margin-bottom: 4px;
+}
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+/* — Dropzone — */
+.dropzone {
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--r-lg);
+  padding: 32px;
+  text-align: center;
+}
+.dropIcon {
+  color: var(--text-dim);
+  margin: 0 auto 16px;
+}
+.dropText {
+  color: var(--muted-foreground);
+  margin-bottom: 8px;
+}
+.dropHint {
+  font-size: 0.875rem;
+  color: var(--text-dim);
+}
+.dropBtn {
+  margin-top: 16px;
+}
+
+/* — Actions — */
+.actions {
+  display: flex;
+  gap: 16px;
+  padding-top: 24px;
+}
+.actionMain {
+  flex: 1;
+  background: var(--feira-yellow);
+  color: var(--brand-foreground);
+  border-color: var(--feira-yellow);
+  justify-content: center;
+}
+.actionMain:hover {
+  background: var(--feira-yellow-strong);
+  border-color: var(--feira-yellow-strong);
+}
+.actionSecondary {
+  flex: 1;
+  justify-content: center;
+}
+
+/* — Tips — */
+.tips {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.tip {
+  display: flex;
+  align-items: flex-start;
+}
+.tipDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--feira-yellow);
+  margin-right: 12px;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+.tipTitle {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+.tipDesc {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin-top: 2px;
+}
+
+/* — Help list — */
+.helpList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.helpBtn {
+  justify-content: center;
+}
+
+/* ============================================================
+   Responsivo
+   ============================================================ */
+@media (min-width: 768px) {
+  .container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .stepsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .grid2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: 2fr 1fr;
+  }
+}

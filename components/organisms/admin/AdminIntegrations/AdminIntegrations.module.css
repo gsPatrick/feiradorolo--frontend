@@ -1,0 +1,316 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--muted-foreground);
+}
+
+.unauth {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--muted-foreground);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.unauth p {
+  margin: 0;
+  max-width: 360px;
+}
+
+/* Banner de aviso de segurança */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--foreground);
+  background: var(--feira-yellow-soft);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--feira-yellow);
+  border-radius: var(--r-md);
+}
+.bannerIcon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* Agrupamento por categoria */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.groupTitle {
+  grid-column: 1 / -1;
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-foreground);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+/* Card por serviço */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.cardIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  color: var(--foreground);
+  background: var(--muted);
+  border-radius: var(--r-md);
+}
+.cardTitle {
+  flex: 1;
+  min-width: 0;
+}
+.cardTitle h4 {
+  margin: 0 0 2px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--foreground);
+}
+.cardTitle p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
+/* Badge de status */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 4px 9px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.badge_active {
+  color: hsl(142, 71%, 26%);
+  background: hsl(142, 71%, 95%);
+  border: 1px solid hsl(142, 71%, 82%);
+}
+.badge_configured {
+  color: hsl(38, 92%, 32%);
+  background: hsl(48, 96%, 94%);
+  border: 1px solid hsl(45, 93%, 80%);
+}
+.badge_off {
+  color: var(--muted-foreground);
+  background: var(--muted);
+  border: 1px solid var(--border);
+}
+
+/* Box de ajuda azul claro */
+.help {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: hsl(210, 100%, 97%);
+  border: 1px solid hsl(210, 90%, 88%);
+  border-radius: var(--r-md);
+}
+.helpTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: hsl(210, 70%, 35%);
+}
+.helpLink {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: hsl(210, 90%, 42%);
+  text-decoration: underline;
+  word-break: break-all;
+}
+.helpLink:hover {
+  color: hsl(210, 90%, 34%);
+}
+.steps {
+  margin: 2px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.steps li {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
+/* Campos */
+.fields {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.fieldWide {
+  grid-column: 1 / -1;
+}
+.fieldLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.secretOk {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: hsl(142, 71%, 32%);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: 9px 11px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--foreground);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.textarea {
+  resize: vertical;
+  min-height: 88px;
+  line-height: 1.4;
+}
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--feira-yellow-strong);
+  box-shadow: 0 0 0 3px var(--feira-yellow-soft);
+}
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--muted-foreground);
+  opacity: 0.7;
+}
+
+/* Ações */
+.cardActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 2px;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btnPrimary {
+  color: hsl(222, 47%, 11%);
+  background: var(--feira-yellow);
+  border-color: var(--feira-yellow-strong);
+}
+.btnPrimary:not(:disabled):hover {
+  background: var(--feira-yellow-strong);
+}
+.btnGhost {
+  color: var(--foreground);
+  background: var(--card);
+  border-color: var(--border);
+}
+.btnGhost:not(:disabled):hover {
+  background: var(--muted);
+}
+
+@media (max-width: 540px) {
+  .fields {
+    grid-template-columns: 1fr;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Rótulo de categoria no card */
+.cardCat {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--feira-yellow-strong, #b8860b);
+  margin-bottom: 3px;
+}
+
+/* Logo de provedor no card (ex.: Mercado Pago) */
+.cardLogo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+.cardIcon:has(.cardLogo) {
+  background: #fff;
+}

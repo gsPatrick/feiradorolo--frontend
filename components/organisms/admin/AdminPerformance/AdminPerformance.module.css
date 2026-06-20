@@ -1,0 +1,529 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* — Loading — */
+.loading {
+  padding: 48px 0;
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 0.95rem;
+}
+
+/* — Header — */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  line-height: 1.2;
+}
+.subtitle {
+  color: var(--muted-foreground);
+  font-size: 0.95rem;
+  margin-top: 2px;
+}
+.spin {
+  animation: perfSpin 1s linear infinite;
+}
+@keyframes perfSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* — Card raiz — */
+.card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+}
+.cardHeader {
+  padding: 20px 24px 0;
+}
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+.cardBody {
+  padding: 20px 24px 24px;
+}
+
+/* — Score card — */
+.scoreCard {
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.06), rgba(99, 102, 241, 0.07));
+  border-color: rgba(37, 99, 235, 0.25);
+}
+.scoreCard .cardTitle svg {
+  color: var(--info);
+}
+.scoreRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.scoreValue {
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.scoreText {
+  font-size: 1.125rem;
+  color: var(--muted-foreground);
+  margin-top: 4px;
+}
+.scoreHint {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+.scoreRight {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.scoreUpdated {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+.scoreGreen {
+  color: var(--feira-green);
+}
+.scoreYellow {
+  color: var(--feira-yellow-strong);
+}
+.scoreOrange {
+  color: #ea580c;
+}
+.scoreRed {
+  color: var(--destructive);
+}
+
+/* — Progress bar — */
+.progress {
+  height: 12px;
+  width: 100%;
+  border-radius: var(--r-pill);
+  background: var(--bg-2);
+  overflow: hidden;
+}
+.progressBar {
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: var(--info);
+  transition: width var(--t-base) var(--ease);
+}
+
+/* — Métricas — */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 640px) {
+  .metricsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .metricsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.metricCard {
+  padding: 24px;
+  border-left-width: 4px;
+  border-left-style: solid;
+}
+.metricHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.metricIcon {
+  display: grid;
+  place-items: center;
+  padding: 8px;
+  border-radius: var(--r-lg);
+}
+.metricLabel {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+.metricValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  line-height: 1.2;
+}
+.metricFoot {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.borderGreen {
+  border-left-color: var(--feira-green);
+}
+.borderBlue {
+  border-left-color: var(--info);
+}
+.borderPurple {
+  border-left-color: #9333ea;
+}
+.borderOrange {
+  border-left-color: #ea580c;
+}
+.bgGreen {
+  background: rgba(34, 197, 94, 0.14);
+  color: var(--feira-green);
+}
+.bgBlue {
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--info);
+}
+.bgPurple {
+  background: rgba(147, 51, 234, 0.12);
+  color: #9333ea;
+}
+.bgOrange {
+  background: rgba(234, 88, 12, 0.12);
+  color: #ea580c;
+}
+.txtGreen {
+  color: var(--feira-green);
+}
+.txtBlue {
+  color: var(--info);
+}
+.txtPurple {
+  color: #9333ea;
+}
+.txtOrange {
+  color: #ea580c;
+}
+
+/* — Gauges (recursos em tempo real) — */
+.gaugeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+@media (min-width: 768px) {
+  .gaugeGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.gauge {
+  position: relative;
+  text-align: center;
+  padding: 8px 4px 4px;
+}
+.gaugeSvg {
+  width: 100%;
+  max-width: 160px;
+  display: block;
+  margin: 0 auto;
+}
+.gaugeTrack {
+  fill: none;
+  stroke: var(--bg-2);
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+.gaugeProgress {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset var(--t-base) var(--ease), stroke var(--t-base) var(--ease);
+}
+.gaugeOk {
+  stroke: var(--feira-green);
+}
+.gaugeWarn {
+  stroke: var(--feira-yellow-strong);
+}
+.gaugeBad {
+  stroke: var(--destructive);
+}
+.gaugeCenter {
+  position: absolute;
+  top: 56%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+}
+.gaugeValue {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--foreground);
+}
+.gaugeLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  margin-top: 4px;
+}
+.gaugeCaption {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.rpsBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: var(--bg-1);
+  border-radius: var(--r-lg);
+  padding: 16px;
+  position: relative;
+}
+.rpsValue {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--info);
+  line-height: 1;
+}
+.rpsLabel {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  margin-top: 6px;
+}
+.rpsIcon {
+  color: var(--feira-green);
+  margin-top: 8px;
+}
+
+/* — Serviços — */
+.servicesGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 768px) {
+  .servicesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.service {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg-1);
+  border-radius: var(--r-lg);
+}
+.serviceIcon {
+  display: grid;
+  place-items: center;
+  color: var(--muted-foreground);
+}
+.serviceInfo {
+  flex: 1;
+  min-width: 0;
+}
+.serviceName {
+  font-weight: 600;
+  color: var(--foreground);
+  font-size: 0.95rem;
+}
+.serviceDetail {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+.serviceRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.serviceLatency {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+/* — Otimizações — */
+.optsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 768px) {
+  .optsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .optsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(34, 197, 94, 0.1);
+  border-radius: var(--r-lg);
+}
+.optCheck {
+  display: grid;
+  place-items: center;
+  color: var(--feira-green);
+  flex-shrink: 0;
+}
+.optTitle {
+  font-weight: 600;
+  color: #15803d;
+  font-size: 0.92rem;
+}
+.optDesc {
+  font-size: 0.8rem;
+  color: var(--feira-green);
+}
+
+/* — Endpoints — */
+.endpointList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.endpoint {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--bg-1);
+  border-radius: var(--r-lg);
+}
+.endpointLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1.4;
+}
+.statusDot {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--r-pill);
+  flex-shrink: 0;
+}
+.endpointName {
+  font-weight: 600;
+  color: var(--foreground);
+  font-size: 0.9rem;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.endpointCount {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+.endpointMid {
+  flex: 1;
+  display: none;
+}
+@media (min-width: 768px) {
+  .endpointMid {
+    display: block;
+  }
+}
+.endpointTrack {
+  height: 8px;
+  width: 100%;
+  background: var(--bg-2);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+.endpointFill {
+  height: 100%;
+  border-radius: var(--r-pill);
+  transition: width var(--t-base) var(--ease);
+}
+.endpointRight {
+  text-align: right;
+  flex-shrink: 0;
+}
+.endpointTime {
+  font-weight: 700;
+  color: var(--foreground);
+  font-size: 0.95rem;
+}
+.endpointTimeLabel {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+/* Dots / fills por nível */
+.dotGreen {
+  background: var(--feira-green);
+}
+.dotYellow {
+  background: var(--feira-yellow-strong);
+}
+.dotOrange {
+  background: #f97316;
+}
+.dotRed {
+  background: var(--destructive);
+}
+
+/* — Sistema — */
+.sysGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 768px) {
+  .sysGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.sys {
+  text-align: center;
+  padding: 20px 16px;
+  background: var(--bg-1);
+  border-radius: var(--r-lg);
+  color: var(--muted-foreground);
+}
+.sys svg {
+  margin: 0 auto 8px;
+  display: block;
+}
+.sysTitle {
+  font-weight: 600;
+  color: var(--foreground);
+}
+.sysValue {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  margin-top: 2px;
+}
+.capitalize {
+  text-transform: capitalize;
+}

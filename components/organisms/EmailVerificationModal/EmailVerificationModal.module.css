@@ -1,0 +1,133 @@
+.title {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.titleIcon {
+  color: var(--info);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  text-align: center;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.lead {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+.email {
+  font-weight: 600;
+  color: var(--info);
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.boxes {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+.box {
+  width: 48px;
+  height: 48px;
+  text-align: center;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--foreground);
+  background: var(--bg);
+  border: 1px solid var(--input);
+  border-radius: var(--r-md);
+  outline: none;
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.box::placeholder {
+  color: var(--muted-foreground);
+  opacity: 0.5;
+  font-weight: 400;
+}
+.box:focus {
+  border-color: var(--info);
+  box-shadow: 0 0 0 3px var(--info-soft);
+}
+.box:disabled {
+  background: var(--bg-2);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.verifying {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: var(--info);
+}
+.spin {
+  animation: ev-spin 0.9s linear infinite;
+}
+@keyframes ev-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.expire {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.countdown {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.resend {
+  color: var(--info);
+}
+.resend:hover:not(:disabled) {
+  color: var(--info);
+}
+.resendLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  background: var(--bg-2);
+  border-radius: var(--r-md);
+  padding: 12px;
+  text-align: center;
+}
+.hint strong {
+  color: var(--foreground);
+}

@@ -1,0 +1,319 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Header */
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.head h1 {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+.head p {
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+  margin-top: 3px;
+}
+.online {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #166534;
+  background: #dcfce7;
+  padding: 5px 12px;
+  border-radius: var(--r-pill);
+  flex-shrink: 0;
+}
+
+/* Card genérico */
+.card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+}
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 16px;
+}
+
+/* Seletor de contas (5) */
+.accGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+.accBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 16px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  cursor: pointer;
+  color: var(--foreground);
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.accBtn:hover {
+  border-color: var(--border-strong);
+}
+.accBtnSel {
+  background: var(--feira-yellow);
+  border-color: var(--feira-yellow);
+  color: #1a1a1a;
+}
+.accLabel {
+  font-size: 0.92rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+.accDesc {
+  font-size: 0.72rem;
+  opacity: 0.7;
+}
+.accEmail {
+  font-size: 0.68rem;
+  opacity: 0.6;
+  word-break: break-all;
+}
+
+/* 3 cards */
+.grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.curr {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.88rem;
+  color: var(--foreground);
+}
+.curr strong {
+  font-size: 0.95rem;
+}
+.muted {
+  color: var(--muted-foreground);
+}
+.currActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+  padding: 9px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--primary-foreground);
+  background: var(--primary);
+  border: none;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: opacity var(--t-fast) var(--ease);
+}
+.btnPrimary:hover {
+  opacity: 0.9;
+}
+.btnIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  flex-shrink: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--foreground);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+.btnIcon:hover {
+  background: var(--surface-hover);
+}
+.btnOutline {
+  padding: 9px 18px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--foreground);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+}
+.btnOutline:hover {
+  background: var(--surface-hover);
+}
+
+/* Estatísticas */
+.statList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.statRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.88rem;
+  color: var(--foreground);
+}
+.badgeGreen {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 11px;
+  border-radius: var(--r-pill);
+}
+.badgeGreen {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* Ações rápidas */
+.qaList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.qaBtn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  color: var(--foreground);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.qaBtn:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+/* Modais */
+.modalTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.modalDesc {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  margin: -4px 0 16px;
+}
+.field {
+  margin-bottom: 14px;
+}
+.field label {
+  display: block;
+  font-size: 0.83rem;
+  font-weight: 500;
+  color: var(--foreground);
+  margin-bottom: 6px;
+}
+
+.tplGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.tplCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.tplCard:hover {
+  background: var(--bg-1);
+  border-color: var(--border-strong);
+}
+.tplCard strong {
+  font-size: 0.9rem;
+  color: var(--foreground);
+}
+.tplDesc {
+  font-size: 0.74rem;
+  color: var(--text-dim);
+}
+.tplPreview {
+  font-size: 0.82rem;
+  color: var(--muted-foreground);
+  margin-top: 6px;
+}
+.tplEmpty {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  text-align: center;
+  padding: 28px 16px;
+}
+.tplCardActions {
+  display: flex;
+  gap: 14px;
+  margin-top: 10px;
+}
+.tplLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.tplLink:hover {
+  opacity: 0.8;
+}
+.tplEditActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+@media (max-width: 1000px) {
+  .accGrid { grid-template-columns: repeat(3, 1fr); }
+  .grid3 { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .accGrid { grid-template-columns: 1fr 1fr; }
+  .tplGrid { grid-template-columns: 1fr; }
+}

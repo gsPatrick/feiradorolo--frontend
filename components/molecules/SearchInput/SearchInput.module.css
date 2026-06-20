@@ -1,0 +1,35 @@
+.bar {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  padding: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--t-base) var(--ease), box-shadow var(--t-base) var(--ease);
+}
+
+.bar:focus-within {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+.input {
+  border-color: transparent;
+  background: transparent;
+}
+.input:focus-within {
+  box-shadow: none;
+  border-color: transparent;
+}
+
+.submit {
+  flex-shrink: 0;
+}
+
+@media (max-width: 540px) {
+  .submit :global(.label) {
+    display: none;
+  }
+}

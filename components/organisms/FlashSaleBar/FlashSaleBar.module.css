@@ -1,0 +1,88 @@
+.bar {
+  background: #e3261f;
+  color: #fff;
+}
+.inner {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 16px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.bolt {
+  display: grid;
+  place-items: center;
+  color: #ffd700;
+}
+.title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.desc {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.92);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.timer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+}
+.timer span {
+  display: grid;
+  place-items: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 6px;
+  background: #fff;
+  color: #e3261f;
+  border-radius: var(--r-md);
+  font-size: 1.05rem;
+}
+.timer i {
+  font-style: normal;
+  font-weight: 700;
+}
+
+.all {
+  height: 40px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  border-radius: var(--r-md);
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.all:hover {
+  background: #fff;
+  color: #e3261f;
+}
+
+@media (max-width: 640px) {
+  .desc {
+    display: none;
+  }
+}

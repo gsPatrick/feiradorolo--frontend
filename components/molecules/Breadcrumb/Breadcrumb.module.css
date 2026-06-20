@@ -1,0 +1,24 @@
+.crumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.84rem;
+  color: var(--muted-foreground);
+}
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.crumb a:hover {
+  color: var(--feira-yellow-strong);
+}
+.current {
+  color: var(--foreground);
+  font-weight: 600;
+}
+.sep {
+  color: var(--text-dim);
+  transform: rotate(-90deg);
+}

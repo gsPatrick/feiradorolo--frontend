@@ -1,0 +1,180 @@
+/* ============================================================
+   FEIRA DO ROLO — Design System · Tokens globais
+   Tema CLARO fiel ao front antigo (shadcn slate + acento Feira).
+   ============================================================ */
+
+:root {
+  /* — Base (shadcn light, valores exatos do front antigo) — */
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(222, 84%, 4.9%);
+  --muted: hsl(210, 40%, 96%);
+  --muted-foreground: hsl(215, 16%, 47%);
+  --card: hsl(0, 0%, 100%);
+  --border: hsl(214, 32%, 91%);
+  --input: hsl(214, 32%, 91%);
+  --primary: hsl(222, 47%, 11%);
+  --primary-foreground: hsl(210, 40%, 98%);
+  --secondary: hsl(210, 40%, 96%);
+  --secondary-foreground: hsl(222, 47%, 11%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --ring: hsl(222, 84%, 4.9%);
+  --radius: 0.5rem;
+
+  /* — Cores Feira do Rolo — */
+  --feira-yellow: hsl(51, 100%, 50%); /* #FFD700 */
+  --feira-yellow-strong: #ffc107;
+  --feira-red: hsl(0, 73%, 41%);
+  --feira-green: hsl(142, 71%, 45%);
+  --feira-gray: hsl(217, 33%, 17%);
+  --feira-yellow-soft: rgba(255, 215, 0, 0.16);
+
+  /* — Aliases semânticos usados pelos componentes — */
+  --bg: #ffffff;
+  --bg-1: #f8fafc;
+  --bg-2: #f1f5f9;
+  --surface: #ffffff;
+  --surface-strong: #f8fafc;
+  --surface-hover: #f1f5f9;
+  --border-strong: #cbd5e1;
+  --text: hsl(222, 84%, 4.9%);
+  --text-muted: hsl(215, 16%, 47%);
+  --text-dim: #94a3b8;
+
+  --brand: var(--feira-yellow);
+  --brand-strong: var(--feira-yellow-strong);
+  --brand-foreground: #1a1a1a;
+  --brand-soft: var(--feira-yellow-soft);
+
+  --success: hsl(142, 71%, 45%);
+  --success-soft: rgba(34, 197, 94, 0.14);
+  --danger: hsl(0, 84%, 60%);
+  --danger-soft: rgba(239, 68, 68, 0.12);
+  --info: #2563eb;
+  --info-soft: rgba(37, 99, 235, 0.12);
+
+  --tier-silver: #94a3b8;
+  --tier-gold: #eab308;
+  --tier-diamond: #0ea5e9;
+
+  /* — Gradientes da marca (do front antigo) — */
+  --grad-brand: linear-gradient(45deg, #009639, #fedf00);
+  --grad-text: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --grad-free-shipping: linear-gradient(45deg, hsl(142, 71%, 45%), #00ff88);
+
+  /* — Sombras (do front antigo) — */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-card-hover: 0 8px 25px rgba(0, 0, 0, 0.15);
+
+  /* — Foco (anel slate, estilo shadcn ring-offset) — */
+  --ring-shadow: 0 0 0 2px #ffffff, 0 0 0 4px rgba(15, 23, 42, 0.55);
+  --ring-danger: 0 0 0 2px #ffffff, 0 0 0 4px rgba(239, 68, 68, 0.5);
+  --ring-brand: 0 0 0 2px #ffffff, 0 0 0 4px rgba(255, 193, 7, 0.6);
+
+  /* — Raios — */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+  --r-xl: 12px;
+  --r-pill: 999px;
+
+  /* — Tipografia (system stack, igual ao antigo) — */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  --container: 1280px;
+  --header-h: 72px;
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --t-fast: 150ms;
+  --t-base: 250ms;
+  --t-slow: 400ms;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "rlig" 1, "calt" 1;
+  min-height: 100dvh;
+}
+
+h1, h2, h3, h4 {
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+::selection {
+  background: var(--feira-yellow-soft);
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--r-pill);
+  border: 3px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

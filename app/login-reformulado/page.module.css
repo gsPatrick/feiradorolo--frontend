@@ -1,0 +1,104 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+}
+
+/* — Painel de marca (esquerda) — */
+.brand {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+  padding: clamp(40px, 5vw, 76px);
+  background: linear-gradient(165deg, #0f172a 0%, #1e293b 60%, #312e81 100%);
+  color: #fff;
+}
+.glow {
+  position: absolute;
+  top: -20%;
+  right: -10%;
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(circle, rgba(255, 203, 43, 0.22), transparent 65%);
+  pointer-events: none;
+}
+.logo {
+  position: relative;
+  z-index: 1;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #f5b400;
+}
+.brandBody {
+  position: relative;
+  z-index: 1;
+}
+.headline {
+  font-size: clamp(1.9rem, 3.4vw, 2.9rem);
+  line-height: 1.15;
+  max-width: 16ch;
+  margin-bottom: 34px;
+}
+.hl {
+  color: #f5b400;
+}
+.benefits {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.benefits li {
+  display: flex;
+  gap: 14px;
+}
+.bicon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  color: #f5b400;
+  background: rgba(255, 203, 43, 0.14);
+  border: 1px solid rgba(255, 203, 43, 0.25);
+}
+.benefits strong {
+  display: block;
+  font-size: 0.98rem;
+}
+.benefits span {
+  font-size: 0.86rem;
+  color: rgba(255, 255, 255, 0.66);
+}
+.fine {
+  position: relative;
+  z-index: 1;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* — Painel do formulário (direita) — */
+.panel {
+  display: grid;
+  place-items: center;
+  padding: clamp(32px, 5vw, 64px);
+  background: var(--bg);
+}
+.inner {
+  width: 100%;
+  max-width: 420px;
+}
+
+@media (max-width: 900px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+  .brand {
+    display: none;
+  }
+}

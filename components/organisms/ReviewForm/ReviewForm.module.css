@@ -1,0 +1,89 @@
+.titleHead {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.headStar {
+  color: var(--feira-yellow-strong);
+  flex-shrink: 0;
+}
+
+.productName {
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+  margin-bottom: 18px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  margin-bottom: 6px;
+}
+
+/* — Estrelas — */
+.stars {
+  display: flex;
+  gap: 4px;
+}
+.star {
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #d1d5db;
+  transition: color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+.star:hover {
+  color: #facc15;
+  transform: scale(1.05);
+}
+.starFilled {
+  color: #facc15;
+}
+
+.ratingHint {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin-top: 4px;
+}
+
+.counter {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+.textarea {
+  resize: none;
+}
+
+.submit {
+  align-self: flex-start;
+}
+.submitInner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 480px) {
+  .submit {
+    align-self: stretch;
+    width: 100%;
+  }
+}

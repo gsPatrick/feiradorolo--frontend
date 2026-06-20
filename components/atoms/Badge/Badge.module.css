@@ -1,0 +1,74 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  border-radius: var(--r-pill);
+  border: 1px solid transparent;
+  line-height: 1;
+}
+
+.md {
+  font-size: 0.76rem;
+  padding: 5px 10px;
+}
+.sm {
+  font-size: 0.68rem;
+  padding: 3px 8px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.neutral {
+  background: var(--muted);
+  color: var(--muted-foreground);
+  border-color: var(--border);
+}
+.brand {
+  background: var(--feira-yellow-soft);
+  color: #8a6d00;
+  border-color: rgba(234, 179, 8, 0.4);
+}
+.success {
+  background: var(--success-soft);
+  color: #15803d;
+  border-color: rgba(34, 197, 94, 0.35);
+}
+.danger {
+  background: var(--danger-soft);
+  color: #b91c1c;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+.info {
+  background: var(--info-soft);
+  color: #1d4ed8;
+  border-color: rgba(37, 99, 235, 0.3);
+}
+.outline {
+  background: transparent;
+  color: var(--muted-foreground);
+  border-color: var(--border-strong);
+}
+
+.silver {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+.gold {
+  background: var(--feira-yellow-soft);
+  color: #8a6d00;
+  border-color: rgba(234, 179, 8, 0.45);
+}
+.diamond {
+  background: rgba(14, 165, 233, 0.1);
+  color: #0369a1;
+  border-color: rgba(14, 165, 233, 0.35);
+}

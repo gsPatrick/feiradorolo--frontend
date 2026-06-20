@@ -1,0 +1,374 @@
+.page {
+  min-height: 100vh;
+  background: var(--bg-1);
+}
+
+.container {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 28px;
+}
+
+/* Breadcrumb */
+.breadcrumbBar {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+.crumbLink {
+  transition: color var(--t-fast) var(--ease);
+}
+.crumbLink:hover {
+  color: var(--feira-yellow);
+}
+.crumbSep {
+  color: var(--muted-foreground);
+}
+.crumbCurrent {
+  color: var(--foreground);
+}
+
+.content {
+  padding-top: 32px;
+  padding-bottom: 48px;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 16px;
+}
+.subtitle {
+  font-size: 1.25rem;
+  color: var(--muted-foreground);
+  max-width: 42rem;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* Alert */
+.alert {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 16px;
+  margin-bottom: 32px;
+  border: 1px solid hsl(214, 95%, 86%);
+  background: var(--info-soft);
+  border-radius: var(--r-lg);
+}
+.alertIcon {
+  flex-shrink: 0;
+  color: var(--info);
+  margin-top: 2px;
+}
+.alertText {
+  line-height: 1.5;
+  color: hsl(224, 64%, 33%);
+}
+
+/* Blocks */
+.block {
+  margin-bottom: 32px;
+}
+.blockTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 24px;
+}
+.blockTitleLeft {
+  text-align: left;
+}
+
+/* Warranty type cards */
+.typesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--t-base) var(--ease);
+}
+.card:hover {
+  box-shadow: var(--shadow-lg);
+}
+.cardHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.typeIcon {
+  margin-bottom: 16px;
+  color: var(--info);
+}
+.typeIcon.blue {
+  color: var(--info);
+}
+.typeIcon.green {
+  color: var(--feira-green);
+}
+.typeIcon.purple {
+  color: #9333ea;
+}
+.cardTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.periodBadge {
+  margin: 8px auto;
+}
+.cardDesc {
+  margin-top: 8px;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+}
+.coverageTitle {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--foreground);
+  margin-bottom: 8px;
+}
+.coverageList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.coverageItem {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+.coverageDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--feira-yellow);
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+/* Panels */
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 32px;
+}
+.panelHead {
+  margin-bottom: 16px;
+}
+.panelTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 6px;
+}
+.panelTitleIcon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.clockIcon {
+  color: var(--feira-yellow);
+  display: inline-flex;
+}
+.panelDesc {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+/* Table */
+.tableWrap {
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table th {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  color: var(--foreground);
+}
+.table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.table tbody tr {
+  transition: background var(--t-fast) var(--ease);
+}
+.table tbody tr:hover {
+  background: var(--bg-1);
+}
+.tdName {
+  font-weight: 500;
+  color: var(--foreground);
+}
+.tdLegal {
+  color: var(--feira-green);
+}
+.tdManu {
+  color: var(--info);
+}
+.tdExamples {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+/* Two columns */
+.twoCols {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+  margin-bottom: 0;
+}
+.twoCols .panel {
+  margin-bottom: 0;
+}
+
+/* Steps */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.step {
+  display: flex;
+  align-items: flex-start;
+}
+.stepNum {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  background: var(--feira-yellow);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.stepTitle {
+  font-weight: 600;
+  color: var(--foreground);
+}
+.stepText {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+}
+
+/* Important info */
+.infoGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.infoTitle {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.infoGreen {
+  color: var(--feira-green);
+}
+.infoRed {
+  color: var(--feira-red);
+}
+.infoBlue {
+  color: var(--info);
+}
+.infoList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+}
+
+/* CTA */
+.ctaWrap {
+  text-align: center;
+  margin-top: 48px;
+}
+.ctaCard {
+  max-width: 28rem;
+  margin: 0 auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+.ctaTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 6px;
+}
+.ctaDesc {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+.ctaPrimary {
+  width: 100%;
+  margin-bottom: 8px;
+  background: var(--feira-yellow) !important;
+  border-color: var(--feira-yellow) !important;
+  color: #fff !important;
+}
+.ctaPrimary:hover {
+  background: var(--feira-yellow-strong) !important;
+  border-color: var(--feira-yellow-strong) !important;
+}
+.ctaSecondary {
+  width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .typesGrid {
+    grid-template-columns: 1fr;
+  }
+  .twoCols {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 768px) {
+  .title {
+    font-size: 1.875rem;
+  }
+}

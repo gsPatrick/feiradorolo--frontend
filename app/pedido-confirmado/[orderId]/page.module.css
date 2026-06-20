@@ -1,0 +1,272 @@
+.page {
+  min-height: 100vh;
+  background: var(--bg-1);
+}
+.container {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Card base */
+.card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  animation: fadeInUp var(--t-base) var(--ease) both;
+}
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 24px 0;
+  color: var(--foreground);
+}
+.cardHead h2 {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.cardHead svg {
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+.cardBody {
+  padding: 16px 24px 24px;
+}
+
+/* Hero */
+.heroCard {
+  text-align: center;
+  padding: 48px 24px;
+}
+.successRing {
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--success-soft);
+  color: var(--success);
+  animation: pop 420ms var(--ease-out) both;
+}
+.heroTitle {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 8px;
+}
+.heroSub {
+  color: var(--muted-foreground);
+  margin-bottom: 16px;
+}
+.orderNumber {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--success);
+}
+
+/* Texto utilitário */
+.strong {
+  font-weight: 600;
+  color: var(--foreground);
+}
+.muted {
+  font-size: 0.86rem;
+  color: var(--muted-foreground);
+}
+.dim {
+  font-size: 0.86rem;
+  color: var(--text-dim);
+}
+
+/* Status row */
+.statusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+/* Timeline */
+.timeline {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.tlItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.tlDot {
+  width: 12px;
+  height: 12px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: var(--border-strong);
+  flex-shrink: 0;
+}
+.tlDotDone {
+  background: var(--success);
+}
+
+/* Notice boxes */
+.notice {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: var(--r-lg);
+}
+.notice p {
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+.noticeHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.noticeSuccess {
+  background: var(--success-soft);
+  color: #15803d;
+}
+.noticeSuccess p {
+  color: #16a34a;
+}
+.noticeWarning {
+  background: rgba(234, 179, 8, 0.12);
+  color: #a16207;
+}
+.noticeWarning p {
+  color: #ca8a04;
+}
+
+/* Items */
+.items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.itemImg {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-md);
+  object-fit: cover;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.itemInfo {
+  flex: 1;
+  min-width: 0;
+}
+.itemTitle {
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--foreground);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.itemPrice {
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
+}
+
+/* Summary */
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 0.92rem;
+}
+.free {
+  color: var(--success);
+  font-weight: 600;
+}
+.totalRow {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--foreground);
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin: 4px 0 8px;
+}
+
+/* Steps */
+.steps {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.step > svg {
+  color: var(--success);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.actionBtn {
+  flex: 1;
+}
+
+/* Nota final */
+.note {
+  text-align: center;
+  font-size: 0.86rem;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  padding-bottom: 16px;
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (min-width: 640px) {
+  .actions {
+    flex-direction: row;
+  }
+}

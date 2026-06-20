@@ -1,0 +1,37 @@
+.page {
+  min-height: 100vh;
+  background: var(--bg-1);
+}
+.inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 24px 28px;
+}
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: var(--info);
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-bottom: 18px;
+  padding: 0;
+}
+.back:hover {
+  text-decoration: underline;
+}
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 22px;
+}
+
+@media (max-width: 720px) {
+  .inner {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}

@@ -1,0 +1,86 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--input);
+  border-radius: var(--r-md);
+  color: var(--foreground);
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+
+.md {
+  height: 40px;
+  padding: 0 12px;
+}
+.sm {
+  height: 36px;
+  padding: 0 10px;
+}
+
+.wrapper:hover:not(.disabled) {
+  border-color: var(--border-strong);
+}
+
+.wrapper:focus-within {
+  border-color: var(--primary);
+  box-shadow: var(--ring-shadow);
+}
+
+.invalid {
+  border-color: var(--destructive);
+}
+.invalid:focus-within {
+  border-color: var(--destructive);
+  box-shadow: var(--ring-danger);
+}
+
+.disabled {
+  opacity: 0.55;
+  background: var(--muted);
+  cursor: not-allowed;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.input::placeholder {
+  color: var(--text-dim);
+}
+
+.input:disabled {
+  cursor: not-allowed;
+}
+
+.left,
+.right {
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.rightBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 4px;
+  margin: -4px;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-radius: var(--r-sm);
+  transition: color var(--t-fast) var(--ease);
+}
+.rightBtn:hover {
+  color: var(--foreground);
+}

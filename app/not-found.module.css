@@ -1,0 +1,79 @@
+.page {
+  min-height: calc(100vh - var(--header-h));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-1);
+  padding: 48px 20px;
+}
+
+.card {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+  padding: 44px 32px;
+}
+
+.iconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  border-radius: var(--r-pill);
+  background: var(--feira-yellow-soft);
+  color: var(--feira-yellow-strong);
+  margin-bottom: 22px;
+}
+
+.code {
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--feira-yellow-strong);
+}
+
+.title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-top: 12px;
+}
+
+.desc {
+  font-size: 0.95rem;
+  color: var(--muted-foreground);
+  margin-top: 12px;
+  max-width: 380px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 28px;
+}
+
+.primaryBtn {
+  background: var(--feira-yellow) !important;
+  color: var(--brand-foreground) !important;
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 36px 22px;
+  }
+  .actions {
+    flex-direction: column;
+    width: 100%;
+  }
+}

@@ -1,0 +1,160 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Produto */
+.product {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-1);
+  border-radius: var(--r-lg);
+}
+.productImg {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: var(--r-md);
+  flex-shrink: 0;
+}
+.productInfo {
+  flex: 1;
+  min-width: 0;
+}
+.productTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0;
+}
+.productOrder {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin: 2px 0 0;
+}
+
+/* Label compartilhado */
+.label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+/* Estrelas */
+.ratingBlock {
+  text-align: center;
+}
+.stars {
+  display: inline-flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+.starBtn {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: transform var(--t-fast) var(--ease);
+}
+.starBtn:hover {
+  transform: scale(1.1);
+}
+.starOn {
+  color: var(--feira-yellow);
+  fill: var(--feira-yellow);
+}
+.starOff {
+  color: var(--border-strong);
+  fill: none;
+}
+.ratingHint {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin: 6px 0 0;
+}
+
+/* Campos */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.textarea {
+  width: 100%;
+}
+
+/* Upload */
+.hiddenInput {
+  display: none;
+}
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 14px;
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--r-lg);
+  background: none;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.dropzone:hover:not(:disabled) {
+  border-color: var(--muted-foreground);
+  color: var(--foreground);
+}
+.dropzone:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.dropIcon {
+  color: var(--muted-foreground);
+}
+
+.previews {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.thumb {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+.thumb img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+}
+.removeBtn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: var(--r-pill);
+  background: var(--destructive);
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Footer actions */
+.action {
+  flex: 1;
+}

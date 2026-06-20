@@ -1,0 +1,25 @@
+.rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+.stars {
+  display: inline-flex;
+  gap: 1px;
+}
+.star {
+  color: #d4d8de;
+}
+.filled {
+  color: #f5b400;
+  fill: #f5b400;
+}
+.value {
+  font-weight: 600;
+  color: var(--foreground);
+}
+.dot {
+  font-style: normal;
+}

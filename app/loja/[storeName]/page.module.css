@@ -1,0 +1,138 @@
+.page {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.topbar {
+  border-bottom: 1px solid var(--border);
+}
+.topInner {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 10px 28px;
+}
+
+.container {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 32px 28px;
+}
+
+/* Cabeçalho da loja */
+.storeHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 36px;
+}
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--r-pill);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 1.35rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.av_blue { background: #3b82f6; }
+.av_green { background: #10b981; }
+.av_amber { background: #f59e0b; }
+.av_red { background: #ef4444; }
+.av_violet { background: #8b5cf6; }
+.av_pink { background: #ec4899; }
+
+.storeInfo {
+  flex: 1;
+  min-width: 0;
+}
+.storeName {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.storeName h1 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.verified {
+  display: inline-flex;
+  color: var(--info);
+}
+.storeDesc {
+  color: var(--muted-foreground);
+  max-width: 640px;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+.stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.stat strong {
+  color: var(--foreground);
+}
+.starIcon {
+  color: #facc15;
+}
+.muted {
+  color: var(--text-muted);
+}
+
+/* Produtos */
+.productsHead {
+  margin-bottom: 22px;
+}
+.productsHead h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 2px;
+}
+.productsHead p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+}
+.cardWrap {
+  transition: transform 0.2s var(--ease);
+}
+.cardWrap:hover {
+  transform: scale(1.05);
+}
+
+.empty {
+  text-align: center;
+  padding: 64px 16px;
+}
+.emptyIcon {
+  color: var(--border-strong);
+  margin-bottom: 16px;
+}
+.empty p {
+  color: var(--text-muted);
+}
+
+@media (max-width: 1100px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 760px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 520px) {
+  .grid { grid-template-columns: repeat(2, 1fr); }
+  .storeHead { gap: 16px; }
+  .container, .topInner { padding-left: 18px; padding-right: 18px; }
+}

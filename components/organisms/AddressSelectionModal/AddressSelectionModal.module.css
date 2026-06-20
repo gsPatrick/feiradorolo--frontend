@@ -1,0 +1,232 @@
+.title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.titleIcon {
+  color: var(--info);
+  flex-shrink: 0;
+}
+.subtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: -4px 0 4px;
+  line-height: 1.5;
+}
+
+.section {
+  margin-top: 22px;
+}
+.sectionTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 12px;
+}
+
+/* Cards de endereço */
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  width: 100%;
+  text-align: left;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.card:hover {
+  background: var(--bg-1);
+}
+.cardSel {
+  border-color: var(--info);
+  background: var(--info-soft);
+}
+.radio {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-pill);
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  transition: border-color var(--t-fast) var(--ease);
+}
+.radioOn {
+  border-color: var(--info);
+}
+.radioDot {
+  width: 8px;
+  height: 8px;
+  background: var(--info);
+  border-radius: var(--r-pill);
+}
+.cardBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cardTop strong {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.principal {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #1e40af;
+  background: #dbeafe;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+}
+.cardLine {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.cardSub {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.linkRow {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+.linkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--info);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.linkBtn:hover {
+  border-color: var(--info);
+  background: var(--info-soft);
+}
+
+/* Em outro lugar — CEP */
+.cepLabel {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--foreground);
+  margin-bottom: 6px;
+}
+.cepRow {
+  display: flex;
+  gap: 10px;
+}
+.cepInput {
+  flex: 1;
+  min-width: 0;
+  height: 46px;
+  border: 1px solid var(--input);
+  border-radius: var(--r-md);
+  padding: 0 14px;
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.cepInput:focus {
+  border-color: var(--info);
+  box-shadow: 0 0 0 3px var(--info-soft);
+}
+.cepInput::placeholder {
+  color: var(--text-dim);
+}
+.btnBuscar {
+  flex-shrink: 0;
+  padding: 0 26px;
+  height: 46px;
+  background: var(--info);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), opacity var(--t-fast) var(--ease);
+}
+.btnBuscar:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+.btnBuscar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.err {
+  font-size: 0.82rem;
+  color: var(--destructive);
+  margin-top: 8px;
+}
+.ok {
+  font-size: 0.82rem;
+  color: var(--success);
+  margin-top: 8px;
+}
+.dontKnow {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--info);
+}
+.dontKnow:hover {
+  text-decoration: underline;
+}
+
+/* Footer */
+.btnCancel {
+  padding: 11px 22px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--foreground);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+.btnCancel:hover {
+  background: var(--surface-hover);
+}
+.btnSave {
+  padding: 11px 24px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--info);
+  border: none;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+.btnSave:hover {
+  background: #1d4ed8;
+}

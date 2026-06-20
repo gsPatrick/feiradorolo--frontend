@@ -1,0 +1,278 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  visibility: hidden;
+  pointer-events: none;
+}
+.root.open {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  opacity: 0;
+  transition: opacity 300ms var(--ease);
+}
+.open .overlay {
+  opacity: 1;
+}
+
+.drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(512px, 100%);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  box-shadow: var(--shadow-lg);
+  transform: translateX(100%);
+  transition: transform 500ms var(--ease-out);
+}
+.open .drawer {
+  transform: translateX(0);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+}
+.title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.15rem;
+  color: var(--foreground);
+}
+.close {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  border-radius: var(--r-md);
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.close:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+/* — Vazio — */
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  padding: 40px;
+}
+.emptyIcon {
+  display: grid;
+  place-items: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--muted);
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.empty strong {
+  font-size: 1.1rem;
+  color: var(--foreground);
+}
+.empty p {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+.continue {
+  margin-top: 12px;
+  height: 44px;
+  padding: 0 24px;
+  background: var(--feira-yellow);
+  color: #1a1a1a;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+.continue:hover {
+  background: var(--feira-yellow-strong);
+}
+
+/* — Lista — */
+.list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.thumb {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  color: var(--text-dim);
+}
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.itemTitle {
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--foreground);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.itemPrice {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #b8860b;
+}
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+.stepper button {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  color: var(--foreground);
+  transition: background var(--t-fast) var(--ease);
+}
+.stepper button:hover {
+  background: var(--muted);
+}
+.stepper span {
+  min-width: 20px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.remove {
+  align-self: flex-start;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: none;
+  color: var(--destructive);
+  cursor: pointer;
+  border-radius: var(--r-sm);
+  transition: background var(--t-fast) var(--ease);
+}
+.remove:hover {
+  background: #fef2f2;
+}
+
+/* — Rodapé — */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 18px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.92rem;
+  color: var(--muted-foreground);
+}
+.free {
+  color: #15803d;
+  font-weight: 700;
+}
+.total {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--foreground);
+}
+.checkout {
+  margin-top: 10px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  background: var(--feira-yellow);
+  color: #1a1a1a;
+  font-weight: 700;
+  border-radius: var(--r-md);
+  transition: background var(--t-fast) var(--ease);
+}
+.checkout:hover {
+  background: var(--feira-yellow-strong);
+}
+.viewCart {
+  height: 46px;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  color: var(--foreground);
+  font-weight: 600;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  transition: background var(--t-fast) var(--ease);
+}
+.viewCart:hover {
+  background: var(--muted);
+}
+.benefits {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.74rem;
+  color: var(--muted-foreground);
+}

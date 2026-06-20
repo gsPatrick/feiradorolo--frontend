@@ -1,0 +1,104 @@
+.section {
+  background: #f3f4f6;
+}
+.inner {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 64px 28px 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.title {
+  font-size: clamp(1.7rem, 4vw, 2.4rem);
+  color: var(--foreground);
+}
+.sub {
+  margin-top: 10px;
+  font-size: 1.05rem;
+  color: var(--muted-foreground);
+}
+
+.features {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(40px, 8vw, 120px);
+  margin: 38px 0 30px;
+}
+.feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.check {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  color: #fff;
+  background: #22c55e;
+}
+.feature strong {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 20px;
+  background: #111827;
+  color: #fff;
+  border-radius: var(--r-lg);
+  transition: transform var(--t-fast) var(--ease);
+}
+.badge:hover {
+  transform: translateY(-2px);
+}
+.badgeIcon {
+  font-size: 1.2rem;
+}
+.badgeImg {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.badgeImgWhite {
+  filter: brightness(0) invert(1);
+}
+.badgeText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.1;
+}
+.badgeText small {
+  font-size: 0.62rem;
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 0.04em;
+}
+.badgeText strong {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.note {
+  margin-top: 18px;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}

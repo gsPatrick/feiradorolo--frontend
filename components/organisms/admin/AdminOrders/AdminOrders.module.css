@@ -1,0 +1,352 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* cores de texto/ícone */
+.tGreen { color: #16a34a; }
+.tBlue { color: #2563eb; }
+.tPurple { color: #9333ea; }
+.tAmber { color: #ca8a04; }
+.tRed { color: #dc2626; }
+.iGreen { color: #22c55e; flex-shrink: 0; }
+.iBlue { color: #3b82f6; flex-shrink: 0; }
+.iPurple { color: #a855f7; flex-shrink: 0; }
+.iAmber { color: #eab308; flex-shrink: 0; }
+.iRed { color: #ef4444; flex-shrink: 0; }
+.iOrange { color: #f97316; flex-shrink: 0; }
+
+/* ---- Métricas tempo real (4 cards) ---- */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.metricCard {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-sm);
+}
+.metricTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.metricLabel {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  margin-bottom: 4px;
+}
+.metricValue {
+  font-size: 1.7rem;
+  font-weight: 700;
+}
+.metricFoot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  margin-top: 10px;
+}
+.pulseDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: pulse 1.6s var(--ease) infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* ---- 6 cards rápidos ---- */
+.quickStats {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+}
+.qsCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 18px 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: box-shadow var(--t-fast) var(--ease);
+}
+.qsCard:hover { box-shadow: var(--shadow-md); }
+.qsBadge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  padding: 3px 11px;
+  border-radius: var(--r-pill);
+}
+.qsBadgeDanger { background: var(--destructive); color: #fff; }
+.qsBadgeOutline { background: transparent; border: 1px solid var(--border-strong); color: var(--text-muted); }
+.qsLabel { font-size: 0.78rem; color: var(--muted-foreground); }
+
+/* ---- Cards genéricos / Painel ---- */
+.card,
+.panel {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+}
+.panelTitle,
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 16px;
+}
+.actionList { display: flex; flex-direction: column; gap: 12px; }
+.actionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+  border-radius: var(--r-md);
+  flex-wrap: wrap;
+}
+.rowBlue { background: #eff6ff; }
+.rowRed { background: #fef2f2; }
+.rowGreen { background: #f0fdf4; }
+.actionInfo { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.actionName { font-size: 0.9rem; font-weight: 600; color: var(--foreground); }
+.actionSub { font-size: 0.78rem; color: var(--muted-foreground); }
+.actionBtns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.btnGhost, .btnGreen, .btnRed {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.btnGhost { background: var(--bg); border-color: var(--border); color: var(--foreground); }
+.btnGhost:hover { background: var(--surface-hover); }
+.btnGreen { background: #16a34a; color: #fff; }
+.btnGreen:hover { background: #15803d; }
+.btnRed { background: var(--destructive); color: #fff; }
+.btnRed:hover { background: #b91c1c; }
+
+/* ---- Estatísticas dos pedidos (4 cards centrados) ---- */
+.ostats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.ostatCard {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+.ostatIcon { margin: 0 auto 8px; display: block; }
+.ostatValue { font-size: 1.5rem; font-weight: 700; color: var(--foreground); }
+.ostatLabel { font-size: 0.85rem; color: var(--muted-foreground); margin-top: 2px; }
+
+/* ---- Sistema de Pagamentos (botões — BUG corrigido: altura/alinhamento) ---- */
+.payGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.payBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-height: 92px;
+  padding: 16px;
+  border: none;
+  border-radius: var(--r-md);
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: filter var(--t-fast) var(--ease);
+}
+.payBtn:hover { filter: brightness(0.93); }
+.payBtn strong { font-size: 0.95rem; font-weight: 600; }
+.payBtn span { font-size: 0.78rem; opacity: 0.85; }
+.bgGreen { background: #16a34a; }
+.bgBlue { background: #2563eb; }
+.bgPurple { background: #9333ea; }
+.bgAmber { background: #ca8a04; }
+.bgIndigo { background: #4f46e5; }
+.bgRed { background: #dc2626; }
+
+/* ---- Dashboard Executivo (4 soft cards) ---- */
+.execGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.execCard { padding: 16px; border-radius: var(--r-lg); }
+.softBlue { background: #eff6ff; }
+.softGreen { background: #f0fdf4; }
+.softPurple { background: #faf5ff; }
+.softAmber { background: #fefce8; }
+.softRed { background: #fef2f2; }
+.execCard svg { display: block; margin-bottom: 10px; }
+.execValue { font-size: 1.5rem; font-weight: 700; color: var(--foreground); margin-bottom: 2px; }
+.execLabel { font-size: 0.85rem; color: var(--muted-foreground); }
+
+/* ---- Acesso Rápido aos Sistemas (6 botões grandes) ---- */
+.linksGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.linkBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-height: 84px;
+  padding: 16px;
+  border: none;
+  border-radius: var(--r-md);
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: filter var(--t-fast) var(--ease);
+}
+.linkBtn:hover { filter: brightness(0.93); }
+.linkHead { display: inline-flex; align-items: center; gap: 10px; }
+.linkHead strong { font-size: 0.95rem; font-weight: 600; }
+.linkDesc { font-size: 0.78rem; opacity: 0.85; }
+
+/* ---- Monitoramento (4 cards verdes) ---- */
+.monGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.monCard {
+  text-align: center;
+  padding: 14px;
+  background: #f0fdf4;
+  border-radius: var(--r-md);
+}
+.monDot {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #22c55e;
+  margin: 0 auto 8px;
+}
+.monName { font-size: 0.85rem; font-weight: 600; color: #166534; }
+.monStatus { font-size: 0.78rem; color: #16a34a; }
+
+/* ---- Status dos Pedidos (4 cells) ---- */
+.statusGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  text-align: center;
+}
+.statusCell { padding: 18px; border-radius: var(--r-md); }
+.statusValue { font-size: 1.5rem; font-weight: 700; }
+.statusLabel { font-size: 0.85rem; color: var(--muted-foreground); margin-top: 2px; }
+
+/* ---- Lista de pedidos (API real) ---- */
+.refreshBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--foreground);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+.refreshBtn:hover:not(:disabled) { background: var(--surface-hover); }
+.refreshBtn:disabled { opacity: 0.6; cursor: default; }
+
+.loadingBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 32px 0;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+.emptyBox {
+  padding: 24px 0;
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+.tableWrap { overflow-x: auto; }
+.ordersTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+.ordersTable th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.ordersTable td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+  white-space: nowrap;
+}
+.ordersTable tbody tr:last-child td { border-bottom: none; }
+.statusTag {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+}
+.tagRed { background: #fef2f2; color: #dc2626; }
+.tagBlue { background: #eff6ff; color: #2563eb; }
+.tagAmber { background: #fefce8; color: #ca8a04; }
+.tagGreen { background: #f0fdf4; color: #16a34a; }
+
+@media (max-width: 1100px) {
+  .metrics, .ostats, .execGrid, .monGrid, .statusGrid { grid-template-columns: repeat(2, 1fr); }
+  .quickStats { grid-template-columns: repeat(3, 1fr); }
+  .payGrid, .linksGrid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .metrics, .ostats, .execGrid, .monGrid, .statusGrid, .quickStats, .payGrid, .linksGrid { grid-template-columns: 1fr 1fr; }
+  .actionRow { flex-direction: column; align-items: stretch; }
+}

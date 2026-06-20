@@ -1,0 +1,319 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+/* ── Cabeçalho ───────────────────────────────────────────────── */
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.subtitle {
+  margin-top: 4px;
+  font-size: 0.95rem;
+  color: var(--muted-foreground);
+}
+
+/* ── Grid de 2 colunas (envio + histórico) ───────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ── Card genérico ───────────────────────────────────────────── */
+.card {
+  background: var(--card, var(--bg));
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
+}
+
+.cardHead {
+  margin-bottom: 20px;
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.cardTitle svg {
+  color: var(--muted-foreground);
+}
+
+/* ── Formulário de envio ─────────────────────────────────────── */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+/* Botão azul (info) — equivalente ao bg-blue-600 do front antigo */
+.sendBtn {
+  background: var(--info);
+  border-color: var(--info);
+  color: #ffffff;
+}
+
+.sendBtn:hover:not(:disabled) {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+/* ── Histórico ───────────────────────────────────────────────── */
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg-1);
+  transition: border-color var(--t-fast) var(--ease),
+    box-shadow var(--t-fast) var(--ease);
+}
+
+.item:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.itemBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.itemText {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+
+.itemMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot_order {
+  background: var(--info);
+}
+
+.dot_chat {
+  background: var(--success);
+}
+
+.dot_system {
+  background: var(--muted-foreground);
+}
+
+.dot_marketing {
+  background: #9333ea;
+}
+
+.metaType {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  text-transform: capitalize;
+}
+
+.metaSep {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.metaTime {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.status {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  margin-top: 4px;
+  border-radius: 50%;
+}
+
+.statusUnread {
+  background: var(--danger);
+}
+
+.statusRead {
+  background: var(--border-strong);
+}
+
+/* ── Estado vazio ────────────────────────────────────────────── */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 0;
+  text-align: center;
+  color: var(--muted-foreground);
+}
+
+.emptyIcon {
+  opacity: 0.5;
+}
+
+/* ── Estatísticas ────────────────────────────────────────────── */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px;
+  border-radius: var(--r-md);
+  text-align: center;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.statInfo {
+  background: var(--info-soft);
+  color: var(--info);
+}
+
+.statSuccess {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.statPurple {
+  background: rgba(147, 51, 234, 0.12);
+  color: #9333ea;
+}
+
+.statBrand {
+  background: var(--feira-yellow-soft);
+  color: var(--feira-yellow-strong);
+}
+
+/* ── Responsivo ──────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+}
+
+/* Botões de remover/limpar notificações */
+.cardHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.clearBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg);
+  color: var(--destructive, #dc2626);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+.clearBtn:hover { background: #fef2f2; border-color: #fecaca; }
+.trashBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg);
+  color: var(--destructive, #dc2626);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+.trashBtn:hover { background: #fef2f2; border-color: #fecaca; }
