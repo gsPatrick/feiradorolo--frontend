@@ -47,6 +47,18 @@ function ShareIcon({ size = 15 }) {
   );
 }
 
+/* Ícone "alerta" inline (lucide) — não existe no Icon.js. */
+function AlertIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+  );
+}
+
 /* Ícone "presente" inline (lucide) — não existe no Icon.js. */
 function GiftIcon({ size = 18 }) {
   return (
@@ -743,51 +755,71 @@ export default function ProdutoPage() {
             {/* ───────── Coluna direita (sticky) ───────── */}
             <aside className={styles.sidebar}>
               <div className={styles.buyBox}>
-                <div className={styles.shipping}>
-                  <Icon name="truck" size={18} />
-                  <div>
-                    <strong>{product.freeShipping ? 'Frete grátis' : 'Calcular frete'}</strong>
-                    <div className={styles.cep}>
-                      <input
-                        placeholder="Seu CEP"
-                        className={styles.cepInput}
-                        value={cep}
-                        maxLength={10}
-                        inputMode="numeric"
-                        onChange={(e) => setCep(maskCEP(e.target.value))}
-                        onKeyDown={(e) => { if (e.key === 'Enter') calcShipping(); }}
-                      />
-                      <button type="button" onClick={calcShipping}>OK</button>
+                <div className={styles.freightCard}>
+                  <div className={styles.freightHead}>
+                    <Icon name="truck" size={18} />
+                    <span className={styles.freightTitle}>CONSULTE FRETE</span>
+                  </div>
+
+                  {/* Estado inicial: sem resultado, sem loading, sem erro */}
+                  {!shipOptions && !shipLoading && !shipError && (
+                    <div className={styles.freightForm}>
+                      <div className={styles.cep}>
+                        <div className={styles.cepField}>
+                          <input
+                            placeholder="Digite seu CEP"
+                            className={styles.cepInput}
+                            value={cep}
+                            maxLength={10}
+                            inputMode="numeric"
+                            onChange={(e) => setCep(maskCEP(e.target.value))}
+                            onKeyDown={(e) => { if (e.key === 'Enter') calcShipping(); }}
+                          />
+                          <span className={styles.cepSearchIcon} aria-hidden="true">
+                            <Icon name="search" size={16} />
+                          </span>
+                        </div>
+                        <button type="button" className={styles.cepBtn} onClick={calcShipping}>OK</button>
+                      </div>
+                      <button type="button" className={styles.cepGeo} onClick={locateMe}>
+                        Não lembro meu CEP
+                      </button>
                     </div>
-                    <button type="button" className={styles.cepGeo} onClick={locateMe}>
-                      Não sei meu CEP
-                    </button>
+                  )}
 
-                    {address && (
-                      <p className={styles.shipAddress}>
-                        <Icon name="map-pin" size={14} /> Enviar para {address}
-                      </p>
-                    )}
+                  {shipLoading && (
+                    <p className={styles.shipStatus}>Calculando frete…</p>
+                  )}
 
-                    {shipLoading && (
-                      <p className={styles.shipStatus}>Calculando frete…</p>
-                    )}
+                  {!shipLoading && shipError === 'config' && (
+                    <p className={styles.shipStatus}>Cálculo de frete indisponível no momento.</p>
+                  )}
+                  {!shipLoading && shipError === 'origin' && (
+                    <p className={styles.shipStatus}>Frete indisponível: vendedor sem CEP de origem.</p>
+                  )}
+                  {!shipLoading && shipError === 'generic' && (
+                    <p className={styles.shipStatus}>Não foi possível calcular o frete. Tente novamente.</p>
+                  )}
 
-                    {!shipLoading && shipError === 'config' && (
-                      <p className={styles.shipStatus}>Cálculo de frete indisponível no momento.</p>
-                    )}
-                    {!shipLoading && shipError === 'origin' && (
-                      <p className={styles.shipStatus}>Frete indisponível: vendedor sem CEP de origem.</p>
-                    )}
-                    {!shipLoading && shipError === 'generic' && (
-                      <p className={styles.shipStatus}>Não foi possível calcular o frete. Tente novamente.</p>
-                    )}
+                  {!shipLoading && !shipError && shipOptions && shipOptions.length === 0 && (
+                    <p className={styles.shipStatus}>Nenhuma opção de frete para este CEP.</p>
+                  )}
 
-                    {!shipLoading && !shipError && shipOptions && shipOptions.length === 0 && (
-                      <p className={styles.shipStatus}>Nenhuma opção de frete para este CEP.</p>
-                    )}
+                  {/* Estado com resultado */}
+                  {!shipLoading && !shipError && shipOptions && shipOptions.length > 0 && (
+                    <div className={styles.freightResult}>
+                      {address && (
+                        <p className={styles.freightAddress}>
+                          <Icon name="map-pin" size={14} /> {address}
+                        </p>
+                      )}
+                      <div className={styles.freightCepRow}>
+                        <span>CEP: {cep}</span>
+                        <button type="button" className={styles.cepGeo} onClick={() => setShipOptions(null)}>
+                          Verificar outro CEP
+                        </button>
+                      </div>
 
-                    {!shipLoading && !shipError && shipOptions && shipOptions.length > 0 && (
                       <ul className={styles.shipList}>
                         {shipOptions.map((opt, i) => (
                           <li key={opt.service_code || i} className={styles.shipOption}>
@@ -795,20 +827,27 @@ export default function ProdutoPage() {
                               <span className={styles.shipName}>
                                 {opt.company} · {opt.service_name}
                               </span>
+                            </div>
+                            <div className={styles.shipRight}>
+                              <span className={styles.shipPrice}>
+                                {opt.free_shipping ? 'Grátis' : BRL.format(Number(opt.price) || 0)}
+                              </span>
                               {opt.delivery_time != null && (
                                 <span className={styles.shipEta}>
-                                  {opt.delivery_time} {opt.delivery_time === 1 ? 'dia' : 'dias'}
+                                  {opt.delivery_time} {opt.delivery_time === 1 ? 'dia útil' : 'dias úteis'}
                                 </span>
                               )}
                             </div>
-                            <span className={styles.shipPrice}>
-                              {opt.free_shipping ? 'Grátis' : BRL.format(Number(opt.price) || 0)}
-                            </span>
                           </li>
                         ))}
                       </ul>
-                    )}
-                  </div>
+
+                      <p className={styles.freightNote}>
+                        <AlertIcon size={14} /> Os prazos de entrega começam a contar a partir da
+                        confirmação de pagamento.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <p className={styles.stockLine}>

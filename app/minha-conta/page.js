@@ -71,7 +71,7 @@ function StatusBadge({ status }) {
 
 export default function MinhaContaPage() {
   const { toast } = useToast();
-  const { openAuth, user, setUser } = useAuth();
+  const { openAuth, user, setUser, authReady } = useAuth();
   const [view, setView] = useState('compras');
   const [tab, setTab] = useState('pedidos');
   const [sellerTab, setSellerTab] = useState('vendas');
@@ -97,16 +97,32 @@ export default function MinhaContaPage() {
   const isCompras = view === 'compras';
   const isVendas = view === 'vendas';
 
-  // Abre a aba indicada por ?tab= (ex.: link de Favoritos no header).
+  // Abre a aba indicada por ?tab= (ex.: link de Favoritos / Meus produtos no header).
   useEffect(() => {
     try {
       const t = new URLSearchParams(window.location.search).get('tab');
-      if (t) {
+      if (!t) return;
+      const sellerTabs = { 'meus-produtos': 'produtos', produtos: 'produtos', vendas: 'vendas', relatorios: 'relatorios', config: 'config' };
+      if (sellerTabs[t]) {
+        setView('vendas');
+        setSellerTab(sellerTabs[t]);
+      } else {
         setView('compras');
-        setTab(t);
+        setTab(t === 'compras' ? 'pedidos' : t);
       }
     } catch {}
   }, []);
+
+  // Quando a sessão é restaurada (user chega de forma assíncrona) ou troca,
+  // zera os estados para 'idle' — assim os fetches rodam de novo com o token.
+  useEffect(() => {
+    setOrdersState('idle');
+    setFavState('idle');
+    setAddrState('idle');
+    setSalesState('idle');
+    setSellerProdState('idle');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user && user.id]);
 
   useEffect(() => {
     if (!isCompras || tab !== 'pedidos' || ordersState !== 'idle') return;
