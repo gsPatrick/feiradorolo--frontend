@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import styles from './page.module.css';
 import { cx } from '@/lib/cx';
@@ -10,7 +10,7 @@ import Badge from '@/components/atoms/Badge/Badge';
 import EmptyState from '@/components/molecules/EmptyState/EmptyState';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { orderService, escrowService, ApiError } from '@/lib/api';
+import { orderService, escrowService, paymentService, ApiError } from '@/lib/api';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const DATE = new Intl.DateTimeFormat('pt-BR');
@@ -46,10 +46,13 @@ function XCircle({ size = 16 }) {
 
 /* Labels e ícones de status — fiéis ao front antigo */
 const STATUS_META = {
-  pending: { label: 'Aguardando Pagamento', variant: 'brand', Icon: Clock },
+  awaiting_payment: { label: 'Aguardando pagamento', variant: 'brand', Icon: Clock },
+  pending: { label: 'Aguardando pagamento', variant: 'brand', Icon: Clock },
+  processing: { label: 'Processando', variant: 'info', Icon: Clock },
   paid: { label: 'Pago', variant: 'info', Icon: ({ size }) => <Icon name="package" size={size} /> },
   shipped: { label: 'Enviado', variant: 'brand', Icon: ({ size }) => <Icon name="truck" size={size} /> },
   delivered: { label: 'Entregue', variant: 'success', Icon: CheckCircle },
+  completed: { label: 'Concluído', variant: 'success', Icon: CheckCircle },
   cancelled: { label: 'Cancelado', variant: 'danger', Icon: XCircle },
 };
 
@@ -62,14 +65,41 @@ const PAYMENT_METHOD_LABELS = {
   open_finance: 'Open Finance',
 };
 
-/* Etapas da timeline de rastreio */
-const TRACK_STEPS = [
-  { key: 'paid', label: 'Pago', Icon: ({ size }) => <Icon name="card" size={size} /> },
-  { key: 'shipped', label: 'Enviado', Icon: ({ size }) => <Icon name="package" size={size} /> },
+/* Etapas da timeline de rastreio — estilo Kabum, começando pelo pagamento. */
+const SHIPPING_STEPS = [
+  { key: 'payment', label: 'Pagamento', Icon: ({ size }) => <Icon name="card" size={size} /> },
+  { key: 'paid', label: 'Pagamento confirmado', Icon: CheckCircle },
+  { key: 'shipped', label: 'Pedido enviado', Icon: ({ size }) => <Icon name="package" size={size} /> },
   { key: 'transit', label: 'Em trânsito', Icon: ({ size }) => <Icon name="truck" size={size} /> },
   { key: 'delivered', label: 'Entregue', Icon: CheckCircle },
 ];
-const STATUS_TO_STEP = { pending: -1, paid: 0, shipped: 2, delivered: 3, cancelled: -1 };
+const PICKUP_STEPS = [
+  { key: 'payment', label: 'Pagamento', Icon: ({ size }) => <Icon name="card" size={size} /> },
+  { key: 'paid', label: 'Pagamento confirmado', Icon: CheckCircle },
+  { key: 'arrange', label: 'Combine a retirada', Icon: ({ size }) => <Icon name="map-pin" size={size} /> },
+  { key: 'done', label: 'Retirado / Concluído', Icon: CheckCircle },
+];
+
+/**
+ * Etapa ativa (0-based) conforme o status do pedido e o status de envio.
+ * awaiting_payment/pending => 0 (pagamento pendente, etapa atual).
+ * paid/processing => 1 (pagamento confirmado).
+ * shipped => avança para envio/trânsito; delivered/completed => última etapa.
+ */
+function computeActiveStep(steps, order) {
+  const status = order?.status;
+  const shipping = order?.shipping_status;
+  const last = steps.length - 1;
+  if (status === 'awaiting_payment' || status === 'pending') return 0;
+  if (status === 'delivered' || status === 'completed') return last;
+  if (status === 'shipped') {
+    if (steps === PICKUP_STEPS) return 2; // combine a retirada
+    return shipping === 'in_transit' || shipping === 'transit' ? 3 : 2;
+  }
+  // paid / processing
+  if (status === 'paid' || status === 'processing') return 1;
+  return 1;
+}
 
 export default function PedidoDetalhePage() {
   const params = useParams();
@@ -83,6 +113,12 @@ export default function PedidoDetalhePage() {
   const [unauthorized, setUnauthorized] = useState(false);
   const [error, setError] = useState(false);
   const [escrow, setEscrow] = useState(null); // custódia (pickup): pode trazer pickup_token
+
+  // — Pagamento PIX —
+  const [payState, setPayState] = useState('idle'); // idle | loading | ready | paid
+  const [pix, setPix] = useState(null); // { qr_code, qr_code_base64, ticket_url }
+  const [copied, setCopied] = useState(false);
+  const pollRef = useRef(null);
 
   useEffect(() => {
     if (!id) return;
@@ -124,6 +160,16 @@ export default function PedidoDetalhePage() {
     };
   }, [id]);
 
+  // Para o polling do PIX ao desmontar o componente.
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
+  }, []);
+
   function confirmDelivery() {
     setStatus('delivered');
     toast({
@@ -132,6 +178,97 @@ export default function PedidoDetalhePage() {
       variant: 'success',
       duration: 2500,
     });
+  }
+
+  // Recarrega o pedido (após o pagamento confirmar) para a timeline avançar.
+  async function reloadOrder() {
+    try {
+      const data = await orderService.getById(id);
+      setOrder(data);
+      setStatus(data?.status);
+      if (data?.delivery_method === 'pickup') {
+        escrowService
+          .getByOrder(id)
+          .then((esc) => setEscrow(esc || null))
+          .catch(() => setEscrow(null));
+      }
+    } catch {
+      /* mantém o estado atual se o reload falhar */
+    }
+  }
+
+  function stopPolling() {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  }
+
+  function startPolling(paymentId) {
+    stopPolling();
+    pollRef.current = setInterval(async () => {
+      try {
+        const p = await paymentService.getById(paymentId);
+        const s = p?.status;
+        if (s === 'paid' || s === 'approved') {
+          stopPolling();
+          setPayState('paid');
+          setPix(null);
+          await reloadOrder();
+          toast({
+            title: 'Pagamento confirmado!',
+            description: 'Seu pedido está em andamento.',
+            variant: 'success',
+            duration: 3000,
+          });
+        } else if (s === 'rejected' || s === 'cancelled') {
+          stopPolling();
+          setPayState('idle');
+          toast({
+            title: 'Pagamento não aprovado',
+            description: 'Tente gerar um novo PIX.',
+            variant: 'danger',
+            duration: 3500,
+          });
+        }
+      } catch {
+        /* erro transitório no polling — segue tentando */
+      }
+    }, 4000);
+  }
+
+  async function payWithPix() {
+    setPayState('loading');
+    try {
+      const res = await paymentService.createPayment(order.id, { payment_method_id: 'pix' });
+      const pixData = res?.pix || null;
+      const paymentId = res?.payment?.id;
+      if (!pixData || !paymentId) {
+        throw new ApiError('PIX indisponível', 502, 'PIX_UNAVAILABLE');
+      }
+      setPix(pixData);
+      setPayState('ready');
+      startPolling(paymentId);
+    } catch (err) {
+      setPayState('idle');
+      const code = err instanceof ApiError ? err.code : null;
+      const description =
+        code === 'PAYMENT_NOT_CONFIGURED'
+          ? 'O pagamento ainda não está configurado para este vendedor. Tente novamente mais tarde.'
+          : 'Não foi possível gerar o PIX agora. Tente novamente.';
+      toast({ title: 'Falha ao gerar pagamento', description, variant: 'danger', duration: 4000 });
+    }
+  }
+
+  async function copyPixCode() {
+    if (!pix?.qr_code) return;
+    try {
+      await navigator.clipboard.writeText(pix.qr_code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: 'Não foi possível copiar', variant: 'danger', duration: 2500 });
+    }
   }
 
   /* Loading */
@@ -198,7 +335,15 @@ export default function PedidoDetalhePage() {
 
   const meta = STATUS_META[status] || STATUS_META.paid;
   const StatusIcon = meta.Icon;
-  const activeStep = STATUS_TO_STEP[status] ?? -1;
+
+  const isPickup = order.delivery_method === 'pickup';
+  const trackSteps = isPickup ? PICKUP_STEPS : SHIPPING_STEPS;
+  const activeStep = computeActiveStep(trackSteps, order);
+
+  // Pendência de pagamento: status awaiting_payment OU payment_status pending (e não cancelado).
+  const isUnpaid =
+    status !== 'cancelled' &&
+    (status === 'awaiting_payment' || order.payment_status === 'pending');
 
   const orderNumber = order.order_number || order.id;
   const orderDate = formatDate(order.placed_at || order.createdAt);
@@ -209,7 +354,6 @@ export default function PedidoDetalhePage() {
   const discount = Number(order.discount || 0);
   const total = Number(order.total ?? subtotal + shipping - discount);
 
-  const isPickup = order.delivery_method === 'pickup';
   const pickupToken = escrow?.pickup_token || null;
 
   const payment = Array.isArray(order.payments) && order.payments.length ? order.payments[0] : null;
@@ -247,15 +391,24 @@ export default function PedidoDetalhePage() {
             </div>
           ) : (
             <ol className={styles.timeline}>
-              {TRACK_STEPS.map((step, i) => {
+              {trackSteps.map((step, i) => {
                 const StepIcon = step.Icon;
                 const done = i <= activeStep;
                 const current = i === activeStep;
+                const pending = i === activeStep && isUnpaid && i === 0;
                 return (
-                  <li key={step.key} className={cx(styles.step, done && styles.stepDone, current && styles.stepCurrent)}>
+                  <li
+                    key={step.key}
+                    className={cx(
+                      styles.step,
+                      done && styles.stepDone,
+                      current && styles.stepCurrent,
+                      pending && styles.stepPending,
+                    )}
+                  >
                     <span className={styles.stepDot}><StepIcon size={18} /></span>
                     <span className={styles.stepLabel}>{step.label}</span>
-                    {i < TRACK_STEPS.length - 1 && (
+                    {i < trackSteps.length - 1 && (
                       <span className={cx(styles.stepLine, i < activeStep && styles.stepLineDone)} />
                     )}
                   </li>
@@ -264,6 +417,66 @@ export default function PedidoDetalhePage() {
             </ol>
           )}
         </div>
+
+        {/* Card destacado de pagamento — quando NÃO pago */}
+        {isUnpaid && (
+          <div className={cx(styles.card, styles.payCard)}>
+            <div className={styles.payHead}>
+              <div className={styles.payHeadInfo}>
+                <span className={styles.payHint}>Falta pagar</span>
+                <span className={styles.payAmount}>{BRL.format(total)}</span>
+              </div>
+              {payState !== 'ready' && (
+                <Button
+                  variant="primary"
+                  leftIcon="pix"
+                  onClick={payWithPix}
+                  loading={payState === 'loading'}
+                  disabled={payState === 'loading'}
+                  className={styles.payBtn}
+                >
+                  {payState === 'loading' ? 'Gerando PIX…' : 'Pagar com PIX'}
+                </Button>
+              )}
+            </div>
+
+            {payState === 'ready' && pix && (
+              <div className={styles.pixBox}>
+                {pix.qr_code_base64 && (
+                  <div className={styles.pixQr}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={`data:image/png;base64,${pix.qr_code_base64}`} alt="QR Code PIX" />
+                  </div>
+                )}
+                <div className={styles.pixInfo}>
+                  <p className={styles.pixLead}>
+                    <Clock size={16} /> Aguardando pagamento — escaneie o QR Code ou use o código copia-e-cola.
+                  </p>
+                  {pix.qr_code && (
+                    <>
+                      <code className={styles.pixCode}>{pix.qr_code}</code>
+                      <div className={styles.pixActions}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          leftIcon={copied ? 'check' : undefined}
+                          onClick={copyPixCode}
+                        >
+                          {copied ? 'Copiado!' : 'Copiar'}
+                        </Button>
+                        {pix.ticket_url && (
+                          <Button variant="ghost" size="sm" href={pix.ticket_url} target="_blank" rel="noopener noreferrer">
+                            Abrir no banco
+                          </Button>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className={styles.grid}>
           {/* Itens do pedido + resumo */}

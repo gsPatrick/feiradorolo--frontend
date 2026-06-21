@@ -121,6 +121,108 @@
   color: #b91c1c;
   font-weight: 500;
 }
+.stepPending .stepDot {
+  background: var(--feira-yellow-soft, #fef9c3);
+  border-color: var(--feira-yellow, #f59e0b);
+  color: #92400e;
+  box-shadow: 0 0 0 4px var(--feira-yellow-soft, #fef9c3);
+}
+.stepPending .stepLabel {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+/* — Card destacado de pagamento (Falta pagar) — */
+.payCard {
+  margin-top: 20px;
+  border-color: var(--feira-yellow, #f59e0b);
+  border-left: 4px solid var(--feira-yellow, #f59e0b);
+  background: linear-gradient(0deg, var(--bg), var(--bg));
+}
+.payHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.payHeadInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.payHint {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+.payAmount {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--foreground);
+}
+.payBtn {
+  flex-shrink: 0;
+}
+.pixBox {
+  display: flex;
+  gap: 22px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.pixQr {
+  flex-shrink: 0;
+  width: 176px;
+  height: 176px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 8px;
+}
+.pixQr img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.pixInfo {
+  flex: 1;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pixLead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--foreground);
+}
+.pixLead svg {
+  flex-shrink: 0;
+  color: var(--feira-yellow, #f59e0b);
+}
+.pixCode {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  word-break: break-all;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  max-height: 110px;
+  overflow-y: auto;
+}
+.pixActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 
 /* — Grid principal — */
 .grid {
@@ -354,5 +456,13 @@
     left: 21px;
     width: 2px;
     height: 100%;
+  }
+  .pixBox {
+    flex-direction: column;
+    align-items: center;
+  }
+  .payHead {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

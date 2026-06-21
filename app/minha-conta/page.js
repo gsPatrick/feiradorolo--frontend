@@ -506,12 +506,7 @@ export default function MinhaContaPage() {
                             const expanded = expandedOrder === o.id;
                             return (
                               <div key={o.id} className={cx(styles.order, expanded && styles.orderOpen)}>
-                                <button
-                                  type="button"
-                                  className={styles.orderHead}
-                                  onClick={() => setExpandedOrder(expanded ? null : o.id)}
-                                  aria-expanded={expanded}
-                                >
+                                <Link href={`/pedido/${o.id}`} className={styles.orderHead}>
                                   <img className={styles.orderThumb} src={itemImage(first)} alt="" />
                                   <div className={styles.orderInfo}>
                                     <span className={styles.orderNum}>Pedido #{num}</span>
@@ -522,10 +517,16 @@ export default function MinhaContaPage() {
                                     <span className={`${styles.vBadge} ${styles[`b_${o.status}`] || styles.vNone}`}>{statusLabel(o.status)}</span>
                                     <span className={styles.orderTotal}>{BRL.format(Number(o.total) || 0)}</span>
                                   </div>
-                                  <span className={cx(styles.orderChevron, expanded && styles.orderChevronUp)}>
+                                  <button
+                                    type="button"
+                                    className={cx(styles.orderChevron, expanded && styles.orderChevronUp)}
+                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setExpandedOrder(expanded ? null : o.id); }}
+                                    aria-label={expanded ? 'Recolher itens' : 'Ver itens'}
+                                    aria-expanded={expanded}
+                                  >
                                     <Icon name="chevron-down" size={20} />
-                                  </span>
-                                </button>
+                                  </button>
+                                </Link>
                                 {expanded && (
                                   <div className={styles.orderDetails}>
                                     <div className={styles.orderRef}>Referência: {o.order_number || o.id}</div>
