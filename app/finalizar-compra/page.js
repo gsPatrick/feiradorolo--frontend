@@ -446,6 +446,9 @@ export default function FinalizarCompraPage() {
         setAddresses(list);
         const def = list.find((a) => a.isDefault) || list[0];
         setSelectedAddressId((cur) => cur || (def ? def.id : null));
+        // Sem endereços salvos: abre direto o formulário de novo endereço
+        // (não mostra a aba "Endereços salvos" vazia com erro).
+        if (list.length === 0) setAddressMode('new');
       })
       .catch((e) => {
         if (!active) return;
@@ -765,17 +768,61 @@ export default function FinalizarCompraPage() {
               <p className={styles.stepLead}>Combine o encontro com o vendedor pelo chat.</p>
             </header>
 
-            <div className={styles.pickupNote}>
-              <Icon name="shield" size={18} className={styles.pickupIcon} />
-              <div>
-                <div className={styles.pickupTitle}>Como funciona</div>
-                <div className={styles.pickupLine}>
-                  Após o pagamento, um código de 6 dígitos será gerado para você. Informe-o ao
-                  vendedor SOMENTE ao receber o produto para liberar o pagamento.
+            <div className={styles.pickupCard}>
+              <div className={styles.pickupHero}>
+                <span className={styles.pickupHeroIcon}>
+                  <Icon name="shield" size={30} />
+                </span>
+                <div>
+                  <div className={styles.pickupHeroTitle}>Retirada presencial</div>
+                  <div className={styles.pickupHeroSub}>
+                    Pagamento protegido — só liberado quando você receber o produto.
+                  </div>
                 </div>
-                <div className={styles.pickupWarn}>
-                  ⚠️ Encontre-se em local público e movimentado.
-                </div>
+              </div>
+
+              <ol className={styles.pickupSteps}>
+                <li className={styles.pickupStep}>
+                  <span className={styles.pickupStepNum}>1</span>
+                  <span className={styles.pickupStepText}>
+                    <strong>Pague pela plataforma</strong>
+                    <span className={styles.pickupStepSub}>
+                      Seu pagamento fica retido com segurança até a entrega.
+                    </span>
+                  </span>
+                </li>
+                <li className={styles.pickupStep}>
+                  <span className={styles.pickupStepNum}>2</span>
+                  <span className={styles.pickupStepText}>
+                    <strong>Receba um código de 6 dígitos</strong>
+                    <span className={styles.pickupStepSub}>
+                      Ele é gerado para você logo após o pagamento.
+                    </span>
+                  </span>
+                </li>
+                <li className={styles.pickupStep}>
+                  <span className={styles.pickupStepNum}>3</span>
+                  <span className={styles.pickupStepText}>
+                    <strong>Encontre o vendedor em local público</strong>
+                    <span className={styles.pickupStepSub}>
+                      Combine o ponto de encontro pelo chat.
+                    </span>
+                  </span>
+                </li>
+                <li className={styles.pickupStep}>
+                  <span className={styles.pickupStepNum}>4</span>
+                  <span className={styles.pickupStepText}>
+                    <strong>Informe o código só ao receber o produto</strong>
+                    <span className={styles.pickupStepSub}>
+                      É isso que libera o pagamento para o vendedor.
+                    </span>
+                  </span>
+                </li>
+              </ol>
+
+              <div className={styles.pickupWarnBox}>
+                <span className={styles.pickupWarnEmoji}>⚠️</span>
+                <span>Encontre-se em local público e movimentado.</span>
               </div>
             </div>
 
@@ -799,51 +846,57 @@ export default function FinalizarCompraPage() {
               </p>
             </header>
 
-            <div className={styles.modeTabs}>
-              <button
-                type="button"
-                className={cx(styles.modeTab, addressMode === 'saved' && styles.modeTabActive)}
-                onClick={() => setAddressMode('saved')}
-              >
-                Endereços salvos
-              </button>
-              <button
-                type="button"
-                className={cx(styles.modeTab, addressMode === 'new' && styles.modeTabActive)}
-                onClick={() => setAddressMode('new')}
-              >
-                Novo endereço
-              </button>
-            </div>
+            {addresses.length > 0 ? (
+              <div className={styles.modeTabs}>
+                <button
+                  type="button"
+                  className={cx(styles.modeTab, addressMode === 'saved' && styles.modeTabActive)}
+                  onClick={() => setAddressMode('saved')}
+                >
+                  Endereços salvos
+                </button>
+                <button
+                  type="button"
+                  className={cx(styles.modeTab, addressMode === 'new' && styles.modeTabActive)}
+                  onClick={() => setAddressMode('new')}
+                >
+                  Novo endereço
+                </button>
+              </div>
+            ) : (
+              user &&
+              !addressesLoading &&
+              !addressesError && (
+                <div className={styles.newAddressHead}>
+                  <Icon name="map-pin" size={18} className={styles.newAddressHeadIcon} />
+                  <span>Informe o endereço de entrega</span>
+                </div>
+              )
+            )}
 
-            {addressMode === 'saved' ? (
-              !user ? (
-                <div className={styles.confirmBox}>
-                  <Icon name="user" size={18} className={styles.confirmIcon} />
-                  <div>
-                    <div className={styles.confirmTitle}>Faça login para usar seus endereços</div>
-                    <div className={styles.confirmLine}>
-                      Entre na sua conta para selecionar um endereço salvo ou cadastre um novo.
-                    </div>
-                    <div className={styles.navCenter}>
-                      <Button variant="outline" onClick={() => openAuth('login')}>
-                        Entrar
-                      </Button>
-                    </div>
+            {!user ? (
+              <div className={styles.confirmBox}>
+                <Icon name="user" size={18} className={styles.confirmIcon} />
+                <div>
+                  <div className={styles.confirmTitle}>Faça login para usar seus endereços</div>
+                  <div className={styles.confirmLine}>
+                    Entre na sua conta para selecionar um endereço salvo ou cadastre um novo.
+                  </div>
+                  <div className={styles.navCenter}>
+                    <Button variant="outline" onClick={() => openAuth('login')}>
+                      Entrar
+                    </Button>
                   </div>
                 </div>
-              ) : addressesLoading ? (
-                <div className={styles.loadingBox}>
-                  <Spinner size={32} />
-                  <p>Carregando seus endereços...</p>
-                </div>
-              ) : addressesError ? (
-                <p className={styles.fieldError}>{addressesError}</p>
-              ) : addresses.length === 0 ? (
-                <p className={styles.fieldError}>
-                  Você ainda não tem endereços salvos. Use a aba &quot;Novo endereço&quot;.
-                </p>
-              ) : (
+              </div>
+            ) : addressesLoading ? (
+              <div className={styles.loadingBox}>
+                <Spinner size={32} />
+                <p>Carregando seus endereços...</p>
+              </div>
+            ) : addressesError ? (
+              <p className={styles.fieldError}>{addressesError}</p>
+            ) : addressMode === 'saved' && addresses.length > 0 ? (
               <div className={styles.addressList}>
                 {addresses.map((a) => {
                   const sel = selectedAddressId === a.id;
@@ -874,7 +927,6 @@ export default function FinalizarCompraPage() {
                   );
                 })}
               </div>
-              )
             ) : (
               <div className={styles.newAddress}>
                 <div className={styles.fieldRow}>
@@ -1004,9 +1056,16 @@ export default function FinalizarCompraPage() {
                   <Icon name="truck" size={20} className={styles.panelIcon} />
                   Opções de entrega
                 </h3>
-                <p className={styles.stepLead}>
-                  Selecione ou preencha um endereço para calcular o frete.
-                </p>
+                <div className={styles.shipEmpty}>
+                  <span className={styles.shipEmptyIcon}>
+                    <Icon name="map-pin" size={26} />
+                  </span>
+                  <div className={styles.shipEmptyTitle}>Falta o endereço</div>
+                  <p className={styles.shipEmptyText}>
+                    Selecione ou preencha um endereço acima para calcularmos o frete
+                    automaticamente.
+                  </p>
+                </div>
               </div>
             ) : shippingLoading ? (
               <div className={styles.loadingBox}>

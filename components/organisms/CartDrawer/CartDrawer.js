@@ -91,10 +91,10 @@ export default function CartDrawer() {
                 <span>Total</span>
                 <span>{BRL.format(totalPrice)}</span>
               </div>
-              <Link href="/finalizar-compra" className={styles.checkout}>
+              <Link href="/finalizar-compra" className={styles.checkout} onClick={closeCart}>
                 Finalizar Compra
               </Link>
-              <Link href="/carrinho" className={styles.viewCart}>
+              <Link href="/carrinho" className={styles.viewCart} onClick={closeCart}>
                 Ver Carrinho Completo
               </Link>
               <div className={styles.benefits}>

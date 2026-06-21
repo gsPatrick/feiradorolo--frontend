@@ -281,6 +281,150 @@
   }
 }
 
+/* ===== Card de retirada presencial (passos) ===== */
+.pickupCard {
+  max-width: 560px;
+  width: 100%;
+  margin: 0 auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl, 18px);
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.pickupHero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.pickupHeroIcon {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--feira-yellow-soft);
+  color: var(--feira-yellow-strong);
+  border: 2px solid var(--feira-yellow-strong);
+}
+.pickupHeroTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+.pickupHeroSub {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.pickupSteps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+.pickupStep {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 10px 0;
+}
+.pickupStepNum {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  background: var(--feira-yellow-strong);
+  color: var(--feira-gray);
+}
+.pickupStepText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 2px;
+}
+.pickupStepText strong {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.pickupStepSub {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+.pickupWarnBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--r-lg);
+  background: #fff7ed;
+  border: 1px solid rgba(180, 83, 9, 0.25);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #b45309;
+}
+.pickupWarnEmoji {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* ===== Cabeçalho "novo endereço" (sem endereços salvos) ===== */
+.newAddressHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.newAddressHeadIcon {
+  color: var(--info);
+}
+
+/* ===== Estado vazio das opções de entrega ===== */
+.shipEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 24px 12px 12px;
+}
+.shipEmptyIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-2);
+  color: var(--text-dim);
+}
+.shipEmptyTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.shipEmptyText {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  max-width: 320px;
+}
+
 /* ===== Tabs endereço salvo/novo ===== */
 .modeTabs {
   display: flex;
