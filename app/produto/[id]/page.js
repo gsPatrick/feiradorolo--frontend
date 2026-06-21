@@ -17,7 +17,7 @@ import Modal from '@/components/organisms/Modal/Modal';
 import { useCart } from '@/components/providers/CartProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { productService, reviewService, questionService, chatService, reportService, mapProduct, ApiError } from '@/lib/api';
+import { productService, reviewService, questionService, chatService, reportService, shipmentService, mapProduct, ApiError } from '@/lib/api';
 import { maskCEP } from '@/lib/masks';
 import { recordView } from '@/lib/history';
 
@@ -91,14 +91,30 @@ export default function ProdutoPage() {
   const [cep, setCep] = useState('');
   const [geo, setGeo] = useState(null);
   const [canReview, setCanReview] = useState(false);
+  const [shipLoading, setShipLoading] = useState(false);
+  const [shipOptions, setShipOptions] = useState(null);
+  const [shipError, setShipError] = useState(null);
 
-  function calcShipping() {
+  async function calcShipping() {
     const digits = cep.replace(/\D/g, '');
     if (digits.length < 8) {
       toast({ title: 'Digite um CEP válido', duration: 1500 });
       return;
     }
-    toast({ title: 'Frete calculado', description: `CEP ${maskCEP(digits)}`, variant: 'success', duration: 1500 });
+    setShipLoading(true);
+    setShipError(null);
+    setShipOptions(null);
+    try {
+      const res = await shipmentService.quote({ to_zip: digits, product_id: id, quantity: qty });
+      setShipOptions(Array.isArray(res) ? res : []);
+    } catch (err) {
+      const code = err instanceof ApiError ? err.code : err && err.code;
+      if (code === 'SHIPPING_NOT_CONFIGURED') setShipError('config');
+      else if (code === 'SHIPPING_NO_ORIGIN') setShipError('origin');
+      else setShipError('generic');
+    } finally {
+      setShipLoading(false);
+    }
   }
 
   function locateMe() {
@@ -592,6 +608,46 @@ export default function ProdutoPage() {
                     <button type="button" className={styles.cepGeo} onClick={locateMe}>
                       Não sei meu CEP
                     </button>
+
+                    {shipLoading && (
+                      <p className={styles.shipStatus}>Calculando frete…</p>
+                    )}
+
+                    {!shipLoading && shipError === 'config' && (
+                      <p className={styles.shipStatus}>Cálculo de frete indisponível no momento.</p>
+                    )}
+                    {!shipLoading && shipError === 'origin' && (
+                      <p className={styles.shipStatus}>Frete indisponível: vendedor sem CEP de origem.</p>
+                    )}
+                    {!shipLoading && shipError === 'generic' && (
+                      <p className={styles.shipStatus}>Não foi possível calcular o frete. Tente novamente.</p>
+                    )}
+
+                    {!shipLoading && !shipError && shipOptions && shipOptions.length === 0 && (
+                      <p className={styles.shipStatus}>Nenhuma opção de frete para este CEP.</p>
+                    )}
+
+                    {!shipLoading && !shipError && shipOptions && shipOptions.length > 0 && (
+                      <ul className={styles.shipList}>
+                        {shipOptions.map((opt, i) => (
+                          <li key={opt.service_code || i} className={styles.shipOption}>
+                            <div className={styles.shipInfo}>
+                              <span className={styles.shipName}>
+                                {opt.company} · {opt.service_name}
+                              </span>
+                              {opt.delivery_time != null && (
+                                <span className={styles.shipEta}>
+                                  {opt.delivery_time} {opt.delivery_time === 1 ? 'dia' : 'dias'}
+                                </span>
+                              )}
+                            </div>
+                            <span className={styles.shipPrice}>
+                              {opt.free_shipping ? 'Grátis' : BRL.format(Number(opt.price) || 0)}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
 

@@ -178,6 +178,52 @@
   text-decoration: underline;
 }
 
+/* — Resultado do cálculo de frete — */
+.shipStatus {
+  margin-top: 10px;
+  font-size: 0.82rem;
+  color: var(--muted-foreground);
+}
+.shipList {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.shipOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 11px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.shipInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.shipName {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.shipEta {
+  font-size: 0.76rem;
+  color: var(--muted-foreground);
+}
+.shipPrice {
+  flex-shrink: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #15803d;
+}
+
 .qty {
   display: flex;
   align-items: center;
