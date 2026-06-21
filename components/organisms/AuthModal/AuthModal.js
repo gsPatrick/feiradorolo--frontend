@@ -87,8 +87,11 @@ export default function AuthModal({ open, onClose, initialMode = 'login', onAuth
         cpf: reg.accountType === 'individual' ? onlyDigits(reg.document) : undefined,
         cnpj: reg.accountType === 'company' ? onlyDigits(reg.document) : undefined,
       });
-      if (data && data.token) finish(data, 'Conta criada!');
-      else {
+      if (data && data.token) {
+        finish(data, 'Conta criada!');
+        // convida a vincular o Mercado Pago (modal global ouve este evento)
+        try { window.dispatchEvent(new CustomEvent('fdr:registered')); } catch {}
+      } else {
         toast({ title: 'Conta criada!', description: 'Verifique seu e-mail.', variant: 'success' });
         onClose && onClose();
       }

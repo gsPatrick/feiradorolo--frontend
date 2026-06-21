@@ -6,6 +6,7 @@ import { SiteConfigProvider } from '@/components/providers/SiteConfigProvider';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { FavoritesProvider } from '@/components/providers/FavoritesProvider';
 import CartDrawer from '@/components/organisms/CartDrawer/CartDrawer';
+import MpSignupInvite from '@/components/organisms/MpSignupInvite/MpSignupInvite';
 
 export default function Providers({ children }) {
   return (
@@ -16,6 +17,7 @@ export default function Providers({ children }) {
             <CartProvider>
               {children}
               <CartDrawer />
+              <MpSignupInvite />
             </CartProvider>
           </FavoritesProvider>
         </AuthProvider>
