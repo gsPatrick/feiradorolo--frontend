@@ -127,97 +127,77 @@ export default function MinhaContaPage() {
 
   useEffect(() => {
     if (!isCompras || tab !== 'pedidos' || ordersState !== 'idle') return;
-    let active = true;
     setOrdersState('loading');
     orderService
       .listMine()
       .then((data) => {
-        if (!active) return;
         setAllOrders(Array.isArray(data) ? data : []);
         setOrdersState('ready');
       })
       .catch((err) => {
-        if (!active) return;
         setOrdersState(err instanceof ApiError && err.status === 401 ? 'unauth' : 'error');
       });
-    return () => { active = false; };
   }, [isCompras, tab, ordersState]);
 
   useEffect(() => {
     if (!isCompras || tab !== 'favoritos' || favState !== 'idle') return;
-    let active = true;
     setFavState('loading');
     favoriteService
       .listMine()
       .then((data) => {
-        if (!active) return;
         const mapped = (Array.isArray(data) ? data : []).map(mapProduct).filter(Boolean);
         setFavorites(mapped);
         setFavState('ready');
       })
       .catch((err) => {
-        if (!active) return;
         setFavState(err instanceof ApiError && err.status === 401 ? 'unauth' : 'error');
       });
-    return () => { active = false; };
   }, [isCompras, tab, favState]);
 
   useEffect(() => {
     if (!isCompras || tab !== 'enderecos' || addrState !== 'idle') return;
-    let active = true;
     setAddrState('loading');
     addressService
       .list()
       .then((data) => {
-        if (!active) return;
         setAddresses(Array.isArray(data) ? data : []);
         setAddrState('ready');
       })
       .catch((err) => {
-        if (!active) return;
         setAddrState(err instanceof ApiError && err.status === 401 ? 'unauth' : 'error');
       });
-    return () => { active = false; };
   }, [isCompras, tab, addrState]);
 
   const reloadAddresses = () => setAddrState('idle');
 
   useEffect(() => {
     if (!isVendas || sellerTab !== 'vendas' || salesState !== 'idle') return;
-    let active = true;
     setSalesState('loading');
     orderService
       .listSales()
       .then((data) => {
-        if (!active) return;
         setSales(Array.isArray(data) ? data : []);
         setSalesState('ready');
       })
       .catch((err) => {
-        if (!active) return;
         setSalesState(err instanceof ApiError && err.status === 401 ? 'unauth' : 'error');
       });
-    return () => { active = false; };
   }, [isVendas, sellerTab, salesState]);
 
   useEffect(() => {
     if (!isVendas || sellerTab !== 'produtos' || sellerProdState !== 'idle') return;
     if (!user || !user.id) { setSellerProdState('unauth'); return; }
-    let active = true;
     setSellerProdState('loading');
     productService
       .list(`?seller_id=${user.id}`)
       .then((data) => {
-        if (!active) return;
         const mapped = (Array.isArray(data) ? data : []).map(mapProduct).filter(Boolean);
         setSellerProducts(mapped);
         setSellerProdState('ready');
       })
       .catch((err) => {
-        if (!active) return;
         setSellerProdState(err instanceof ApiError && err.status === 401 ? 'unauth' : 'error');
       });
-    return () => { active = false; };
   }, [isVendas, sellerTab, sellerProdState, user]);
 
   const orders = orderFilter === 'all' ? allOrders : allOrders.filter((o) => o.status === orderFilter);

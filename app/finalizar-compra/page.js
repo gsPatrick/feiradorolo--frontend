@@ -117,6 +117,7 @@ export default function FinalizarCompraPage() {
   const [newAddress, setNewAddress] = useState(EMPTY_NEW_ADDRESS);
   const [cepLoading, setCepLoading] = useState(false);
   const [cepError, setCepError] = useState('');
+  const [savingAddr, setSavingAddr] = useState(false);
 
   // Cupom
   const [couponInput, setCouponInput] = useState('');
@@ -512,6 +513,44 @@ export default function FinalizarCompraPage() {
       setCepError('Não foi possível consultar o CEP.');
     } finally {
       setCepLoading(false);
+    }
+  }
+
+  // Salva o endereço digitado na conta do usuário (para reutilizar depois).
+  async function saveNewAddress() {
+    if (!user) { openAuth('login'); return; }
+    const miss = !newAddress.cep || !newAddress.street || !newAddress.number || !newAddress.neighborhood || !newAddress.city || !newAddress.state;
+    if (miss) {
+      toast({ title: 'Preencha o endereço completo para salvar.', variant: 'destructive' });
+      return;
+    }
+    setSavingAddr(true);
+    try {
+      const created = await addressService.create({
+        label: 'Endereço',
+        recipient_name: newAddress.recipient || (user && user.name) || '',
+        zip_code: newAddress.cep.replace(/\D/g, ''),
+        street: newAddress.street,
+        number: newAddress.number,
+        complement: newAddress.complement,
+        neighborhood: newAddress.neighborhood,
+        city: newAddress.city,
+        state: newAddress.state,
+      });
+      const rows = await addressService.list();
+      const list = (Array.isArray(rows) ? rows : []).map((a) => ({
+        id: a.id, label: a.label || 'Endereço', recipient: a.recipient_name || '', cep: a.zip_code || '',
+        street: a.street || '', number: a.number || '', complement: a.complement || '',
+        neighborhood: a.neighborhood || '', city: a.city || '', state: a.state || '', isDefault: !!a.is_default,
+      }));
+      setAddresses(list);
+      const newId = (created && created.id) || (list[list.length - 1] && list[list.length - 1].id);
+      if (newId) { setSelectedAddressId(newId); setAddressMode('saved'); }
+      toast({ title: '✓ Endereço salvo na sua conta!', variant: 'success' });
+    } catch (e) {
+      toast({ title: 'Não foi possível salvar o endereço', description: e?.message, variant: 'destructive' });
+    } finally {
+      setSavingAddr(false);
     }
   }
 
@@ -1017,6 +1056,20 @@ export default function FinalizarCompraPage() {
                     />
                   </div>
                 </div>
+
+                <Button
+                  variant="outline"
+                  onClick={saveNewAddress}
+                  loading={savingAddr}
+                  leftIcon="check"
+                  fullWidth
+                  style={{ marginTop: 6 }}
+                >
+                  Salvar este endereço na minha conta
+                </Button>
+                <p style={{ margin: '8px 0 0', fontSize: '0.82rem', color: 'var(--muted-foreground)', textAlign: 'center' }}>
+                  Salve para reutilizar nas próximas compras (opcional).
+                </p>
               </div>
             )}
 
