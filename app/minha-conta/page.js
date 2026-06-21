@@ -7,6 +7,7 @@ import { cx } from '@/lib/cx';
 import Modal from '@/components/organisms/Modal/Modal';
 import Icon from '@/components/atoms/Icon/Icon';
 import Button from '@/components/atoms/Button/Button';
+import Skeleton from '@/components/atoms/Skeleton/Skeleton';
 import Checkbox from '@/components/atoms/Checkbox/Checkbox';
 import FormField from '@/components/molecules/FormField/FormField';
 import ProductCard from '@/components/molecules/ProductCard/ProductCard';
@@ -428,6 +429,7 @@ export default function MinhaContaPage() {
           <section className={styles.main}>
             {view === 'vendas' ? (
               <>
+                <MpConnectPrompt />
                 <div className={styles.tabs}>
                   {SELLER_TABS.map((t) => (
                     <button key={t.k} className={cx(styles.tab, sellerTab === t.k && styles.tabActive)} onClick={() => setSellerTab(t.k)}>{t.l}</button>
@@ -865,6 +867,63 @@ function SellerReports({ onExport }) {
 }
 
 /* — Vendas: Configurações — */
+// Modal proativo: aparece pro vendedor que ainda não vinculou a conta de
+// recebimento (Mercado Pago) na primeira vez que abre o painel de Vendas.
+function MpConnectPrompt() {
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [connecting, setConnecting] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    try { if (sessionStorage.getItem('fdr_mp_prompt') === '1') return; } catch {}
+    paymentService
+      .connectStatus()
+      .then((s) => { if (active && !(s && s.linked)) setOpen(true); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  function dismiss() {
+    try { sessionStorage.setItem('fdr_mp_prompt', '1'); } catch {}
+    setOpen(false);
+  }
+
+  async function connect() {
+    setConnecting(true);
+    try {
+      const res = await paymentService.connectMercadoPago();
+      if (res && res.url) { window.location.href = res.url; return; }
+      toast({ title: 'Não foi possível iniciar o vínculo', variant: 'destructive', duration: 2500 });
+    } catch (e) {
+      toast({ title: 'Erro ao conectar', description: (e && e.message) || 'Tente novamente.', variant: 'destructive', duration: 2500 });
+    } finally {
+      setConnecting(false);
+    }
+  }
+
+  return (
+    <Modal
+      open={open}
+      onClose={dismiss}
+      size="sm"
+      title="Receba suas vendas no Mercado Pago"
+      footer={(
+        <>
+          <Button variant="ghost" onClick={dismiss}>Agora não</Button>
+          <Button variant="primary" loading={connecting} leftIcon="dollar" onClick={connect}>Vincular agora</Button>
+        </>
+      )}
+    >
+      <p style={{ lineHeight: 1.6, margin: 0 }}>
+        Para receber o valor das suas vendas <strong>direto na sua conta</strong>, vincule seu Mercado Pago.
+        A comissão da plataforma é descontada automaticamente no repasse — leva menos de 1 minuto.
+        Você também pode fazer isso depois em <strong>Configurações → Recebimentos</strong>.
+      </p>
+    </Modal>
+  );
+}
+
 function SellerConfig({ onSave }) {
   const { toast } = useToast();
   const [mp, setMp] = useState(null);
