@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import styles from './page.module.css';
 import { cx } from '@/lib/cx';
@@ -17,10 +17,15 @@ import { orderService, favoriteService, userService, addressService, productServ
 import { maskPhone, maskCPF, maskCNPJ, onlyDigits, isEmail, isPhone, isCPF, isCNPJ } from '@/lib/masks';
 // Rótulos de status dos pedidos (mapa estático de UI).
 const STATUS_LABELS = {
+  pending: { label: 'Aguardando pagamento', variant: 'warning' },
+  processing: { label: 'Processando', variant: 'info' },
   paid: { label: 'Pago', variant: 'info' },
   shipped: { label: 'Enviado', variant: 'brand' },
   delivered: { label: 'Entregue', variant: 'success' },
+  completed: { label: 'Concluído', variant: 'success' },
   cancelled: { label: 'Cancelado', variant: 'danger' },
+  refunded: { label: 'Reembolsado', variant: 'neutral' },
+  failed: { label: 'Falhou', variant: 'danger' },
 };
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -38,6 +43,11 @@ function formatOrderDate(value) {
 
 function statusLabel(status) {
   return (STATUS_LABELS[status] && STATUS_LABELS[status].label) || status || '—';
+}
+
+// Imagem real de um item do pedido (1ª imagem do produto, capa, ou placeholder).
+function itemImage(item) {
+  return (item && (item.product?.images?.[0] || item.product?.cover_image_url)) || ORDER_PLACEHOLDER;
 }
 
 const TABS = [
@@ -77,6 +87,7 @@ export default function MinhaContaPage() {
   const [tab, setTab] = useState('pedidos');
   const [sellerTab, setSellerTab] = useState('vendas');
   const [orderFilter, setOrderFilter] = useState('all');
+  const [expandedOrder, setExpandedOrder] = useState(null); // id do pedido expandido
   const [modal, setModal] = useState(null); // 'profile' | 'address' | 'photo'
 
   // Pedidos (API)
@@ -201,6 +212,18 @@ export default function MinhaContaPage() {
   }, [isVendas, sellerTab, sellerProdState, user]);
 
   const orders = orderFilter === 'all' ? allOrders : allOrders.filter((o) => o.status === orderFilter);
+
+  // Número amigável sequencial (#01, #02…): ordena por data crescente e mapeia id -> nº.
+  const orderNumbers = useMemo(() => {
+    const map = {};
+    const sorted = [...allOrders].sort((a, b) => {
+      const da = new Date(a.placed_at || a.createdAt || 0).getTime();
+      const db = new Date(b.placed_at || b.createdAt || 0).getTime();
+      return da - db;
+    });
+    sorted.forEach((o, i) => { map[o.id] = String(i + 1).padStart(2, '0'); });
+    return map;
+  }, [allOrders]);
   const close = () => setModal(null);
   const saved = (msg) => { toast({ title: msg, variant: 'success', duration: 1500 }); close(); };
 
@@ -456,8 +479,10 @@ export default function MinhaContaPage() {
                         <div className={styles.orders}>
                           {[0, 1, 2].map((i) => (
                             <div key={i} className={styles.order}>
-                              <img src={ORDER_PLACEHOLDER} alt="" />
-                              <div className={styles.orderInfo}><strong style={{ opacity: 0.4 }}>Carregando…</strong><span>&nbsp;</span></div>
+                              <div className={styles.orderHead}>
+                                <img className={styles.orderThumb} src={ORDER_PLACEHOLDER} alt="" />
+                                <div className={styles.orderInfo}><strong className={styles.orderItemName} style={{ opacity: 0.4 }}>Carregando…</strong><span>&nbsp;</span></div>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -472,15 +497,56 @@ export default function MinhaContaPage() {
                         <div className={styles.orders}>
                           {orders.map((o) => {
                             const items = Array.isArray(o.items) ? o.items : [];
-                            const title = (items[0] && items[0].title_snapshot) || `${items.length} itens`;
+                            const first = items[0];
+                            const title = items.length > 1
+                              ? `${items.length} itens`
+                              : (first && first.title_snapshot) || 'Pedido';
+                            const num = orderNumbers[o.id] || '--';
+                            const date = formatOrderDate(o.placed_at || o.createdAt);
+                            const expanded = expandedOrder === o.id;
                             return (
-                              <div key={o.id} className={styles.order}>
-                                <img src={ORDER_PLACEHOLDER} alt="" />
-                                <div className={styles.orderInfo}><strong>{title}</strong><span>Pedido {o.id} · {formatOrderDate(o.created_at)}</span></div>
-                                <div className={styles.orderRight}>
-                                  <span className={`${styles.vBadge} ${styles[`b_${o.status}`] || styles.vNone}`}>{statusLabel(o.status)}</span>
-                                  <span className={styles.orderTotal}>{BRL.format(Number(o.total) || 0)}</span>
-                                </div>
+                              <div key={o.id} className={cx(styles.order, expanded && styles.orderOpen)}>
+                                <button
+                                  type="button"
+                                  className={styles.orderHead}
+                                  onClick={() => setExpandedOrder(expanded ? null : o.id)}
+                                  aria-expanded={expanded}
+                                >
+                                  <img className={styles.orderThumb} src={itemImage(first)} alt="" />
+                                  <div className={styles.orderInfo}>
+                                    <span className={styles.orderNum}>Pedido #{num}</span>
+                                    <strong className={styles.orderItemName}>{title}</strong>
+                                    <span className={styles.orderDate}>{date}</span>
+                                  </div>
+                                  <div className={styles.orderRight}>
+                                    <span className={`${styles.vBadge} ${styles[`b_${o.status}`] || styles.vNone}`}>{statusLabel(o.status)}</span>
+                                    <span className={styles.orderTotal}>{BRL.format(Number(o.total) || 0)}</span>
+                                  </div>
+                                  <span className={cx(styles.orderChevron, expanded && styles.orderChevronUp)}>
+                                    <Icon name="chevron-down" size={20} />
+                                  </span>
+                                </button>
+                                {expanded && (
+                                  <div className={styles.orderDetails}>
+                                    <div className={styles.orderRef}>Referência: {o.order_number || o.id}</div>
+                                    <ul className={styles.orderItems}>
+                                      {items.map((it) => {
+                                        const qty = Number(it.quantity) || 1;
+                                        const unit = Number(it.unit_price) || 0;
+                                        return (
+                                          <li key={it.id} className={styles.orderItem}>
+                                            <img className={styles.orderItemThumb} src={itemImage(it)} alt="" />
+                                            <div className={styles.orderItemBody}>
+                                              <strong>{it.title_snapshot || 'Item'}</strong>
+                                              <span>Qtd: {qty}</span>
+                                            </div>
+                                            <span className={styles.orderItemPrice}>{BRL.format(unit * qty)}</span>
+                                          </li>
+                                        );
+                                      })}
+                                    </ul>
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
