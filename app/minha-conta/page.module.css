@@ -807,19 +807,36 @@
   border: 1px solid var(--border);
   border-radius: var(--r-xl);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 .prodMedia {
   aspect-ratio: 16 / 10;
+  flex-shrink: 0;
   display: grid;
   place-items: center;
+  overflow: hidden;
   background: var(--muted);
   color: var(--text-dim);
 }
+.prodMedia img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .prodBody {
   padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 .prodBody strong {
-  display: block;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.6em;
   color: var(--foreground);
   margin-bottom: 8px;
 }
@@ -846,6 +863,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+  margin-top: auto;
 }
 
 /* — Relatórios — */
