@@ -163,6 +163,18 @@ const FALLBACK = {
   },
 };
 
+// Mescla recursivamente o conteúdo do banco sobre o FALLBACK, mantendo as chaves
+// ausentes (evita crash se o admin editar/remover alguma seção).
+function mergeContent(base, over) {
+  if (Array.isArray(over)) return over.length ? over : base;
+  if (over && typeof over === 'object' && base && typeof base === 'object' && !Array.isArray(base)) {
+    const out = { ...base };
+    for (const k of Object.keys(over)) out[k] = mergeContent(base[k], over[k]);
+    return out;
+  }
+  return over == null || over === '' ? base : over;
+}
+
 export default function FreteEEntregaPage() {
   const [content, setContent] = useState(FALLBACK);
 
@@ -173,7 +185,9 @@ export default function FreteEEntregaPage() {
   useEffect(() => {
     contentService
       .get('frete-e-entrega')
-      .then((p) => p?.content && setContent(p.content))
+      // Deep-merge com o FALLBACK: se o admin editar e faltar alguma chave/seção,
+      // a página não quebra (mantém o padrão para o que faltar).
+      .then((p) => p?.content && setContent(mergeContent(FALLBACK, p.content)))
       .catch(() => {});
   }, []);
 
