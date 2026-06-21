@@ -1,0 +1,193 @@
+.sidebar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 4px 18px 14px;
+  position: sticky;
+  top: calc(var(--header-h) + 16px);
+  transition: opacity var(--t-fast) var(--ease);
+}
+.busy {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 0 12px;
+  border-bottom: 1px solid var(--border);
+}
+.heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.clear {
+  background: none;
+  border: none;
+  color: var(--info);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 0;
+}
+.clear:hover {
+  text-decoration: underline;
+}
+
+.block {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.block:last-child {
+  border-bottom: none;
+  padding-bottom: 4px;
+}
+.blockTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+/* — Listas (categoria / UF) — */
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.catItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: none;
+  border: none;
+  border-radius: var(--r-md);
+  padding: 7px 9px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text);
+  text-align: left;
+  transition: background var(--t-fast) var(--ease);
+}
+.catItem:hover {
+  background: var(--surface-hover);
+}
+.catActive {
+  background: var(--brand-soft);
+  font-weight: 700;
+}
+.catActive .count {
+  background: var(--brand);
+  color: var(--brand-foreground);
+  border-color: transparent;
+}
+.catName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.count {
+  flex: none;
+  min-width: 22px;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 1px 7px;
+}
+.clearCat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  color: var(--info);
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 9px;
+}
+.clearCat:hover {
+  text-decoration: underline;
+}
+
+/* — Faixa de preço — */
+.priceRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.priceInput {
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  padding: 0 10px;
+  font-size: 0.88rem;
+  color: var(--text);
+  background: var(--bg);
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.priceInput:focus {
+  outline: none;
+  border-color: var(--brand-strong);
+  box-shadow: 0 0 0 3px var(--brand-soft);
+}
+.priceInput::-webkit-outer-spin-button,
+.priceInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.priceSep {
+  color: var(--text-dim);
+  flex: none;
+}
+.priceHint {
+  font-size: 0.74rem;
+  color: var(--text-dim);
+  margin: 8px 0 0;
+}
+.applyBtn {
+  margin-top: 10px;
+  width: 100%;
+  height: 36px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background: var(--surface-strong);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.applyBtn:hover {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--brand-foreground);
+}
+
+/* — Condição — */
+.checks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
