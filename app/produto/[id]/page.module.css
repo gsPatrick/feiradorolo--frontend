@@ -415,10 +415,12 @@
 .shipList {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 4px 4px 4px 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-height: 168px; /* ~3 opções visíveis; o resto rola */
+  overflow-y: auto;
 }
 .shipOption {
   display: flex;
@@ -964,3 +966,37 @@
 .reportSubmit:hover { background: #b91c1c; border-color: #b91c1c; }
 .reportCancel:disabled,
 .reportSubmit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+
+/* — Frete: opção selecionável (radio) — */
+.shipOption {
+  width: 100%;
+  cursor: pointer;
+  font-family: inherit;
+  border: 1px solid var(--border, #e2e8f0);
+  text-align: left;
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.shipOption:hover { border-color: var(--feira-yellow-strong, #b8860b); }
+.shipOptionSel {
+  border-color: var(--feira-yellow-strong, #b8860b);
+  background: var(--feira-yellow-soft, #fef9c3);
+}
+.shipRadio {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid var(--border-strong, #cbd5e1);
+  margin-right: 2px;
+}
+.shipRadioSel {
+  border-color: var(--feira-yellow-strong, #b8860b);
+  box-shadow: inset 0 0 0 3px var(--feira-yellow, #ffd700);
+}
+.shipCount {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.74rem;
+  color: var(--muted-foreground, #64748b);
+}

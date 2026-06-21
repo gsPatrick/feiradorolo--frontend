@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import styles from './page.module.css';
+import { cx } from '@/lib/cx';
 import ProductSection from '@/components/organisms/ProductSection/ProductSection';
 import Breadcrumb from '@/components/molecules/Breadcrumb/Breadcrumb';
 import Gallery from '@/components/molecules/Gallery/Gallery';
@@ -133,6 +134,17 @@ export default function ProdutoPage() {
   const [shipLoading, setShipLoading] = useState(false);
   const [shipOptions, setShipOptions] = useState(null);
   const [shipError, setShipError] = useState(null);
+  const [shipSelected, setShipSelected] = useState(null);
+
+  // Ao receber as opções, pré-seleciona a mais barata.
+  useEffect(() => {
+    if (Array.isArray(shipOptions) && shipOptions.length) {
+      const cheapest = [...shipOptions].sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0))[0];
+      setShipSelected(cheapest && cheapest.service_code);
+    } else {
+      setShipSelected(null);
+    }
+  }, [shipOptions]);
 
   // Refs para os links âncora ("Ver características" / "Ver meios de pagamento").
   const specsRef = useRef(null);
@@ -820,27 +832,40 @@ export default function ProdutoPage() {
                         </button>
                       </div>
 
-                      <ul className={styles.shipList}>
-                        {shipOptions.map((opt, i) => (
-                          <li key={opt.service_code || i} className={styles.shipOption}>
-                            <div className={styles.shipInfo}>
-                              <span className={styles.shipName}>
-                                {opt.company} · {opt.service_name}
-                              </span>
-                            </div>
-                            <div className={styles.shipRight}>
-                              <span className={styles.shipPrice}>
-                                {opt.free_shipping ? 'Grátis' : BRL.format(Number(opt.price) || 0)}
-                              </span>
-                              {opt.delivery_time != null && (
-                                <span className={styles.shipEta}>
-                                  {opt.delivery_time} {opt.delivery_time === 1 ? 'dia útil' : 'dias úteis'}
-                                </span>
-                              )}
-                            </div>
-                          </li>
-                        ))}
+                      <ul className={styles.shipList} role="radiogroup" aria-label="Opções de frete">
+                        {shipOptions.map((opt, i) => {
+                          const selected = (opt.service_code || String(i)) === shipSelected;
+                          return (
+                            <li key={opt.service_code || i}>
+                              <button
+                                type="button"
+                                role="radio"
+                                aria-checked={selected}
+                                className={cx(styles.shipOption, selected && styles.shipOptionSel)}
+                                onClick={() => setShipSelected(opt.service_code || String(i))}
+                              >
+                                <span className={cx(styles.shipRadio, selected && styles.shipRadioSel)} aria-hidden="true" />
+                                <div className={styles.shipInfo}>
+                                  <span className={styles.shipName}>{opt.company} · {opt.service_name}</span>
+                                </div>
+                                <div className={styles.shipRight}>
+                                  <span className={styles.shipPrice}>
+                                    {opt.free_shipping ? 'Grátis' : BRL.format(Number(opt.price) || 0)}
+                                  </span>
+                                  {opt.delivery_time != null && (
+                                    <span className={styles.shipEta}>
+                                      {opt.delivery_time} {opt.delivery_time === 1 ? 'dia útil' : 'dias úteis'}
+                                    </span>
+                                  )}
+                                </div>
+                              </button>
+                            </li>
+                          );
+                        })}
                       </ul>
+                      {shipOptions.length > 3 && (
+                        <span className={styles.shipCount}>{shipOptions.length} opções · role para ver todas</span>
+                      )}
 
                       <p className={styles.freightNote}>
                         <AlertIcon size={14} /> Os prazos de entrega começam a contar a partir da
