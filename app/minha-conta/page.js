@@ -17,6 +17,7 @@ import { orderService, favoriteService, userService, addressService, productServ
 import { maskPhone, maskCPF, maskCNPJ, onlyDigits, isEmail, isPhone, isCPF, isCNPJ } from '@/lib/masks';
 // Rótulos de status dos pedidos (mapa estático de UI).
 const STATUS_LABELS = {
+  awaiting_payment: { label: 'Aguardando pagamento', variant: 'warning' },
   pending: { label: 'Aguardando pagamento', variant: 'warning' },
   processing: { label: 'Processando', variant: 'info' },
   paid: { label: 'Pago', variant: 'info' },
@@ -87,7 +88,6 @@ export default function MinhaContaPage() {
   const [tab, setTab] = useState('pedidos');
   const [sellerTab, setSellerTab] = useState('vendas');
   const [orderFilter, setOrderFilter] = useState('all');
-  const [expandedOrder, setExpandedOrder] = useState(null); // id do pedido expandido
   const [modal, setModal] = useState(null); // 'profile' | 'address' | 'photo'
 
   // Pedidos (API)
@@ -503,10 +503,14 @@ export default function MinhaContaPage() {
                               : (first && first.title_snapshot) || 'Pedido';
                             const num = orderNumbers[o.id] || '--';
                             const date = formatOrderDate(o.placed_at || o.createdAt);
-                            const expanded = expandedOrder === o.id;
                             return (
-                              <div key={o.id} className={cx(styles.order, expanded && styles.orderOpen)}>
-                                <Link href={`/pedido/${o.id}`} className={styles.orderHead}>
+                              <Link
+                                key={o.id}
+                                href={`/pedido/${o.id}`}
+                                className={styles.order}
+                                style={{ textDecoration: 'none', color: 'inherit' }}
+                              >
+                                <div className={styles.orderHead}>
                                   <img className={styles.orderThumb} src={itemImage(first)} alt="" />
                                   <div className={styles.orderInfo}>
                                     <span className={styles.orderNum}>Pedido #{num}</span>
@@ -517,38 +521,11 @@ export default function MinhaContaPage() {
                                     <span className={`${styles.vBadge} ${styles[`b_${o.status}`] || styles.vNone}`}>{statusLabel(o.status)}</span>
                                     <span className={styles.orderTotal}>{BRL.format(Number(o.total) || 0)}</span>
                                   </div>
-                                  <button
-                                    type="button"
-                                    className={cx(styles.orderChevron, expanded && styles.orderChevronUp)}
-                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setExpandedOrder(expanded ? null : o.id); }}
-                                    aria-label={expanded ? 'Recolher itens' : 'Ver itens'}
-                                    aria-expanded={expanded}
-                                  >
-                                    <Icon name="chevron-down" size={20} />
-                                  </button>
-                                </Link>
-                                {expanded && (
-                                  <div className={styles.orderDetails}>
-                                    <div className={styles.orderRef}>Referência: {o.order_number || o.id}</div>
-                                    <ul className={styles.orderItems}>
-                                      {items.map((it) => {
-                                        const qty = Number(it.quantity) || 1;
-                                        const unit = Number(it.unit_price) || 0;
-                                        return (
-                                          <li key={it.id} className={styles.orderItem}>
-                                            <img className={styles.orderItemThumb} src={itemImage(it)} alt="" />
-                                            <div className={styles.orderItemBody}>
-                                              <strong>{it.title_snapshot || 'Item'}</strong>
-                                              <span>Qtd: {qty}</span>
-                                            </div>
-                                            <span className={styles.orderItemPrice}>{BRL.format(unit * qty)}</span>
-                                          </li>
-                                        );
-                                      })}
-                                    </ul>
-                                  </div>
-                                )}
-                              </div>
+                                  <span className={styles.orderChevron} aria-hidden="true">
+                                    <Icon name="arrow-right" size={20} />
+                                  </span>
+                                </div>
+                              </Link>
                             );
                           })}
                         </div>
