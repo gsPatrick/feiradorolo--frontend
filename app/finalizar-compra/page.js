@@ -16,6 +16,7 @@ import Icon from '@/components/atoms/Icon/Icon';
 import Badge from '@/components/atoms/Badge/Badge';
 import Spinner from '@/components/atoms/Spinner/Spinner';
 import Modal from '@/components/organisms/Modal/Modal';
+import VerificationModal from '@/components/organisms/VerificationModal/VerificationModal';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const STEPS = 3;
@@ -153,6 +154,10 @@ export default function FinalizarCompraPage() {
   const [paid, setPaid] = useState(false); // pagamento confirmado (PIX/boleto)
   const [copied, setCopied] = useState(false);
 
+  // Verificação obrigatória (e-mail/WhatsApp) exigida pelo backend.
+  const [verifyChannel, setVerifyChannel] = useState(null); // 'email' | 'phone' | null
+  const pendingActionRef = useRef(null); // ação a repetir após confirmar o código
+
   // Pré-preenche o CPF do titular com o do usuário logado, se existir.
   useEffect(() => {
     const userCpf = user?.cpf || user?.document || '';
@@ -287,6 +292,28 @@ export default function FinalizarCompraPage() {
     }, POLL_INTERVAL);
   }
 
+  // Executa uma ação que pode ser bloqueada por verificação obrigatória do
+  // backend (EMAIL_NOT_VERIFIED / PHONE_NOT_VERIFIED). Nesses casos guarda a
+  // própria ação para repetir e abre o modal de verificação; demais erros
+  // seguem o fluxo normal (relançados para o try/catch do chamador).
+  async function runWithVerification(fn) {
+    try {
+      return await fn();
+    } catch (e) {
+      if (e?.code === 'EMAIL_NOT_VERIFIED') {
+        pendingActionRef.current = fn;
+        setVerifyChannel('email');
+        return undefined;
+      }
+      if (e?.code === 'PHONE_NOT_VERIFIED') {
+        pendingActionRef.current = fn;
+        setVerifyChannel('phone');
+        return undefined;
+      }
+      throw e;
+    }
+  }
+
   // ===== PIX =====
   async function payWithPix() {
     if (submitting) return;
@@ -294,20 +321,22 @@ export default function FinalizarCompraPage() {
     setPixData(null);
     setPaid(false);
     try {
-      const orderId = await ensureOrder();
-      const res = await paymentService.createPayment(orderId, { payment_method_id: 'pix' });
-      const pix = res?.pix;
-      const paymentId = res?.payment?.id;
-      if (!pix?.qr_code_base64 && !pix?.qr_code) {
-        throw new Error('Não foi possível gerar o PIX. Tente novamente.');
-      }
-      setPixData({
-        qr_code: pix.qr_code,
-        qr_code_base64: pix.qr_code_base64,
-        ticket_url: pix.ticket_url,
-        paymentId,
+      await runWithVerification(async () => {
+        const orderId = await ensureOrder();
+        const res = await paymentService.createPayment(orderId, { payment_method_id: 'pix' });
+        const pix = res?.pix;
+        const paymentId = res?.payment?.id;
+        if (!pix?.qr_code_base64 && !pix?.qr_code) {
+          throw new Error('Não foi possível gerar o PIX. Tente novamente.');
+        }
+        setPixData({
+          qr_code: pix.qr_code,
+          qr_code_base64: pix.qr_code_base64,
+          ticket_url: pix.ticket_url,
+          paymentId,
+        });
+        if (paymentId) startPolling(paymentId);
       });
-      if (paymentId) startPolling(paymentId);
     } catch (e) {
       paymentErrorToast(e);
     } finally {
@@ -322,15 +351,17 @@ export default function FinalizarCompraPage() {
     setBoletoData(null);
     setPaid(false);
     try {
-      const orderId = await ensureOrder();
-      const res = await paymentService.createPayment(orderId, { payment_method_id: 'bolbradesco' });
-      const boleto = res?.boleto;
-      const paymentId = res?.payment?.id;
-      if (!boleto?.url) {
-        throw new Error('Não foi possível gerar o boleto. Tente novamente.');
-      }
-      setBoletoData({ url: boleto.url, barcode: boleto.barcode, paymentId });
-      if (paymentId) startPolling(paymentId);
+      await runWithVerification(async () => {
+        const orderId = await ensureOrder();
+        const res = await paymentService.createPayment(orderId, { payment_method_id: 'bolbradesco' });
+        const boleto = res?.boleto;
+        const paymentId = res?.payment?.id;
+        if (!boleto?.url) {
+          throw new Error('Não foi possível gerar o boleto. Tente novamente.');
+        }
+        setBoletoData({ url: boleto.url, barcode: boleto.barcode, paymentId });
+        if (paymentId) startPolling(paymentId);
+      });
     } catch (e) {
       paymentErrorToast(e);
     } finally {
@@ -388,28 +419,30 @@ export default function FinalizarCompraPage() {
       });
       if (!tk?.id) throw new Error('Não foi possível validar o cartão. Revise os dados.');
 
-      const orderId = await ensureOrder();
-      const res = await paymentService.createPayment(orderId, {
-        token: tk.id,
-        payment_method_id: paymentMethodId,
-        installments: Number(installments) || 1,
-      });
-      const status = res?.gateway?.status || res?.payment?.status;
-      const statusDetail = res?.gateway?.status_detail;
-      setCardResult({ status, status_detail: statusDetail });
-
-      if (isPaid(status)) {
-        toast({ title: 'Pagamento aprovado!', variant: 'success' });
-        setTimeout(goToSuccess, 1200);
-      } else if (status === 'in_process' || status === 'pending') {
-        toast({ title: 'Pagamento em análise', description: 'Avisaremos quando for aprovado.', variant: 'default' });
-      } else {
-        toast({
-          title: 'Pagamento recusado',
-          description: cardStatusMessage(statusDetail),
-          variant: 'destructive',
+      await runWithVerification(async () => {
+        const orderId = await ensureOrder();
+        const res = await paymentService.createPayment(orderId, {
+          token: tk.id,
+          payment_method_id: paymentMethodId,
+          installments: Number(installments) || 1,
         });
-      }
+        const status = res?.gateway?.status || res?.payment?.status;
+        const statusDetail = res?.gateway?.status_detail;
+        setCardResult({ status, status_detail: statusDetail });
+
+        if (isPaid(status)) {
+          toast({ title: 'Pagamento aprovado!', variant: 'success' });
+          setTimeout(goToSuccess, 1200);
+        } else if (status === 'in_process' || status === 'pending') {
+          toast({ title: 'Pagamento em análise', description: 'Avisaremos quando for aprovado.', variant: 'default' });
+        } else {
+          toast({
+            title: 'Pagamento recusado',
+            description: cardStatusMessage(statusDetail),
+            variant: 'destructive',
+          });
+        }
+      });
     } catch (e) {
       // Erros do SDK costumam vir como array em e.cause/e.message.
       const msg =
@@ -1750,6 +1783,19 @@ export default function FinalizarCompraPage() {
           </>
         )}
       </Modal>
+
+      {/* MODAL DE VERIFICAÇÃO (e-mail / WhatsApp) — exigido pelo backend */}
+      <VerificationModal
+        open={!!verifyChannel}
+        channel={verifyChannel || 'email'}
+        onClose={() => setVerifyChannel(null)}
+        onVerified={() => {
+          setVerifyChannel(null);
+          const fn = pendingActionRef.current;
+          pendingActionRef.current = null;
+          if (fn) fn(); // repete a ação que estava bloqueada
+        }}
+      />
     </main>
   );
 }
