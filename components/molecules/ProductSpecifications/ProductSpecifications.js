@@ -50,15 +50,6 @@ function computeItems(field, searchTerm) {
   return { items: filtered.slice(0, limit), total: opts.length };
 }
 
-function Tooltip({ text }) {
-  if (!text) return null;
-  return (
-    <span className={styles.help} title={text} aria-label={text}>
-      ?
-    </span>
-  );
-}
-
 /** Combobox com busca (modo único ou múltiplo), painel sob o trigger. */
 function Combobox({ field, multi, searchable, value, selected, onPick, onRemove, onAddClick }) {
   const [open, setOpen] = useState(false);
@@ -226,7 +217,7 @@ function SpecField({ field, values, onChange, onAddClick }) {
   const setValue = (v) => onChange({ ...values, [field.name]: v });
 
   const label = (
-    <label className={styles.label}>
+    <label className={styles.label} title={field.tooltip || undefined}>
       <span>
         {field.label} {field.required && <span className={styles.req}>*</span>}
         {field.type === 'multi-select' && field.maxItems && field.maxItems !== 1 && (
@@ -236,7 +227,6 @@ function SpecField({ field, values, onChange, onAddClick }) {
           </span>
         )}
       </span>
-      <Tooltip text={field.tooltip} />
     </label>
   );
 

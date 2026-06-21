@@ -8,12 +8,14 @@ import Icon from '../../atoms/Icon/Icon';
 import Skeleton from '../../atoms/Skeleton/Skeleton';
 import { useCart } from '../../providers/CartProvider';
 import { useToast } from '../../providers/ToastProvider';
+import { useFavorites } from '../../providers/FavoritesProvider';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
 export default function ProductCard({ product, loading = false, className }) {
   const { addItem } = useCart();
   const { toast } = useToast();
+  const { isFavorite, toggle } = useFavorites();
   const [added, setAdded] = useState(false);
   const timer = useRef(null);
 
@@ -25,6 +27,17 @@ export default function ProductCard({ product, loading = false, className }) {
     setAdded(true);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setAdded(false), 1500);
+  }
+
+  function handleFav(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const nowFav = toggle(product);
+    toast({
+      title: nowFav ? '♥ Adicionado aos favoritos' : 'Removido dos favoritos',
+      variant: nowFav ? 'success' : 'default',
+      duration: 1000,
+    });
   }
 
   if (loading || !product) {
@@ -43,6 +56,7 @@ export default function ProductCard({ product, loading = false, className }) {
 
   const { title, price, image, rating = 4.5, sales = 127, installments = 3 } = product;
   const href = product.id ? `/produto/${product.id}` : '#';
+  const fav = isFavorite(product.id);
 
   return (
     <article className={cx(styles.card, className)}>
@@ -56,8 +70,15 @@ export default function ProductCard({ product, loading = false, className }) {
             </div>
           )}
         </Link>
-        <button className={styles.fav} aria-label="Favoritar" type="button">
-          <Icon name="heart" size={18} />
+        <button
+          className={styles.fav}
+          aria-label={fav ? 'Remover dos favoritos' : 'Favoritar'}
+          aria-pressed={fav}
+          type="button"
+          onClick={handleFav}
+          style={fav ? { color: 'var(--destructive)' } : undefined}
+        >
+          <Icon name="heart" size={18} fill={fav ? 'currentColor' : 'none'} />
         </button>
       </div>
 

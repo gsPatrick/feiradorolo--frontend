@@ -54,9 +54,8 @@ export default function AdminPage() {
   const Current = (TABS.find((t) => t.k === active) || TABS[0]).Comp;
   const isAdmin = !!(user && (user.is_admin || user.admin_role));
 
+  // "Voltar ao site": apenas navega de volta — NÃO desloga (a sessão continua).
   function logout() {
-    authLogout();
-    toast({ title: 'Logout realizado', variant: 'success', duration: 1500 });
     router.push('/');
   }
 
@@ -95,7 +94,7 @@ export default function AdminPage() {
             </div>
           </div>
           <button className={styles.logout} onClick={logout}>
-            <Icon name="arrow-left" size={18} /> Sair
+            <Icon name="arrow-left" size={18} /> Voltar ao site
           </button>
         </div>
 

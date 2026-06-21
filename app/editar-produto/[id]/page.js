@@ -549,10 +549,12 @@ export default function EditarProdutoPage() {
                         min="3"
                         max="15"
                         value={form.customOrderDays}
-                        onChange={(e) => {
+                        onChange={(e) => set({ customOrderDays: e.target.value })}
+                        onBlur={(e) => {
                           const v = parseInt(e.target.value, 10);
-                          if (e.target.value === '') set({ customOrderDays: '3' });
-                          else if (v >= 3 && v <= 15) set({ customOrderDays: e.target.value });
+                          if (e.target.value === '' || isNaN(v) || v < 3) set({ customOrderDays: '3' });
+                          else if (v > 15) set({ customOrderDays: '15' });
+                          else set({ customOrderDays: String(v) });
                         }}
                         className={styles.daysInput}
                         wrapperClassName={styles.daysWrapper}

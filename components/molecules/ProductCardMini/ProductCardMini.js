@@ -1,8 +1,12 @@
+'use client';
+
 import styles from './ProductCardMini.module.css';
 import { cx } from '@/lib/cx';
 import Badge from '../../atoms/Badge/Badge';
 import Skeleton from '../../atoms/Skeleton/Skeleton';
 import Icon from '../../atoms/Icon/Icon';
+import { useFavorites } from '../../providers/FavoritesProvider';
+import { useToast } from '../../providers/ToastProvider';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -13,6 +17,20 @@ const TIERS = {
 };
 
 export default function ProductCardMini({ product, loading = false, href, className }) {
+  const { isFavorite, toggle } = useFavorites();
+  const { toast } = useToast();
+
+  function handleFav(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const nowFav = toggle(product);
+    toast({
+      title: nowFav ? '♥ Adicionado aos favoritos' : 'Removido dos favoritos',
+      variant: nowFav ? 'success' : 'default',
+      duration: 1000,
+    });
+  }
+
   if (loading || !product) {
     return (
       <div className={cx(styles.card, className)}>
@@ -30,6 +48,7 @@ export default function ProductCardMini({ product, loading = false, href, classN
   const tierInfo = tier && tier !== 'none' ? TIERS[tier] : null;
   const discount = oldPrice && oldPrice > price ? Math.round((1 - price / oldPrice) * 100) : null;
   const Wrapper = href ? 'a' : 'div';
+  const fav = isFavorite(product.id);
 
   return (
     <Wrapper href={href} className={cx(styles.card, className)}>
@@ -53,8 +72,15 @@ export default function ProductCardMini({ product, loading = false, href, classN
             </Badge>
           )}
         </div>
-        <button className={styles.fav} aria-label="Favoritar" type="button">
-          <Icon name="heart" size={17} />
+        <button
+          className={styles.fav}
+          aria-label={fav ? 'Remover dos favoritos' : 'Favoritar'}
+          aria-pressed={fav}
+          type="button"
+          onClick={handleFav}
+          style={fav ? { color: 'var(--destructive)' } : undefined}
+        >
+          <Icon name="heart" size={17} fill={fav ? 'currentColor' : 'none'} />
         </button>
       </div>
 

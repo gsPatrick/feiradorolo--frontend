@@ -162,6 +162,22 @@
   color: var(--foreground);
 }
 
+.cepGeo {
+  margin-top: 8px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.cepGeo:hover {
+  text-decoration: underline;
+}
+
 .qty {
   display: flex;
   align-items: center;

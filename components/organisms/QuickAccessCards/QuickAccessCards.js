@@ -6,7 +6,7 @@ import { useSiteConfig } from '../../providers/SiteConfigProvider';
 
 // Fallback (cor/soft em hex para casar com os CSS vars).
 const FALLBACK = [
-  { color: '#2563eb', soft: '#dbeafe', icon: 'eye', title: 'Visto Recentemente', desc: 'Reveja produtos que você visitou', cta: 'Ver histórico', href: '/favoritos' },
+  { color: '#2563eb', soft: '#dbeafe', icon: 'eye', title: 'Visto Recentemente', desc: 'Reveja produtos que você visitou', cta: 'Ver histórico', href: '/historico' },
   { color: '#16a34a', soft: '#dcfce7', icon: 'map-pin', title: 'Produtos Perto de Você', desc: 'Encontre vendedores próximos', cta: 'Inserir localização', href: '/proximos' },
   { color: '#ea580c', soft: '#ffedd5', icon: 'dollar', title: 'Menos de R$100', desc: 'Produtos com preços baixos', cta: 'Mostrar produtos', href: '/promocoes' },
   { color: '#7c3aed', soft: '#ede9fe', icon: 'trending-up', title: 'Mais Vendidos', desc: 'Produtos favoritos dos clientes', cta: 'Ver mais vendidos', href: '/promocoes' },

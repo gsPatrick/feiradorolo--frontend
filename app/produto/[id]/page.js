@@ -18,6 +18,8 @@ import { useCart } from '@/components/providers/CartProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { productService, reviewService, questionService, chatService, reportService, mapProduct, ApiError } from '@/lib/api';
+import { maskCEP } from '@/lib/masks';
+import { recordView } from '@/lib/history';
 
 /* Motivos de denúncia aceitos pela API + rótulos pt-BR. */
 /* Ícone "bandeira" inline (lucide) — não existe no Icon.js. */
@@ -82,10 +84,43 @@ export default function ProdutoPage() {
   const id = params?.id;
   const { addItem, openCart } = useCart();
   const { toast } = useToast();
-  const { openAuth } = useAuth();
+  const { openAuth, user } = useAuth();
   const router = useRouter();
   const [chatLoading, setChatLoading] = useState(false);
   const [qty, setQty] = useState(1);
+  const [cep, setCep] = useState('');
+  const [geo, setGeo] = useState(null);
+  const [canReview, setCanReview] = useState(false);
+
+  function calcShipping() {
+    const digits = cep.replace(/\D/g, '');
+    if (digits.length < 8) {
+      toast({ title: 'Digite um CEP válido', duration: 1500 });
+      return;
+    }
+    toast({ title: 'Frete calculado', description: `CEP ${maskCEP(digits)}`, variant: 'success', duration: 1500 });
+  }
+
+  function locateMe() {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      toast({ title: 'Geolocalização indisponível', variant: 'destructive', duration: 2000 });
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGeo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        toast({ title: 'Localização capturada', variant: 'success', duration: 1500 });
+      },
+      (err) => {
+        const denied = err && err.code === err.PERMISSION_DENIED;
+        toast({
+          title: denied ? 'Permissão de localização negada' : 'Não foi possível obter a localização',
+          variant: 'destructive',
+          duration: 2000,
+        });
+      }
+    );
+  }
 
   async function startChat() {
     if (!product || !product.sellerId) return;
@@ -256,6 +291,35 @@ export default function ProdutoPage() {
 
   useEffect(() => {
     let active = true;
+    if (!id || !user) {
+      setCanReview(false);
+      return () => { active = false; };
+    }
+    reviewService
+      .canReview(id)
+      .then((res) => {
+        if (active) setCanReview(!!(res && res.canReview));
+      })
+      .catch(() => {
+        if (active) setCanReview(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [id, user]);
+
+  useEffect(() => {
+    if (!product) return;
+    recordView({
+      id: product.id,
+      title: product.title,
+      image: product.image || (product.images && product.images[0]) || null,
+      price: product.price,
+    });
+  }, [product]);
+
+  useEffect(() => {
+    let active = true;
     productService
       .list('?limit=8')
       .then((res) => {
@@ -405,9 +469,11 @@ export default function ProdutoPage() {
                     <button className={styles.reviewBtn} onClick={() => setQaOpen(true)}>
                       <Icon name="chat" size={16} /> Perguntas e respostas ({qaTotal})
                     </button>
-                    <button className={styles.reviewBtn} onClick={() => setReviewFormOpen(true)}>
-                      <Icon name="star" size={16} /> Avaliar produto
-                    </button>
+                    {canReview && (
+                      <button className={styles.reviewBtn} onClick={() => setReviewFormOpen(true)}>
+                        <Icon name="star" size={16} /> Avaliar produto
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -512,9 +578,20 @@ export default function ProdutoPage() {
                   <div>
                     <strong>{product.freeShipping ? 'Frete grátis' : 'Calcular frete'}</strong>
                     <div className={styles.cep}>
-                      <input placeholder="Seu CEP" className={styles.cepInput} maxLength={9} />
-                      <button onClick={() => toast({ title: 'Informe um CEP válido', duration: 1500 })}>OK</button>
+                      <input
+                        placeholder="Seu CEP"
+                        className={styles.cepInput}
+                        value={cep}
+                        maxLength={10}
+                        inputMode="numeric"
+                        onChange={(e) => setCep(maskCEP(e.target.value))}
+                        onKeyDown={(e) => { if (e.key === 'Enter') calcShipping(); }}
+                      />
+                      <button type="button" onClick={calcShipping}>OK</button>
                     </div>
+                    <button type="button" className={styles.cepGeo} onClick={locateMe}>
+                      Não sei meu CEP
+                    </button>
                   </div>
                 </div>
 
