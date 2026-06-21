@@ -36,14 +36,14 @@ const DEFAULT_PAYMENT = {
   subtitle: 'Pagamento seguro e fácil',
   body: 'Com Mercado Pago, você paga com cartão, boleto ou Pix. Você também pode pagar em até 12x sem cartão com a Linha de Crédito.',
   link_text: 'Como pagar com Mercado Pago',
-  link_url: '/formas-de-pagamento',
+  link_url: '/como-pagar-com-mercado-pago',
 };
 const DEFAULT_PROTECTION = {
   title: 'Proteção',
   subtitle: 'Compra protegida',
   body: 'Você não gostou do que comprou? Devolva! No Feira do Rolo não há nada que você não possa fazer, porque você está sempre protegido.',
   link_text: 'Como te protegemos',
-  link_url: '/seguranca',
+  link_url: '/como-te-protegemos',
 };
 const DEFAULT_LEGAL = [
   { label: 'Política de Privacidade', href: '/politica-de-privacidade' },

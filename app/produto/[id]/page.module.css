@@ -70,8 +70,8 @@
 }
 .heroGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: 30px;
+  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+  gap: 34px;
 }
 .galleryCol {
   min-width: 0;
