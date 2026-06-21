@@ -492,7 +492,15 @@ export default function PedidoDetalhePage() {
                 return (
                   <div key={i} className={styles.item}>
                     <div className={styles.itemMedia}>
-                      <Icon name="package" size={28} />
+                      {(item.product?.images?.[0] || item.product?.cover_image_url) ? (
+                        <img
+                          src={item.product.images?.[0] || item.product.cover_image_url}
+                          alt=""
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <Icon name="package" size={28} />
+                      )}
                     </div>
                     <div className={styles.itemInfo}>
                       <strong>{item.title_snapshot}</strong>
@@ -533,10 +541,23 @@ export default function PedidoDetalhePage() {
             {/* Endereço de entrega */}
             <div className={styles.card}>
               <div className={styles.cardTitle}>
-                <Icon name="map-pin" size={20} /> Endereço de Entrega
+                <Icon name="map-pin" size={20} /> {isPickup ? 'Entrega' : 'Endereço de Entrega'}
               </div>
               <div className={styles.addr}>
-                <p className={styles.muted}>Endereço de entrega indisponível.</p>
+                {isPickup ? (
+                  <p>Retirada presencial — combine o local com o vendedor pelo chat.</p>
+                ) : (() => {
+                  const a = (order.metadata && order.metadata.shipping_address) || null;
+                  if (!a) return <p className={styles.muted}>Endereço de entrega indisponível.</p>;
+                  return (
+                    <>
+                      <p>{a.recipient || a.recipient_name || ''}</p>
+                      <p>{[a.street, a.number].filter(Boolean).join(', ')}{a.complement ? ` - ${a.complement}` : ''}</p>
+                      <p className={styles.muted}>{[a.neighborhood, a.city, a.state].filter(Boolean).join(', ')}</p>
+                      {(a.cep || a.zip_code) && <p className={styles.muted}>CEP: {a.cep || a.zip_code}</p>}
+                    </>
+                  );
+                })()}
               </div>
             </div>
 
@@ -546,19 +567,19 @@ export default function PedidoDetalhePage() {
                 <Icon name="user" size={20} /> Cliente
               </div>
               <div className={styles.addr}>
-                <p className={styles.muted}>Dados do cliente indisponíveis.</p>
+                {order.buyer ? (
+                  <>
+                    <p>{order.buyer.name}</p>
+                    {order.buyer.email && <p className={styles.muted}>{order.buyer.email}</p>}
+                    {order.buyer.phone && <p className={styles.muted}>{order.buyer.phone}</p>}
+                  </>
+                ) : (
+                  <p className={styles.muted}>Dados do cliente indisponíveis.</p>
+                )}
               </div>
             </div>
           </div>
         </div>
-
-        {/* Pedido em análise (verificação facial) */}
-        {order.held_for_buyer_verification && (
-          <div className={styles.verifyNote}>
-            <Clock size={18} />
-            <span>Pedido em análise — conclua sua verificação facial para liberá-lo.</span>
-          </div>
-        )}
 
         {/* Retirada presencial — código para o comprador */}
         {isPickup && (
