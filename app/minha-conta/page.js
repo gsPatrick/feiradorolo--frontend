@@ -13,7 +13,7 @@ import FormField from '@/components/molecules/FormField/FormField';
 import ProductCard from '@/components/molecules/ProductCard/ProductCard';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { orderService, favoriteService, userService, addressService, productService, paymentService, verificationService, uploadImage, mapProduct, ApiError } from '@/lib/api';
+import { orderService, favoriteService, userService, addressService, productService, paymentService, verificationService, reviewService, planService, configService, uploadImage, mapProduct, ApiError } from '@/lib/api';
 import VerificationModal from '@/components/organisms/VerificationModal/VerificationModal';
 import { maskPhone, maskCPF, maskCNPJ, onlyDigits, isEmail, isPhone, isCPF, isCNPJ } from '@/lib/masks';
 // Rótulos de status dos pedidos (mapa estático de UI).
@@ -55,7 +55,9 @@ function itemImage(item) {
 const TABS = [
   { k: 'pedidos', l: 'Meus Pedidos' },
   { k: 'favoritos', l: 'Favoritos' },
+  { k: 'avaliacoes', l: 'Avaliações' },
   { k: 'enderecos', l: 'Endereços' },
+  { k: 'planos', l: 'Planos e Taxas' },
   { k: 'perfil', l: 'Meu Perfil' },
 ];
 const SELLER_TABS = [
@@ -94,6 +96,13 @@ export default function MinhaContaPage() {
   // Meus produtos (API)
   const [sellerProducts, setSellerProducts] = useState([]);
   const [sellerProdState, setSellerProdState] = useState('idle');
+  // Minhas avaliações (API)
+  const [reviews, setReviews] = useState([]);
+  const [reviewsState, setReviewsState] = useState('idle');
+  // Planos e taxas (API)
+  const [myPlan, setMyPlan] = useState(null);
+  const [fees, setFees] = useState(null);
+  const [planState, setPlanState] = useState('idle');
 
   const isCompras = view === 'compras';
   const isVendas = view === 'vendas';
@@ -122,6 +131,8 @@ export default function MinhaContaPage() {
     setAddrState('idle');
     setSalesState('idle');
     setSellerProdState('idle');
+    setReviewsState('idle');
+    setPlanState('idle');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user && user.id]);
 
@@ -167,6 +178,38 @@ export default function MinhaContaPage() {
         setAddrState(err instanceof ApiError && err.status === 401 ? 'unauth' : 'error');
       });
   }, [isCompras, tab, addrState]);
+
+  useEffect(() => {
+    if (!isCompras || tab !== 'avaliacoes' || reviewsState !== 'idle') return;
+    setReviewsState('loading');
+    reviewService
+      .listMine()
+      .then((data) => {
+        setReviews(Array.isArray(data) ? data : []);
+        setReviewsState('ready');
+      })
+      .catch((err) => {
+        setReviewsState(err instanceof ApiError && err.status === 401 ? 'unauth' : 'error');
+      });
+  }, [isCompras, tab, reviewsState]);
+
+  useEffect(() => {
+    if (!isCompras || tab !== 'planos' || planState !== 'idle') return;
+    setPlanState('loading');
+    Promise.all([
+      planService.mine().catch(() => null),
+      configService.fees().catch(() => null),
+    ])
+      .then(([plan, feeData]) => {
+        // /plans/mine traz array de assinaturas (mais recente primeiro); fica o 1º.
+        setMyPlan(Array.isArray(plan) ? (plan[0] || null) : (plan || null));
+        setFees(feeData || null);
+        setPlanState('ready');
+      })
+      .catch((err) => {
+        setPlanState(err instanceof ApiError && err.status === 401 ? 'unauth' : 'error');
+      });
+  }, [isCompras, tab, planState]);
 
   const reloadAddresses = () => setAddrState('idle');
 
@@ -554,6 +597,25 @@ export default function MinhaContaPage() {
                     </>
                   )}
 
+                  {tab === 'avaliacoes' && (
+                    <ReviewsTab
+                      reviews={reviews}
+                      state={reviewsState}
+                      onRetry={() => setReviewsState('idle')}
+                      onAuth={() => openAuth('login')}
+                    />
+                  )}
+
+                  {tab === 'planos' && (
+                    <PlansTab
+                      plan={myPlan}
+                      fees={fees}
+                      state={planState}
+                      onRetry={() => setPlanState('idle')}
+                      onAuth={() => openAuth('login')}
+                    />
+                  )}
+
                   {tab === 'enderecos' && (
                     <>
                       <div className={styles.sectionHead}><h2>Endereços</h2>
@@ -688,6 +750,175 @@ export default function MinhaContaPage() {
         </label>
       </Modal>
     </main>
+  );
+}
+
+/* — Estrelas simples (rating 0–5) — */
+function Stars({ value = 0 }) {
+  const n = Math.max(0, Math.min(5, Math.round(Number(value) || 0)));
+  return (
+    <span className={styles.stars} aria-label={`${n} de 5 estrelas`} title={`${n} de 5`}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Icon key={i} name="star" size={15} className={i <= n ? styles.starOn : styles.starOff} />
+      ))}
+    </span>
+  );
+}
+
+/* — Aba Avaliações: avaliações escritas pelo usuário — */
+function ReviewsTab({ reviews = [], state = 'idle', onRetry, onAuth }) {
+  return (
+    <>
+      <div className={styles.sectionHead}>
+        <h2>Minhas Avaliações</h2>
+        <span className={styles.muted}>{state === 'ready' ? `${reviews.length} avaliações` : ''}</span>
+      </div>
+      {state === 'unauth' ? (
+        <div className={styles.emptyCard}>
+          <span className={styles.emptyIcon}><Icon name="user" size={36} /></span>
+          <strong>Entre para ver suas avaliações</strong>
+          <p>Faça login para ver os produtos que você avaliou no Feira do Rolo.</p>
+          <Button variant="primary" leftIcon="user" onClick={onAuth}>Entrar</Button>
+        </div>
+      ) : state === 'error' ? (
+        <div className={styles.emptyCard}>
+          <span className={styles.emptyIcon}><Icon name="star" size={36} /></span>
+          <strong>Não foi possível carregar suas avaliações</strong>
+          <p>Tente novamente em alguns instantes.</p>
+          <Button variant="primary" onClick={onRetry}>Tentar novamente</Button>
+        </div>
+      ) : state !== 'ready' ? (
+        <div className={styles.orders}>
+          {[0, 1, 2].map((i) => (
+            <div key={i} className={styles.order}>
+              <div className={styles.orderHead}>
+                <img className={styles.orderThumb} src={ORDER_PLACEHOLDER} alt="" />
+                <div className={styles.orderInfo}><strong className={styles.orderItemName} style={{ opacity: 0.4 }}>Carregando…</strong><span>&nbsp;</span></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : reviews.length === 0 ? (
+        <div className={styles.emptyCard}>
+          <span className={styles.emptyIcon}><Icon name="star" size={36} /></span>
+          <strong>Você ainda não avaliou nenhum produto.</strong>
+          <p>Depois de receber suas compras, conte como foi a experiência!</p>
+          <Button variant="primary" leftIcon="package" href="/produtos">Explorar Produtos</Button>
+        </div>
+      ) : (
+        <div className={styles.orders}>
+          {reviews.map((r) => {
+            const product = r.product || {};
+            const img = (product.images && product.images[0]) || ORDER_PLACEHOLDER;
+            const inner = (
+              <div className={styles.orderHead}>
+                <img className={styles.orderThumb} src={img} alt="" />
+                <div className={styles.orderInfo}>
+                  <strong className={styles.orderItemName}>{product.title || 'Produto'}</strong>
+                  <Stars value={r.rating} />
+                  {r.title && <span className={styles.reviewTitle}>{r.title}</span>}
+                  {r.comment && <span className={styles.reviewComment}>{r.comment}</span>}
+                  <span className={styles.orderDate}>{formatOrderDate(r.created_at)}</span>
+                </div>
+              </div>
+            );
+            return product.id ? (
+              <Link key={r.id} href={`/produto/${product.id}`} className={styles.order} style={{ textDecoration: 'none', color: 'inherit' }}>
+                {inner}
+              </Link>
+            ) : (
+              <div key={r.id} className={styles.order}>{inner}</div>
+            );
+          })}
+        </div>
+      )}
+    </>
+  );
+}
+
+/* — Aba Planos e Taxas: plano atual + resumo de taxas — */
+function PlansTab({ plan, fees, state = 'idle', onRetry, onAuth }) {
+  const subPlan = plan && plan.plan ? plan.plan : null;
+  const planName = subPlan ? subPlan.name : (plan && plan.name) || null;
+  const planStatus = plan && plan.status;
+  const planPrice = subPlan ? subPlan.price : (plan && plan.price);
+
+  return (
+    <>
+      <div className={styles.sectionHead}><h2>Planos e Taxas</h2></div>
+      {state === 'unauth' ? (
+        <div className={styles.emptyCard}>
+          <span className={styles.emptyIcon}><Icon name="user" size={36} /></span>
+          <strong>Entre para ver seu plano</strong>
+          <p>Faça login para ver seu plano e as taxas do Feira do Rolo.</p>
+          <Button variant="primary" leftIcon="user" onClick={onAuth}>Entrar</Button>
+        </div>
+      ) : state === 'error' ? (
+        <div className={styles.emptyCard}>
+          <span className={styles.emptyIcon}><Icon name="dollar" size={36} /></span>
+          <strong>Não foi possível carregar suas informações</strong>
+          <p>Tente novamente em alguns instantes.</p>
+          <Button variant="primary" onClick={onRetry}>Tentar novamente</Button>
+        </div>
+      ) : state !== 'ready' ? (
+        <div className={styles.profileGrid}>
+          <div className={styles.infoCard}><Skeleton width="60%" height={20} /><Skeleton width="90%" height={14} /><Skeleton width="80%" height={14} /></div>
+          <div className={styles.infoCard}><Skeleton width="60%" height={20} /><Skeleton width="90%" height={14} /><Skeleton width="80%" height={14} /></div>
+        </div>
+      ) : (
+        <>
+          <div className={styles.profileGrid}>
+            <div className={styles.infoCard}>
+              <h3>Plano Atual</h3>
+              {planName ? (
+                <>
+                  <div className={styles.infoRow}><span>Plano</span><strong>{planName}</strong></div>
+                  {planStatus && (
+                    <div className={styles.infoRow}><span>Status</span>
+                      <strong><span className={`${styles.vBadge} ${planStatus === 'active' ? styles.vOk : styles.vNone}`}>{planStatus === 'active' ? 'Ativo' : planStatus}</span></strong>
+                    </div>
+                  )}
+                  {(planPrice != null && Number(planPrice) > 0) && (
+                    <div className={styles.infoRow}><span>Mensalidade</span><strong>{BRL.format(Number(planPrice))}</strong></div>
+                  )}
+                  {plan && plan.ends_at && (
+                    <div className={styles.infoRow}><span>Válido até</span><strong>{formatOrderDate(plan.ends_at)}</strong></div>
+                  )}
+                </>
+              ) : (
+                <p className={styles.muted} style={{ margin: 0 }}>Você está no plano gratuito.</p>
+              )}
+            </div>
+
+            <div className={styles.infoCard}>
+              <h3>Taxas e Comissões</h3>
+              {fees ? (
+                <>
+                  {fees.commission_percent != null && (
+                    <div className={styles.infoRow}><span>Comissão por venda</span><strong>{Number(fees.commission_percent)}%</strong></div>
+                  )}
+                  {fees.max_installments != null && (
+                    <div className={styles.infoRow}><span>Parcelamento máximo</span><strong>{Number(fees.max_installments)}x</strong></div>
+                  )}
+                  {fees.withdrawal_fee != null && (
+                    <div className={styles.infoRow}><span>Taxa de saque</span><strong>{BRL.format(Number(fees.withdrawal_fee))}</strong></div>
+                  )}
+                  <div className={styles.infoRow}><span>Frete grátis</span><strong>{fees.free_shipping_enabled ? 'Disponível' : 'Indisponível'}</strong></div>
+                  {fees.free_shipping_enabled && fees.free_shipping_min_order != null && (
+                    <div className={styles.infoRow}><span>Mínimo p/ frete grátis</span><strong>{BRL.format(Number(fees.free_shipping_min_order))}</strong></div>
+                  )}
+                </>
+              ) : (
+                <p className={styles.muted} style={{ margin: 0 }}>Não foi possível carregar as taxas no momento.</p>
+              )}
+            </div>
+          </div>
+          <div className={styles.sectionHead} style={{ marginTop: 16 }}>
+            <Button variant="outline" leftIcon="arrow-right" href="/planos-e-taxas">Ver todos os planos e taxas</Button>
+          </div>
+        </>
+      )}
+    </>
   );
 }
 
