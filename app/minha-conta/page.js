@@ -12,7 +12,7 @@ import FormField from '@/components/molecules/FormField/FormField';
 import ProductCard from '@/components/molecules/ProductCard/ProductCard';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { orderService, favoriteService, userService, addressService, productService, uploadImage, mapProduct, ApiError } from '@/lib/api';
+import { orderService, favoriteService, userService, addressService, productService, paymentService, uploadImage, mapProduct, ApiError } from '@/lib/api';
 import { maskPhone, maskCPF, maskCNPJ, onlyDigits, isEmail, isPhone, isCPF, isCNPJ } from '@/lib/masks';
 // Rótulos de status dos pedidos (mapa estático de UI).
 const STATUS_LABELS = {
@@ -866,9 +866,74 @@ function SellerReports({ onExport }) {
 
 /* — Vendas: Configurações — */
 function SellerConfig({ onSave }) {
+  const { toast } = useToast();
+  const [mp, setMp] = useState(null);
+  const [mpLoading, setMpLoading] = useState(true);
+  const [connecting, setConnecting] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    paymentService
+      .connectStatus()
+      .then((s) => { if (active) setMp(s); })
+      .catch(() => { if (active) setMp(null); })
+      .finally(() => { if (active) setMpLoading(false); });
+    return () => { active = false; };
+  }, []);
+
+  async function connectMp() {
+    setConnecting(true);
+    try {
+      const res = await paymentService.connectMercadoPago();
+      const url = res && res.url;
+      if (url) { window.location.href = url; return; }
+      toast({ title: 'Não foi possível iniciar o vínculo', variant: 'destructive', duration: 2500 });
+    } catch (e) {
+      toast({ title: 'Erro ao conectar', description: (e && e.message) || 'Tente novamente.', variant: 'destructive', duration: 2500 });
+    } finally {
+      setConnecting(false);
+    }
+  }
+
+  async function disconnectMp() {
+    try {
+      await paymentService.disconnectMercadoPago();
+      setMp(null);
+      toast({ title: 'Conta de recebimento desvinculada', variant: 'success', duration: 2000 });
+    } catch (e) {
+      toast({ title: 'Erro ao desvincular', variant: 'destructive', duration: 2000 });
+    }
+  }
+
+  const linked = !!(mp && mp.linked);
+
   return (
     <>
       <div className={styles.sectionHead}><h2>Configurações de Vendedor</h2></div>
+
+      {/* Recebimentos — vínculo Mercado Pago (split/repasse) */}
+      <div className={styles.configCard}>
+        <h3>Recebimentos (Mercado Pago)</h3>
+        <p className={styles.muted} style={{ marginBottom: 14 }}>
+          Vincule sua conta do Mercado Pago para receber o valor das suas vendas <strong>direto na sua conta</strong>,
+          já com a comissão da plataforma descontada automaticamente (repasse via split).
+        </p>
+        {mpLoading ? (
+          <Skeleton width={220} height={40} radius={10} />
+        ) : linked ? (
+          <div className={styles.mpLinked} style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <span className={`${styles.vBadge} ${styles.b_paid}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <Icon name="check" size={14} /> Conta vinculada{mp.mp_user_id ? ` · ID ${mp.mp_user_id}` : ''}
+            </span>
+            <Button variant="ghost" size="sm" onClick={disconnectMp}>Desvincular</Button>
+          </div>
+        ) : (
+          <Button variant="primary" size="lg" leftIcon="dollar" onClick={connectMp} disabled={connecting}>
+            {connecting ? 'Redirecionando…' : 'Vincular conta Mercado Pago'}
+          </Button>
+        )}
+      </div>
+
       <div className={styles.configCard}>
         <h3>Informações da Loja</h3>
         <form className={styles.modalForm} onSubmit={(e) => { e.preventDefault(); onSave(); }}>
