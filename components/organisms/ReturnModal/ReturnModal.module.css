@@ -1,0 +1,130 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Label compartilhado */
+.label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+/* Campos */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.textarea {
+  width: 100%;
+}
+
+/* Questionário — estado do produto */
+.questionnaire {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--bg-1);
+}
+.legend {
+  padding: 0 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* Upload */
+.hiddenInput {
+  display: none;
+}
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 14px;
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--r-lg);
+  background: none;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.dropzone:hover:not(:disabled) {
+  border-color: var(--muted-foreground);
+  color: var(--foreground);
+}
+.dropzone:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.dropIcon {
+  color: var(--muted-foreground);
+}
+
+.previews {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+.thumb {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+.thumb img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+}
+.removeBtn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: var(--r-pill);
+  background: var(--destructive);
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Aviso de prazo */
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--feira-yellow-soft, #fef9c3);
+  border: 1px solid rgba(180, 83, 9, 0.25);
+  color: #92400e;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+.notice svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Footer actions */
+.action {
+  flex: 1;
+}

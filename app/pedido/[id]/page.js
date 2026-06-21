@@ -10,7 +10,8 @@ import Badge from '@/components/atoms/Badge/Badge';
 import EmptyState from '@/components/molecules/EmptyState/EmptyState';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { orderService, escrowService, paymentService, chatService, productService, mapProduct, ApiError } from '@/lib/api';
+import ReturnModal from '@/components/organisms/ReturnModal/ReturnModal';
+import { orderService, escrowService, paymentService, chatService, productService, disputeService, mapProduct, ApiError } from '@/lib/api';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const DATE = new Intl.DateTimeFormat('pt-BR');
@@ -165,7 +166,7 @@ export default function PedidoDetalhePage() {
   const id = params?.id;
   const router = useRouter();
   const { toast } = useToast();
-  const { openAuth } = useAuth();
+  const { openAuth, user } = useAuth();
 
   const [order, setOrder] = useState(null);
   const [status, setStatus] = useState(null);
@@ -180,6 +181,10 @@ export default function PedidoDetalhePage() {
   const [pix, setPix] = useState(null); // { qr_code, qr_code_base64, ticket_url }
   const [copied, setCopied] = useState(false);
   const pollRef = useRef(null);
+
+  // — Devolução —
+  const [returnOpen, setReturnOpen] = useState(false);
+  const [disputeBusy, setDisputeBusy] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -373,6 +378,43 @@ export default function PedidoDetalhePage() {
     }
   }
 
+  // — Vendedor: aprovar / recusar a devolução —
+  async function approveReturn(disputeId) {
+    setDisputeBusy(true);
+    try {
+      await disputeService.approve(disputeId);
+      await reloadOrder();
+      toast({
+        title: 'Devolução aprovada',
+        description: 'O reembolso será processado para o comprador.',
+        variant: 'success',
+        duration: 3000,
+      });
+    } catch {
+      toast({ title: 'Não foi possível aprovar a devolução.', variant: 'danger', duration: 3000 });
+    } finally {
+      setDisputeBusy(false);
+    }
+  }
+
+  async function rejectReturn(disputeId) {
+    setDisputeBusy(true);
+    try {
+      await disputeService.reject(disputeId);
+      await reloadOrder();
+      toast({
+        title: 'Devolução recusada',
+        description: 'O comprador foi notificado da sua decisão.',
+        variant: 'success',
+        duration: 3000,
+      });
+    } catch {
+      toast({ title: 'Não foi possível recusar a devolução.', variant: 'danger', duration: 3000 });
+    } finally {
+      setDisputeBusy(false);
+    }
+  }
+
   /* Loading */
   if (loading) {
     return (
@@ -472,6 +514,31 @@ export default function PedidoDetalhePage() {
   const seller = order.seller || null;
   const sellerId = order.seller_id || seller?.id || null;
   const buyer = order.buyer || null;
+
+  // — Devolução / disputa —
+  const isBuyer = user?.id === order.buyer_id;
+  const isSeller = user?.id === order.seller_id;
+  const disputes = Array.isArray(order.disputes) ? order.disputes : [];
+  const activeDispute =
+    disputes.find((d) => d.status !== 'resolved' && d.status !== 'rejected') || null;
+  const isRefunded = status === 'refunded';
+  const canRequestReturn =
+    isBuyer && !activeDispute && !isRefunded && ['paid', 'delivered'].includes(status);
+
+  // Texto de status amigável da devolução.
+  const RETURN_STATUS_LABELS = {
+    open: 'Devolução solicitada — aguardando o vendedor',
+    requested: 'Devolução solicitada — aguardando o vendedor',
+    pending: 'Devolução solicitada — aguardando o vendedor',
+    in_review: 'Devolução em análise',
+    approved: 'Devolução aprovada',
+    refunded: 'Reembolsado',
+    resolved: 'Reembolsado',
+    rejected: 'Devolução recusada',
+  };
+  const disputeStatusLabel = activeDispute
+    ? RETURN_STATUS_LABELS[activeDispute.status] || 'Devolução em andamento'
+    : '';
 
   return (
     <main className={styles.page}>
@@ -806,6 +873,63 @@ export default function PedidoDetalhePage() {
           </div>
         )}
 
+        {/* Pedido reembolsado — destaque */}
+        {isRefunded && (
+          <div className={cx(styles.card, styles.refundCard)}>
+            <div className={styles.refundHead}>
+              <CheckCircle size={22} />
+              <div>
+                <p className={styles.refundTitle}>Pedido reembolsado</p>
+                <p className={styles.muted}>O valor foi devolvido ao comprador.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Devolução — disputa ativa */}
+        {activeDispute && !isRefunded && (
+          <div className={cx(styles.card, styles.returnCard)}>
+            <div className={styles.cardTitle}>
+              <Icon name="package" size={20} /> Devolução
+            </div>
+            <div className={styles.returnBody}>
+              <Badge
+                variant={activeDispute.status === 'rejected' ? 'danger' : 'brand'}
+                className={styles.returnBadge}
+              >
+                {disputeStatusLabel}
+              </Badge>
+              {activeDispute.resolution && (
+                <p className={styles.muted}>{activeDispute.resolution}</p>
+              )}
+
+              {/* Vendedor: aprovar / recusar quando a disputa está aberta */}
+              {isSeller && activeDispute.status === 'open' && (
+                <div className={styles.returnActions}>
+                  <Button
+                    variant="primary"
+                    leftIcon="check"
+                    onClick={() => approveReturn(activeDispute.id)}
+                    loading={disputeBusy}
+                    disabled={disputeBusy}
+                    className={styles.confirmBtn}
+                  >
+                    Aprovar devolução
+                  </Button>
+                  <Button
+                    variant="outline"
+                    leftIcon="close"
+                    onClick={() => rejectReturn(activeDispute.id)}
+                    disabled={disputeBusy}
+                  >
+                    Recusar
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Ações */}
         <div className={styles.actions}>
           {status === 'shipped' && (
@@ -816,9 +940,21 @@ export default function PedidoDetalhePage() {
           {status === 'delivered' && (
             <Button variant="accent">Avaliar Produtos</Button>
           )}
+          {canRequestReturn && (
+            <Button variant="outline" leftIcon="package" onClick={() => setReturnOpen(true)}>
+              Solicitar devolução
+            </Button>
+          )}
           <Button variant="outline" onClick={() => window.print()}>Imprimir Pedido</Button>
         </div>
       </div>
+
+      <ReturnModal
+        open={returnOpen}
+        onClose={() => setReturnOpen(false)}
+        orderId={order.id}
+        onDone={reloadOrder}
+      />
     </main>
   );
 }

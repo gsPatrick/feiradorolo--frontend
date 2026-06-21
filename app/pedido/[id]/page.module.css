@@ -527,6 +527,52 @@
   max-width: 460px;
 }
 
+/* — Devolução / disputa — */
+.returnCard {
+  margin-top: 20px;
+  border-left: 4px solid var(--feira-yellow, #f59e0b);
+}
+.returnBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.returnBadge {
+  align-self: flex-start;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+.returnActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 6px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* — Pedido reembolsado — */
+.refundCard {
+  margin-top: 20px;
+  border-color: var(--success);
+  border-left: 4px solid var(--success);
+  background: var(--success-soft);
+}
+.refundHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #15803d;
+}
+.refundHead svg {
+  flex-shrink: 0;
+}
+.refundTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #15803d;
+}
+
 /* — Ações — */
 .actions {
   display: flex;
