@@ -206,6 +206,20 @@ export default function FinalizarCompraPage() {
       // Na retirada presencial o endereço é opcional.
       address_id:
         !isPickup && addressMode === 'saved' ? selectedAddressId || undefined : undefined,
+      // Endereço completo (salvo ou novo) para o pedido exibir a entrega depois.
+      shipping_address:
+        !isPickup && selectedAddress
+          ? {
+              recipient: selectedAddress.recipient || '',
+              cep: selectedAddress.cep || '',
+              street: selectedAddress.street || '',
+              number: selectedAddress.number || '',
+              complement: selectedAddress.complement || '',
+              neighborhood: selectedAddress.neighborhood || '',
+              city: selectedAddress.city || '',
+              state: selectedAddress.state || '',
+            }
+          : undefined,
       delivery_method: deliveryMethod,
       // Frete escolhido (apenas para envio; retirada presencial não tem frete).
       shipping_option:
@@ -213,6 +227,8 @@ export default function FinalizarCompraPage() {
           ? {
               service_code: selectedShipping.service_code,
               service_name: selectedShipping.service_name,
+              company: selectedShipping.company || '',
+              delivery_time: selectedShipping.delivery_time ?? null,
               price: shippingCost,
               cost: shippingCost,
             }

@@ -355,6 +355,23 @@
   color: var(--muted-foreground);
 }
 
+/* — Vendedor — */
+.sellerCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.sellerName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.sellerBtn {
+  border-color: var(--feira-yellow, #f59e0b);
+  color: var(--feira-yellow-strong, #b45309);
+}
+
 /* — Custódia — */
 .escrowNote {
   display: flex;

@@ -153,8 +153,8 @@ export default function LojaPage() {
   async function handleChat() {
     if (!sellerId) return;
     try {
-      await chatService.open(sellerId);
-      router.push('/mensagens');
+      const chat = await chatService.open(sellerId);
+      router.push(chat && chat.id ? `/mensagens?chat=${chat.id}` : '/mensagens');
     } catch (e) {
       const msg = e && e.status === 401 ? 'Faça login para conversar com o vendedor.' : 'Não foi possível abrir a conversa agora.';
       toast({ title: msg, variant: e && e.status === 401 ? 'default' : 'destructive', duration: 1800 });

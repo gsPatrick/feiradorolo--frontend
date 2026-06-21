@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import { cx } from '@/lib/cx';
 import Button from '@/components/atoms/Button/Button';
@@ -10,7 +10,7 @@ import Badge from '@/components/atoms/Badge/Badge';
 import EmptyState from '@/components/molecules/EmptyState/EmptyState';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { orderService, escrowService, paymentService, ApiError } from '@/lib/api';
+import { orderService, escrowService, paymentService, chatService, ApiError } from '@/lib/api';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const DATE = new Intl.DateTimeFormat('pt-BR');
@@ -104,6 +104,7 @@ function computeActiveStep(steps, order) {
 export default function PedidoDetalhePage() {
   const params = useParams();
   const id = params?.id;
+  const router = useRouter();
   const { toast } = useToast();
   const { openAuth } = useAuth();
 
@@ -169,6 +170,20 @@ export default function PedidoDetalhePage() {
       }
     };
   }, []);
+
+  async function talkToSeller() {
+    try {
+      const productId = order.items?.[0]?.product_id || null;
+      const chat = await chatService.open(order.seller_id || order.seller?.id, productId);
+      router.push(chat && chat.id ? `/mensagens?chat=${chat.id}` : '/mensagens');
+    } catch (e) {
+      toast({
+        title: e?.status === 401 ? 'Faça login para conversar.' : 'Não foi possível abrir a conversa.',
+        variant: 'danger',
+        duration: 3000,
+      });
+    }
+  }
 
   function confirmDelivery() {
     setStatus('delivered');
@@ -360,6 +375,12 @@ export default function PedidoDetalhePage() {
   const paymentMethodLabel = payment && PAYMENT_METHOD_LABELS[payment.method]
     ? PAYMENT_METHOD_LABELS[payment.method]
     : '—';
+
+  // Frete escolhido (somente para envio, quando há transportadora).
+  const shippingOption = (!isPickup && order.metadata && order.metadata.shipping_option) || null;
+  const shippingCarrier = shippingOption
+    ? [shippingOption.company, shippingOption.service_name].filter(Boolean).join(' • ')
+    : '';
 
   return (
     <main className={styles.page}>
@@ -561,6 +582,31 @@ export default function PedidoDetalhePage() {
               </div>
             </div>
 
+            {/* Frete (somente envio com transportadora) */}
+            {shippingOption && (
+              <div className={styles.card}>
+                <div className={styles.cardTitle}>
+                  <Icon name="truck" size={20} /> Frete
+                </div>
+                <div className={styles.kv}>
+                  <div className={styles.kvRow}>
+                    <span className={styles.muted}>Transportadora:</span>
+                    <strong>{shippingCarrier || '—'}</strong>
+                  </div>
+                  {shippingOption.delivery_time != null && (
+                    <div className={styles.kvRow}>
+                      <span className={styles.muted}>Prazo:</span>
+                      <strong>{shippingOption.delivery_time} dias úteis</strong>
+                    </div>
+                  )}
+                  <div className={styles.kvRow}>
+                    <span className={styles.muted}>Valor:</span>
+                    <strong>{shipping === 0 ? 'Grátis' : BRL.format(shipping)}</strong>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Cliente */}
             <div className={styles.card}>
               <div className={styles.cardTitle}>
@@ -576,6 +622,25 @@ export default function PedidoDetalhePage() {
                 ) : (
                   <p className={styles.muted}>Dados do cliente indisponíveis.</p>
                 )}
+              </div>
+            </div>
+
+            {/* Vendedor */}
+            <div className={styles.card}>
+              <div className={styles.cardTitle}>
+                <Icon name="user" size={20} /> Vendedor
+              </div>
+              <div className={styles.sellerCard}>
+                <p className={styles.sellerName}>{order.seller?.name || 'Vendedor'}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  leftIcon="chat"
+                  onClick={talkToSeller}
+                  className={styles.sellerBtn}
+                >
+                  Falar com o vendedor
+                </Button>
               </div>
             </div>
           </div>
