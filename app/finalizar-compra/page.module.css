@@ -112,6 +112,92 @@
   font-size: 0.95rem;
 }
 
+/* ===== Cards grandes quadrados — método de entrega (etapa 1) ===== */
+.methodGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  max-width: 640px;
+  margin: 0 auto;
+  width: 100%;
+}
+.methodCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  min-height: 200px;
+  aspect-ratio: 1 / 1;
+  padding: 24px 18px;
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: var(--r-lg);
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease),
+    box-shadow var(--t-fast) var(--ease),
+    background var(--t-fast) var(--ease),
+    transform var(--t-fast) var(--ease);
+}
+.methodCard:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+.methodCardActive {
+  border-color: var(--feira-yellow-strong);
+  background: var(--feira-yellow-soft);
+  box-shadow: 0 0 0 2px var(--feira-yellow-strong);
+}
+.methodCardActive:hover {
+  border-color: var(--feira-yellow-strong);
+}
+.methodCheck {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-pill);
+  background: var(--feira-yellow-strong);
+  color: var(--feira-gray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.methodEmoji {
+  font-size: 3rem;
+  line-height: 1;
+}
+.methodTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+.methodSub {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  max-width: 90%;
+}
+
+/* Linha do botão "Calcular frete" (etapa 2 — envio) */
+.calcShipRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+  .methodGrid {
+    grid-template-columns: 1fr;
+  }
+  .methodCard {
+    aspect-ratio: auto;
+    min-height: 160px;
+  }
+}
+
 /* ===== Seletor de método de entrega ===== */
 .deliveryTabs {
   display: grid;

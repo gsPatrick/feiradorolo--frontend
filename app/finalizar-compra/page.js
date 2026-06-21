@@ -233,6 +233,21 @@ export default function FinalizarCompraPage() {
     }
   }
 
+  // Na etapa 2 (envio), calcula o frete automaticamente assim que houver um
+  // endereço selecionado e ainda não existirem opções carregadas.
+  useEffect(() => {
+    if (
+      currentStep === 2 &&
+      !isPickup &&
+      selectedAddress &&
+      shippingOptions.length === 0 &&
+      !shippingLoading
+    ) {
+      loadShipping();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, isPickup, selectedAddress, shippingOptions.length, shippingLoading]);
+
   async function applyCoupon() {
     const code = couponInput.trim();
     if (!code) return;
@@ -253,7 +268,9 @@ export default function FinalizarCompraPage() {
 
   function next() {
     if (currentStep === 1) {
-      // Na retirada presencial o endereço é opcional e não há cotação de frete.
+      // Etapa 1 só escolhe o método; o endereço e o frete ficam na etapa 2 (envio).
+      // Não há cotação aqui — o frete é calculado na etapa 2 a partir do endereço.
+    } else if (currentStep === 2) {
       if (!isPickup) {
         if (!selectedAddress) {
           toast({
@@ -263,12 +280,10 @@ export default function FinalizarCompraPage() {
           });
           return;
         }
-        loadShipping();
-      }
-    } else if (currentStep === 2) {
-      if (!isPickup && !selectedShipping) {
-        toast({ title: 'Selecione uma opção de frete.', variant: 'destructive' });
-        return;
+        if (!selectedShipping) {
+          toast({ title: 'Selecione uma opção de frete.', variant: 'destructive' });
+          return;
+        }
       }
     }
     if (currentStep < STEPS) setCurrentStep((s) => s + 1);
@@ -416,7 +431,7 @@ export default function FinalizarCompraPage() {
       </div>
 
       <div className={styles.container}>
-        {/* ETAPA 1 — ENDEREÇO */}
+        {/* ETAPA 1 — MÉTODO DE ENTREGA (dois cards grandes quadrados) */}
         {currentStep === 1 && (
           <div className={styles.stepBody}>
             <header className={styles.stepHeader}>
@@ -424,53 +439,93 @@ export default function FinalizarCompraPage() {
               <p className={styles.stepLead}>Escolha o método de entrega.</p>
             </header>
 
-            {/* Seletor de método de entrega */}
-            <div className={styles.deliveryTabs}>
+            <div className={styles.methodGrid}>
               <button
                 type="button"
-                className={cx(styles.deliveryTab, !isPickup && styles.deliveryTabActive)}
+                className={cx(styles.methodCard, !isPickup && styles.methodCardActive)}
                 onClick={() => setDeliveryMethod('shipping')}
+                aria-pressed={!isPickup}
               >
-                <span className={styles.deliveryEmoji}>📦</span>
-                <span className={styles.deliveryBody}>
-                  <span className={styles.deliveryName}>Envio (Melhor Envio)</span>
-                  <span className={styles.deliverySub}>Receba em casa pelos Correios ou transportadora</span>
+                {!isPickup && (
+                  <span className={styles.methodCheck}>
+                    <Icon name="check" size={16} />
+                  </span>
+                )}
+                <span className={styles.methodEmoji}>📦</span>
+                <span className={styles.methodTitle}>Envio (Melhor Envio)</span>
+                <span className={styles.methodSub}>
+                  Receba em casa pelos Correios ou transportadora
                 </span>
               </button>
+
               <button
                 type="button"
-                className={cx(styles.deliveryTab, isPickup && styles.deliveryTabActive)}
+                className={cx(styles.methodCard, isPickup && styles.methodCardActive)}
                 onClick={() => setDeliveryMethod('pickup')}
+                aria-pressed={isPickup}
               >
-                <span className={styles.deliveryEmoji}>🤝</span>
-                <span className={styles.deliveryBody}>
-                  <span className={styles.deliveryName}>Retirada presencial</span>
-                  <span className={styles.deliverySub}>Combine o encontro com o vendedor pelo chat</span>
+                {isPickup && (
+                  <span className={styles.methodCheck}>
+                    <Icon name="check" size={16} />
+                  </span>
+                )}
+                <span className={styles.methodEmoji}>🤝</span>
+                <span className={styles.methodTitle}>Retirada presencial</span>
+                <span className={styles.methodSub}>
+                  Combine o encontro com o vendedor pelo chat
                 </span>
               </button>
             </div>
 
-            {isPickup && (
-              <div className={styles.pickupNote}>
-                <Icon name="shield" size={18} className={styles.pickupIcon} />
-                <div>
-                  <div className={styles.pickupTitle}>Retirada presencial</div>
-                  <div className={styles.pickupLine}>
-                    Combine a retirada com o vendedor pelo chat. Um código de 6 dígitos será gerado
-                    para liberar o pagamento no encontro.
-                  </div>
-                  <div className={styles.pickupWarn}>
-                    ⚠️ Encontre-se em local público e movimentado.
-                  </div>
+            <div className={styles.navCenter}>
+              <Button onClick={next} size="lg" rightIcon="arrow-right">
+                Continuar
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* ETAPA 2 — FRETE (ou confirmação de retirada presencial) */}
+        {currentStep === 2 && isPickup && (
+          <div className={styles.stepBody}>
+            <header className={styles.stepHeader}>
+              <h1 className={styles.stepH1}>Retirada presencial</h1>
+              <p className={styles.stepLead}>Combine o encontro com o vendedor pelo chat.</p>
+            </header>
+
+            <div className={styles.pickupNote}>
+              <Icon name="shield" size={18} className={styles.pickupIcon} />
+              <div>
+                <div className={styles.pickupTitle}>Como funciona</div>
+                <div className={styles.pickupLine}>
+                  Após o pagamento, um código de 6 dígitos será gerado para você. Informe-o ao
+                  vendedor SOMENTE ao receber o produto para liberar o pagamento.
+                </div>
+                <div className={styles.pickupWarn}>
+                  ⚠️ Encontre-se em local público e movimentado.
                 </div>
               </div>
-            )}
+            </div>
 
-            {!isPickup && (
-            <>
-            <p className={styles.stepLead} style={{ textAlign: 'center' }}>
-              Para onde devemos enviar seus produtos?
-            </p>
+            <div className={styles.navBetween}>
+              <Button variant="outline" onClick={prev} size="lg" leftIcon="arrow-left">
+                Voltar
+              </Button>
+              <Button onClick={next} size="lg" rightIcon="arrow-right">
+                Continuar para o pagamento
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {currentStep === 2 && !isPickup && (
+          <div className={styles.stepBody}>
+            <header className={styles.stepHeader}>
+              <h1 className={styles.stepH1}>Endereço e frete</h1>
+              <p className={styles.stepLead}>
+                Informe para onde enviar e escolha a forma de entrega.
+              </p>
+            </header>
 
             <div className={styles.modeTabs}>
               <button
@@ -657,77 +712,31 @@ export default function FinalizarCompraPage() {
                 </div>
               </div>
             )}
-            </>
+
+            {selectedAddress && (
+              <div className={styles.calcShipRow}>
+                <Button
+                  variant="outline"
+                  onClick={loadShipping}
+                  loading={shippingLoading}
+                  leftIcon="truck"
+                >
+                  Calcular frete
+                </Button>
+              </div>
             )}
 
-            <div className={styles.navCenter}>
-              <Button
-                onClick={next}
-                disabled={!isPickup && !selectedAddress}
-                size="lg"
-                rightIcon="arrow-right"
-              >
-                {isPickup ? 'Continuar para o pagamento' : 'Continuar para o frete'}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* ETAPA 2 — FRETE (ou confirmação de retirada presencial) */}
-        {currentStep === 2 && isPickup && (
-          <div className={styles.stepBody}>
-            <header className={styles.stepHeader}>
-              <h1 className={styles.stepH1}>Retirada presencial</h1>
-              <p className={styles.stepLead}>Combine o encontro com o vendedor pelo chat.</p>
-            </header>
-
-            <div className={styles.pickupNote}>
-              <Icon name="shield" size={18} className={styles.pickupIcon} />
-              <div>
-                <div className={styles.pickupTitle}>Como funciona</div>
-                <div className={styles.pickupLine}>
-                  Após o pagamento, um código de 6 dígitos será gerado para você. Informe-o ao
-                  vendedor SOMENTE ao receber o produto para liberar o pagamento.
-                </div>
-                <div className={styles.pickupWarn}>
-                  ⚠️ Encontre-se em local público e movimentado.
-                </div>
+            {!selectedAddress ? (
+              <div className={styles.panel}>
+                <h3 className={styles.panelTitle}>
+                  <Icon name="truck" size={20} className={styles.panelIcon} />
+                  Opções de entrega
+                </h3>
+                <p className={styles.stepLead}>
+                  Selecione ou preencha um endereço para calcular o frete.
+                </p>
               </div>
-            </div>
-
-            <div className={styles.navBetween}>
-              <Button variant="outline" onClick={prev} size="lg" leftIcon="arrow-left">
-                Voltar
-              </Button>
-              <Button onClick={next} size="lg" rightIcon="arrow-right">
-                Continuar para o pagamento
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {currentStep === 2 && !isPickup && (
-          <div className={styles.stepBody}>
-            <header className={styles.stepHeader}>
-              <h1 className={styles.stepH1}>Escolha o método de entrega</h1>
-              <p className={styles.stepLead}>Selecione como você quer receber seus produtos.</p>
-            </header>
-
-            <div className={styles.confirmBox}>
-              <Icon name="check" size={18} className={styles.confirmIcon} />
-              <div>
-                <div className={styles.confirmTitle}>Endereço confirmado</div>
-                <div className={styles.confirmLine}>
-                  {selectedAddress?.street}, {selectedAddress?.number}
-                  {selectedAddress?.complement && ` - ${selectedAddress.complement}`}
-                </div>
-                <div className={styles.confirmLine}>
-                  {selectedAddress?.neighborhood}, {selectedAddress?.city} - {selectedAddress?.state}
-                </div>
-              </div>
-            </div>
-
-            {shippingLoading ? (
+            ) : shippingLoading ? (
               <div className={styles.loadingBox}>
                 <Spinner size={32} />
                 <p>Calculando frete…</p>
@@ -795,7 +804,12 @@ export default function FinalizarCompraPage() {
               <Button variant="outline" onClick={prev} size="lg" leftIcon="arrow-left">
                 Voltar
               </Button>
-              <Button onClick={next} disabled={!selectedShipping} size="lg" rightIcon="arrow-right">
+              <Button
+                onClick={next}
+                disabled={!selectedAddress || !selectedShipping}
+                size="lg"
+                rightIcon="arrow-right"
+              >
                 Continuar para o pagamento
               </Button>
             </div>
