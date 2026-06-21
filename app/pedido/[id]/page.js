@@ -904,6 +904,28 @@ export default function PedidoDetalhePage() {
                 <p className={styles.muted}>{activeDispute.resolution}</p>
               )}
 
+              {/* Etiqueta de devolução (frete reverso) — para o comprador imprimir e enviar de volta */}
+              {activeDispute.evidence?.return_label?.url && (
+                <div className={styles.returnLabelBox}>
+                  <Icon name="truck" size={18} />
+                  <div>
+                    <strong>Etiqueta de devolução pronta</strong>
+                    <p className={styles.muted}>
+                      {activeDispute.evidence.return_label.service || 'Frete reverso'}
+                      {activeDispute.evidence.return_label.tracking ? ` · Rastreio: ${activeDispute.evidence.return_label.tracking}` : ''}
+                    </p>
+                    <a
+                      href={activeDispute.evidence.return_label.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={styles.payLink}
+                    >
+                      Imprimir etiqueta de devolução →
+                    </a>
+                  </div>
+                </div>
+              )}
+
               {/* Vendedor: aprovar / recusar quando a disputa está aberta */}
               {isSeller && activeDispute.status === 'open' && (
                 <div className={styles.returnActions}>
