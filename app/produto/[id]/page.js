@@ -116,6 +116,7 @@ export default function ProdutoPage() {
   const [qty, setQty] = useState(1);
   const [cep, setCep] = useState('');
   const [geo, setGeo] = useState(null);
+  const [address, setAddress] = useState(null);
   const [canReview, setCanReview] = useState(false);
   const [shipLoading, setShipLoading] = useState(false);
   const [shipOptions, setShipOptions] = useState(null);
@@ -151,6 +152,17 @@ export default function ProdutoPage() {
     setShipLoading(true);
     setShipError(null);
     setShipOptions(null);
+    // ViaCEP: busca o endereço para exibir "Enviar para …" (não bloqueia o frete).
+    try {
+      const viaRes = await fetch(`https://viacep.com.br/ws/${digits.slice(0, 8)}/json/`);
+      const viaData = await viaRes.json();
+      if (viaData && !viaData.erro && (viaData.localidade || viaData.bairro)) {
+        const parts = [viaData.bairro, viaData.localidade].filter(Boolean).join(', ');
+        setAddress(viaData.uf ? `${parts}/${viaData.uf}` : parts);
+      }
+    } catch {
+      /* ViaCEP falhou: ignora, não quebra o frete. */
+    }
     try {
       const res = await shipmentService.quote({ to_zip: digits, product_id: id, quantity: qty });
       setShipOptions(Array.isArray(res) ? res : []);
@@ -171,8 +183,21 @@ export default function ProdutoPage() {
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setGeo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setGeo({ lat, lng });
         toast({ title: 'Localização capturada', variant: 'success', duration: 1500 });
+        // Reverse geocoding via Nominatim (OpenStreetMap) — erros silenciosos.
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+          .then((r) => r.json())
+          .then((data) => {
+            const a = (data && data.address) || {};
+            const city = a.city || a.town || a.municipality;
+            const parts = [city, a.state].filter(Boolean).join('/');
+            if (parts) setAddress(parts);
+            if (a.postcode) setCep(maskCEP(String(a.postcode).replace(/\D/g, '')));
+          })
+          .catch(() => {});
       },
       (err) => {
         const denied = err && err.code === err.PERMISSION_DENIED;
@@ -522,9 +547,6 @@ export default function ProdutoPage() {
               ]}
             />
             <div className={styles.topActions}>
-              <a href="/adicionar-produto" className={styles.topAction}>
-                <Icon name="tag" size={15} /> Vender um igual
-              </a>
               <button type="button" className={styles.topAction} onClick={shareProduct}>
                 <ShareIcon size={15} /> Compartilhar
               </button>
@@ -595,6 +617,127 @@ export default function ProdutoPage() {
                   </div>
                 )}
               </section>
+
+              {/* ───────── Conteúdo (Descrição, Características, Avaliações, Q&A) ───────── */}
+              <div className={styles.fullStack}>
+                <section className={styles.card}>
+                  <h2 className={styles.cardTitle}>Descrição</h2>
+                  <p className={styles.description}>{product.description}</p>
+                </section>
+
+                <section className={styles.card} ref={specsRef}>
+                  <h2 className={styles.cardTitle}>Características do produto</h2>
+                  <div className={styles.specsGrid}>
+                    {product.specs.map((s) => (
+                      <div key={s.label} className={styles.specItem}>
+                        <span className={styles.specLabel}>{s.label}</span>
+                        <span className={styles.specValue}>{s.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section className={styles.card}>
+                  <div className={styles.reviewsHead}>
+                    <div>
+                      <h2 className={styles.cardTitle}>Avaliações</h2>
+                      {reviews && reviews.count > 0 && (
+                        <div className={styles.reviewsSummary}>
+                          <Rating value={Number(reviews.average) || 0} />
+                          <span className={styles.reviewsCount}>
+                            {reviews.count} {reviews.count === 1 ? 'avaliação' : 'avaliações'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className={styles.reviewsActions}>
+                      <button className={styles.reviewBtn} onClick={() => setQaOpen(true)}>
+                        <Icon name="chat" size={16} /> Perguntas e respostas ({qaTotal})
+                      </button>
+                      {canReview && (
+                        <button className={styles.reviewBtn} onClick={() => setReviewFormOpen(true)}>
+                          <Icon name="star" size={16} /> Avaliar produto
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {reviewsLoading ? (
+                    <div className={styles.reviewsLoading}>
+                      {Array.from({ length: 2 }).map((_, i) => (
+                        <div key={i} className={styles.reviewItem}>
+                          <Skeleton width={140} height={14} radius={6} style={{ marginBottom: 8 }} />
+                          <Skeleton width="90%" height={12} radius={4} style={{ marginBottom: 6 }} />
+                          <Skeleton width="70%" height={12} radius={4} />
+                        </div>
+                      ))}
+                    </div>
+                  ) : !reviews || reviews.count === 0 ? (
+                    <p className={styles.reviewsEmpty}>
+                      Este produto ainda não tem avaliações. Seja o primeiro!
+                    </p>
+                  ) : (
+                    <ul className={styles.reviewsList}>
+                      {reviews.reviews.map((r) => {
+                        const createdAt = r.created_at || r.createdAt;
+                        return (
+                        <li key={r.id} className={styles.reviewItem}>
+                          <div className={styles.reviewMeta}>
+                            <span className={styles.reviewUser}>
+                              {(r.user && r.user.name) || 'Usuário'}
+                            </span>
+                            {createdAt && (
+                              <span className={styles.reviewDate}>{formatDate(createdAt)}</span>
+                            )}
+                          </div>
+                          <Rating value={Number(r.rating) || 0} size={13} />
+                          {r.title && <strong className={styles.reviewTitle}>{r.title}</strong>}
+                          {r.comment && <p className={styles.reviewComment}>{r.comment}</p>}
+                        </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </section>
+
+                {mappedQuestions.length > 0 && (
+                  <section className={styles.card}>
+                    <div className={styles.reviewsHead}>
+                      <h2 className={styles.cardTitle}>Perguntas e respostas</h2>
+                      <div className={styles.reviewsActions}>
+                        <button className={styles.reviewBtn} onClick={() => setQaOpen(true)}>
+                          <Icon name="chat" size={16} /> Fazer pergunta
+                        </button>
+                      </div>
+                    </div>
+                    <ul className={styles.reviewsList}>
+                      {mappedQuestions.map((qa) => (
+                        <li key={qa.id} className={styles.reviewItem}>
+                          <div className={styles.reviewMeta}>
+                            <span className={styles.reviewUser}>{qa.userName}</span>
+                            {qa.createdAt && <span className={styles.reviewDate}>{qa.createdAt}</span>}
+                            <button
+                              type="button"
+                              className={styles.reportBtn}
+                              onClick={() => openReport(qa.id)}
+                              title="Denunciar esta pergunta"
+                              aria-label="Denunciar esta pergunta"
+                            >
+                              <FlagIcon size={13} /> Denunciar
+                            </button>
+                          </div>
+                          <p className={styles.reviewComment}>{qa.question}</p>
+                          {qa.isAnswered && qa.answer && (
+                            <p className={styles.qaAnswer}>
+                              <strong>{qa.sellerName}:</strong> {qa.answer}
+                            </p>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+              </div>
             </div>
 
             {/* ───────── Coluna direita (sticky) ───────── */}
@@ -619,6 +762,12 @@ export default function ProdutoPage() {
                     <button type="button" className={styles.cepGeo} onClick={locateMe}>
                       Não sei meu CEP
                     </button>
+
+                    {address && (
+                      <p className={styles.shipAddress}>
+                        <Icon name="map-pin" size={14} /> Enviar para {address}
+                      </p>
+                    )}
 
                     {shipLoading && (
                       <p className={styles.shipStatus}>Calculando frete…</p>
@@ -746,127 +895,6 @@ export default function ProdutoPage() {
                 <span className={styles.payNote}>Veja as condições na página de pagamento</span>
               </div>
             </aside>
-          </div>
-
-          {/* ───────── Conteúdo largura cheia ───────── */}
-          <div className={styles.fullStack}>
-            <section className={styles.card}>
-              <h2 className={styles.cardTitle}>Descrição</h2>
-              <p className={styles.description}>{product.description}</p>
-            </section>
-
-            <section className={styles.card} ref={specsRef}>
-              <h2 className={styles.cardTitle}>Características do produto</h2>
-              <div className={styles.specsGrid}>
-                {product.specs.map((s) => (
-                  <div key={s.label} className={styles.specItem}>
-                    <span className={styles.specLabel}>{s.label}</span>
-                    <span className={styles.specValue}>{s.value}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className={styles.card}>
-              <div className={styles.reviewsHead}>
-                <div>
-                  <h2 className={styles.cardTitle}>Avaliações</h2>
-                  {reviews && reviews.count > 0 && (
-                    <div className={styles.reviewsSummary}>
-                      <Rating value={Number(reviews.average) || 0} />
-                      <span className={styles.reviewsCount}>
-                        {reviews.count} {reviews.count === 1 ? 'avaliação' : 'avaliações'}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <div className={styles.reviewsActions}>
-                  <button className={styles.reviewBtn} onClick={() => setQaOpen(true)}>
-                    <Icon name="chat" size={16} /> Perguntas e respostas ({qaTotal})
-                  </button>
-                  {canReview && (
-                    <button className={styles.reviewBtn} onClick={() => setReviewFormOpen(true)}>
-                      <Icon name="star" size={16} /> Avaliar produto
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {reviewsLoading ? (
-                <div className={styles.reviewsLoading}>
-                  {Array.from({ length: 2 }).map((_, i) => (
-                    <div key={i} className={styles.reviewItem}>
-                      <Skeleton width={140} height={14} radius={6} style={{ marginBottom: 8 }} />
-                      <Skeleton width="90%" height={12} radius={4} style={{ marginBottom: 6 }} />
-                      <Skeleton width="70%" height={12} radius={4} />
-                    </div>
-                  ))}
-                </div>
-              ) : !reviews || reviews.count === 0 ? (
-                <p className={styles.reviewsEmpty}>
-                  Este produto ainda não tem avaliações. Seja o primeiro!
-                </p>
-              ) : (
-                <ul className={styles.reviewsList}>
-                  {reviews.reviews.map((r) => {
-                    const createdAt = r.created_at || r.createdAt;
-                    return (
-                    <li key={r.id} className={styles.reviewItem}>
-                      <div className={styles.reviewMeta}>
-                        <span className={styles.reviewUser}>
-                          {(r.user && r.user.name) || 'Usuário'}
-                        </span>
-                        {createdAt && (
-                          <span className={styles.reviewDate}>{formatDate(createdAt)}</span>
-                        )}
-                      </div>
-                      <Rating value={Number(r.rating) || 0} size={13} />
-                      {r.title && <strong className={styles.reviewTitle}>{r.title}</strong>}
-                      {r.comment && <p className={styles.reviewComment}>{r.comment}</p>}
-                    </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </section>
-
-            {mappedQuestions.length > 0 && (
-              <section className={styles.card}>
-                <div className={styles.reviewsHead}>
-                  <h2 className={styles.cardTitle}>Perguntas e respostas</h2>
-                  <div className={styles.reviewsActions}>
-                    <button className={styles.reviewBtn} onClick={() => setQaOpen(true)}>
-                      <Icon name="chat" size={16} /> Fazer pergunta
-                    </button>
-                  </div>
-                </div>
-                <ul className={styles.reviewsList}>
-                  {mappedQuestions.map((qa) => (
-                    <li key={qa.id} className={styles.reviewItem}>
-                      <div className={styles.reviewMeta}>
-                        <span className={styles.reviewUser}>{qa.userName}</span>
-                        {qa.createdAt && <span className={styles.reviewDate}>{qa.createdAt}</span>}
-                        <button
-                          type="button"
-                          className={styles.reportBtn}
-                          onClick={() => openReport(qa.id)}
-                          title="Denunciar esta pergunta"
-                          aria-label="Denunciar esta pergunta"
-                        >
-                          <FlagIcon size={13} /> Denunciar
-                        </button>
-                      </div>
-                      <p className={styles.reviewComment}>{qa.question}</p>
-                      {qa.isAnswered && qa.answer && (
-                        <p className={styles.qaAnswer}>
-                          <strong>{qa.sellerName}:</strong> {qa.answer}
-                        </p>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
           </div>
 
           {/* ───────── Carrosséis ───────── */}

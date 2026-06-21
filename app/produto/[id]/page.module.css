@@ -217,9 +217,8 @@
   .knowList { grid-template-columns: 1fr; }
 }
 
-/* — Cards de conteúdo (full width) — */
+/* — Cards de conteúdo (dentro da coluna esquerda, empilhados sob o heroCard) — */
 .fullStack {
-  margin-top: 26px;
   display: flex;
   flex-direction: column;
   gap: 22px;
@@ -341,6 +340,18 @@
 .cepGeo:hover {
   text-decoration: underline;
 }
+
+/* — Endereço capturado (ViaCEP / geolocalização) — */
+.shipAddress {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.shipAddress svg { flex-shrink: 0; color: #2563eb; }
 
 /* — Resultado do cálculo de frete — */
 .shipStatus {
