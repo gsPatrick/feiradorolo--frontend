@@ -72,6 +72,26 @@ const CATALOG = [
     items: [
       {
         kind: 'integration',
+        key: 'resend',
+        match: { service: 'resend' },
+        service: 'resend',
+        icon: 'mail',
+        name: 'Resend',
+        purpose: 'Enviar e-mails transacionais (verificação, pedidos, recuperação de senha). Plano grátis: 3.000/mês.',
+        link: 'https://resend.com/api-keys',
+        steps: [
+          'Crie a conta em resend.com e verifique seu domínio (ou use o domínio de teste).',
+          'Vá em API Keys → Create API Key.',
+          'Copie a chave (começa com "re_") e cole abaixo.',
+        ],
+        config: [
+          { name: 'sender_email', label: 'E-mail remetente', placeholder: 'no-reply@feiradorolo.com' },
+          { name: 'sender_name', label: 'Nome do remetente', placeholder: 'Feira do Rolo' },
+        ],
+        secrets: [{ name: 'api_key', label: 'API Key (re_...)' }],
+      },
+      {
+        kind: 'integration',
         key: 'brevo',
         match: { service: 'brevo' },
         service: 'brevo',
