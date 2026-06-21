@@ -659,9 +659,10 @@ export default function PedidoDetalhePage() {
 
         <div className={styles.grid}>
           {/* Itens do pedido + resumo */}
-          <div className={styles.card}>
+          <div className={cx(styles.card, styles.itemsCard)}>
             <div className={styles.cardTitle}>
               <Icon name="package" size={20} /> Itens do Pedido
+              {items.length > 1 && <span className={styles.itemsCount}>{items.length} itens</span>}
             </div>
             <div className={styles.items}>
               {items.map((item, i) => {

@@ -10,6 +10,7 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
 
 import AdminOrders from '@/components/organisms/admin/AdminOrders/AdminOrders';
+import AdminDisputes from '@/components/organisms/admin/AdminDisputes/AdminDisputes';
 import AdminUsers from '@/components/organisms/admin/AdminUsers/AdminUsers';
 import AdminChatModeration from '@/components/organisms/admin/AdminChatModeration/AdminChatModeration';
 import AdminAnalytics from '@/components/organisms/admin/AdminAnalytics/AdminAnalytics';
@@ -28,6 +29,7 @@ import AdminPlans from '@/components/organisms/admin/AdminPlans/AdminPlans';
 
 const TABS = [
   { k: 'orders', label: 'Pedidos', icon: 'package', Comp: AdminOrders },
+  { k: 'disputes', label: 'Disputas', icon: 'shield', Comp: AdminDisputes },
   { k: 'users', label: 'Usuários', icon: 'user', Comp: AdminUsers },
   { k: 'chat', label: 'Chat', icon: 'chat', Comp: AdminChatModeration },
   { k: 'analytics', label: 'Analytics', icon: 'trending-up', Comp: AdminAnalytics },

@@ -1,0 +1,456 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* — Card base — */
+.card {
+  background: var(--card, var(--bg));
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.cardTitle svg {
+  flex-shrink: 0;
+  color: var(--feira-yellow);
+}
+
+.cardBody {
+  padding: 16px 24px 24px;
+}
+
+/* — Filtros (Todas / Abertas / Resolvidas) — */
+.filters {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--muted);
+  border-radius: var(--r-pill);
+}
+
+.filter {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  border-radius: var(--r-pill);
+  transition: background 0.15s, color 0.15s;
+}
+
+.filter:hover {
+  color: var(--foreground);
+}
+
+.filterActive {
+  background: var(--bg);
+  color: var(--foreground);
+  box-shadow: var(--shadow-sm);
+}
+
+/* — Estados (loading / vazio / erro) — */
+.stateBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--muted-foreground);
+}
+
+.stateBox svg {
+  color: var(--border-strong, var(--muted-foreground));
+}
+
+.stateTitle {
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.stateText {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  border-top-color: var(--feira-yellow);
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* — Lista de disputas — */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  cursor: pointer;
+  padding: 12px 16px;
+  background: var(--bg-1, var(--bg));
+  border: 1px solid var(--border);
+  border-radius: var(--r-md, var(--r-lg));
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.05s;
+}
+
+.row:hover {
+  border-color: var(--feira-yellow);
+  box-shadow: var(--shadow-sm);
+}
+
+.row:active {
+  transform: translateY(1px);
+}
+
+.rowLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.rowOrder {
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.rowInfo {
+  min-width: 0;
+}
+
+.rowReason {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowMeta {
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+}
+
+.rowRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.rowValue {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.rowChevron {
+  color: var(--muted-foreground);
+  transform: rotate(180deg);
+}
+
+/* — Detalhe (dentro do Modal) — */
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.detailHead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.detailReason {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.detailAmount {
+  font-weight: 700;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.detailDate {
+  margin-left: auto;
+  font-size: 0.82rem;
+  color: var(--muted-foreground);
+}
+
+/* — Partes — */
+.parties {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  background: var(--muted);
+  border-radius: var(--r-md, var(--r-lg));
+}
+
+.party {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.partyTag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
+}
+
+.partyId {
+  font-size: 0.82rem;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.partyVs {
+  flex-shrink: 0;
+  color: var(--feira-yellow);
+}
+
+/* — Blocos de conteúdo — */
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.blockTitle {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted-foreground);
+}
+
+.description {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--foreground);
+  white-space: pre-wrap;
+}
+
+/* — Questionário — */
+.qList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.qItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--bg-1, var(--bg));
+  border: 1px solid var(--border);
+  border-radius: var(--r-md, var(--r-lg));
+}
+
+.qLabel {
+  font-size: 0.85rem;
+  color: var(--foreground);
+}
+
+.qAnswer {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+/* — Fotos — */
+.photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.photoThumb {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  width: 84px;
+  height: 84px;
+  border-radius: var(--r-md, var(--r-lg));
+  overflow: hidden;
+  transition: border-color 0.15s, transform 0.05s;
+}
+
+.photoThumb:hover {
+  border-color: var(--feira-yellow);
+}
+
+.photoThumb:active {
+  transform: scale(0.97);
+}
+
+.photoThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photoFull {
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: var(--r-md, var(--r-lg));
+  display: block;
+}
+
+/* — Footer / ações de mediação — */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.partialBox {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.partialLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.partialRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.partialRow > :first-child {
+  flex: 1;
+  min-width: 140px;
+}
+
+.resolvedNote {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  margin-right: auto;
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+
+.resolvedNote svg {
+  color: #15803d;
+}
+
+/* — Responsivo — */
+@media (max-width: 640px) {
+  .cardHeader {
+    padding: 16px;
+  }
+  .cardBody {
+    padding: 12px 16px 16px;
+  }
+  .filters {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .filter {
+    flex: 1;
+    text-align: center;
+  }
+  .detailDate {
+    margin-left: 0;
+    width: 100%;
+  }
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
