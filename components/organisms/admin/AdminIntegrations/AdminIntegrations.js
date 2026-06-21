@@ -113,6 +113,31 @@ const CATALOG = [
     ],
   },
   {
+    category: 'WhatsApp',
+    items: [
+      {
+        kind: 'integration',
+        key: 'zapi',
+        match: { service: 'zapi' },
+        service: 'zapi',
+        icon: 'chat',
+        name: 'Z-API (WhatsApp)',
+        purpose: 'Enviar códigos de verificação por WhatsApp (verificação de telefone).',
+        link: 'https://app.z-api.io/',
+        steps: [
+          'Crie a conta e uma instância em app.z-api.io e conecte seu número (QR Code).',
+          'Copie o ID da Instância e o Token (na tela da instância).',
+          'Em Segurança, copie o Account Security Token (Client-Token).',
+        ],
+        config: [{ name: 'instance_id', label: 'ID da Instância', placeholder: 'Ex.: 3D1F...' }],
+        secrets: [
+          { name: 'token', label: 'Token da Instância' },
+          { name: 'client_token', label: 'Account Security Token (Client-Token)' },
+        ],
+      },
+    ],
+  },
+  {
     category: 'Storage',
     items: [
       {

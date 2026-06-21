@@ -13,7 +13,8 @@ import FormField from '@/components/molecules/FormField/FormField';
 import ProductCard from '@/components/molecules/ProductCard/ProductCard';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { orderService, favoriteService, userService, addressService, productService, paymentService, uploadImage, mapProduct, ApiError } from '@/lib/api';
+import { orderService, favoriteService, userService, addressService, productService, paymentService, verificationService, uploadImage, mapProduct, ApiError } from '@/lib/api';
+import VerificationModal from '@/components/organisms/VerificationModal/VerificationModal';
 import { maskPhone, maskCPF, maskCNPJ, onlyDigits, isEmail, isPhone, isCPF, isCNPJ } from '@/lib/masks';
 // Rótulos de status dos pedidos (mapa estático de UI).
 const STATUS_LABELS = {
@@ -68,18 +69,6 @@ const ORDER_FILTERS = [
   { k: 'shipped', l: 'Enviados' }, { k: 'delivered', l: 'Entregues' },
   { k: 'cancelled', l: 'Cancelados' }, { k: 'refunded', l: 'Devoluções/Reembolso' },
 ];
-const VERIFS = [
-  { label: 'Email', icon: 'mail', status: 'verified' },
-  { label: 'Telefone', icon: 'user', status: 'pending' },
-  { label: 'CPF', icon: 'card', status: 'pending' },
-  { label: 'CNPJ', icon: 'store', status: 'none' },
-];
-
-function StatusBadge({ status }) {
-  if (status === 'verified') return <span className={`${styles.vBadge} ${styles.vOk}`}>✓ Verificado</span>;
-  if (status === 'pending') return <span className={`${styles.vBadge} ${styles.vPend}`}>⚠ Pendente</span>;
-  return <span className={`${styles.vBadge} ${styles.vNone}`}>- Não informado</span>;
-}
 
 export default function MinhaContaPage() {
   const { toast } = useToast();
@@ -713,19 +702,7 @@ function ProfileTab({ onEdit, user }) {
   return (
     <>
       <div className={styles.sectionHead}><h2>Meu Perfil</h2><Button variant="outline" size="sm" leftIcon="filter" onClick={onEdit}>Editar Perfil</Button></div>
-      <div className={styles.verifCard}>
-        <div className={styles.verifTitle}><Icon name="shield" size={20} /> Status de Verificação</div>
-        <div className={styles.verifGrid}>
-          {VERIFS.map((v) => (
-            <div key={v.label} className={styles.verifItem}>
-              <span className={cx(styles.vIcon, styles[`vi_${v.status}`])}><Icon name={v.icon} size={18} /></span>
-              <span className={styles.vLabel}>{v.label}</span>
-              <StatusBadge status={v.status} />
-            </div>
-          ))}
-        </div>
-        <div className={styles.verifWarn}>⚠ Complete suas verificações para aumentar a confiança dos vendedores e ter acesso a todas as funcionalidades.</div>
-      </div>
+      <VerificationStatus user={user} />
       <div className={styles.profileGrid}>
         <div className={styles.infoCard}>
           <h3>Informações Pessoais</h3>
@@ -748,6 +725,88 @@ function ProfileTab({ onEdit, user }) {
         </div>
       </div>
     </>
+  );
+}
+
+/* — Perfil: Status de Verificação (REAL, via verificationService) — */
+function VerificationStatus({ user }) {
+  const [status, setStatus] = useState(null);
+  const [state, setState] = useState('idle'); // idle | loading | ready | error
+  const [modalChannel, setModalChannel] = useState(null); // 'email' | 'phone' | null
+
+  const load = () => {
+    setState('loading');
+    verificationService
+      .status()
+      .then((s) => { setStatus(s || {}); setState('ready'); })
+      .catch(() => setState('error'));
+  };
+
+  // Carrega ao montar e quando o usuário muda (sessão restaurada/trocada).
+  useEffect(() => {
+    if (!user || !user.id) { setState('idle'); setStatus(null); return; }
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user && user.id]);
+
+  const emailVerified = !!(status && status.email_verified);
+  const phoneVerified = !!(status && status.phone_verified);
+  const cpfInformed = !!(status && status.cpf_informed);
+  const allDone = emailVerified && phoneVerified && cpfInformed;
+
+  const okBadge = <span className={`${styles.vBadge} ${styles.vOk}`}>✓ Verificado</span>;
+
+  return (
+    <div className={styles.verifCard}>
+      <div className={styles.verifTitle}><Icon name="shield" size={20} /> Status de Verificação</div>
+
+      {state === 'error' ? (
+        <div className={styles.verifWarn}>
+          Não foi possível carregar o status de verificação.{' '}
+          <button className={styles.addrEdit} onClick={load}>Tentar novamente</button>
+        </div>
+      ) : (
+        <div className={styles.verifGrid}>
+          {/* E-mail */}
+          <div className={styles.verifItem}>
+            <span className={cx(styles.vIcon, emailVerified ? styles.vi_verified : styles.vi_pending)}><Icon name="mail" size={18} /></span>
+            <span className={styles.vLabel}>E-mail</span>
+            {emailVerified ? okBadge : (
+              <Button variant="outline" size="sm" disabled={state !== 'ready'} onClick={() => setModalChannel('email')}>Verificar</Button>
+            )}
+          </div>
+
+          {/* Telefone / WhatsApp */}
+          <div className={styles.verifItem}>
+            <span className={cx(styles.vIcon, phoneVerified ? styles.vi_verified : styles.vi_pending)}><Icon name="phone" size={18} /></span>
+            <span className={styles.vLabel}>Telefone / WhatsApp</span>
+            {phoneVerified ? okBadge : (
+              <Button variant="outline" size="sm" disabled={state !== 'ready'} onClick={() => setModalChannel('phone')}>Verificar</Button>
+            )}
+          </div>
+
+          {/* CPF */}
+          <div className={styles.verifItem}>
+            <span className={cx(styles.vIcon, cpfInformed ? styles.vi_verified : styles.vi_none)}><Icon name="card" size={18} /></span>
+            <span className={styles.vLabel}>CPF</span>
+            {cpfInformed
+              ? <span className={`${styles.vBadge} ${styles.vOk}`}>✓ Informado</span>
+              : <span className={`${styles.vBadge} ${styles.vNone}`}>—</span>}
+          </div>
+        </div>
+      )}
+
+      {!allDone && state !== 'error' && (
+        <div className={styles.verifWarn}>⚠ Complete suas verificações para aumentar a confiança dos vendedores e ter acesso a todas as funcionalidades.</div>
+      )}
+
+      <VerificationModal
+        open={!!modalChannel}
+        channel={modalChannel || 'email'}
+        onClose={() => setModalChannel(null)}
+        onVerified={load}
+      />
+    </div>
   );
 }
 
