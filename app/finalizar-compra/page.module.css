@@ -768,6 +768,72 @@
   align-items: center;
   justify-content: center;
 }
+.pixQrImg {
+  width: 192px;
+  height: 192px;
+  border: 2px solid var(--border);
+  border-radius: var(--r-lg);
+  background: #fff;
+  object-fit: contain;
+  padding: 6px;
+}
+
+/* Linha de polling "Aguardando pagamento…" */
+.pollRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+.ticketLink {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--info);
+  text-decoration: underline;
+}
+
+/* Estado de sucesso do pagamento (PIX/cartão/boleto) */
+.paySuccess {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 28px 8px;
+}
+.paySuccessIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--r-pill);
+  background: var(--success-soft);
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+.paySuccessTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #15803d;
+}
+.paySuccessText {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+/* Ações do boleto */
+.boletoActions {
+  margin: 14px 0 4px;
+}
+.boletoActions a {
+  display: block;
+  text-decoration: none;
+}
 .pixQrIcon {
   color: var(--text-dim);
 }

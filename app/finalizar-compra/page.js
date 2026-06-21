@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import { cx } from '@/lib/cx';
+import { onlyDigits, maskCPF } from '@/lib/masks';
 import { useCart } from '@/components/providers/CartProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
@@ -18,6 +19,52 @@ import Modal from '@/components/organisms/Modal/Modal';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const STEPS = 3;
+const MP_SDK_SRC = 'https://sdk.mercadopago.com/js/v2';
+const POLL_INTERVAL = 4000;
+
+// Carrega o SDK do Mercado Pago uma única vez e resolve quando window.MercadoPago existir.
+function loadMercadoPagoSdk() {
+  if (typeof window === 'undefined') return Promise.reject(new Error('SSR'));
+  if (window.MercadoPago) return Promise.resolve(window.MercadoPago);
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector(`script[src="${MP_SDK_SRC}"]`);
+    if (existing) {
+      existing.addEventListener('load', () => resolve(window.MercadoPago));
+      existing.addEventListener('error', () => reject(new Error('Falha ao carregar o SDK do Mercado Pago.')));
+      if (window.MercadoPago) resolve(window.MercadoPago);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = MP_SDK_SRC;
+    script.async = true;
+    script.onload = () => resolve(window.MercadoPago);
+    script.onerror = () => reject(new Error('Falha ao carregar o SDK do Mercado Pago.'));
+    document.body.appendChild(script);
+  });
+}
+
+// 'approved' | 'paid' contam como pagamento concluído.
+function isPaid(status) {
+  const s = String(status || '').toLowerCase();
+  return s === 'approved' || s === 'paid';
+}
+
+// Mensagem amigável a partir do status_detail do gateway (cartão recusado).
+function cardStatusMessage(detail) {
+  const map = {
+    cc_rejected_insufficient_amount: 'Saldo ou limite insuficiente.',
+    cc_rejected_bad_filled_card_number: 'Número do cartão inválido.',
+    cc_rejected_bad_filled_date: 'Data de validade inválida.',
+    cc_rejected_bad_filled_security_code: 'Código de segurança (CVV) inválido.',
+    cc_rejected_bad_filled_other: 'Dados do cartão incorretos.',
+    cc_rejected_call_for_authorize: 'Autorize o pagamento com o seu banco.',
+    cc_rejected_card_disabled: 'Cartão desabilitado. Contate o seu banco.',
+    cc_rejected_high_risk: 'Pagamento recusado por segurança. Tente outro meio.',
+    cc_rejected_max_attempts: 'Muitas tentativas. Use outro cartão.',
+    cc_rejected_duplicated_payment: 'Pagamento duplicado.',
+  };
+  return map[detail] || 'Pagamento não autorizado. Tente outro cartão ou meio de pagamento.';
+}
 
 const UF_OPTIONS = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS',
@@ -86,13 +133,288 @@ export default function FinalizarCompraPage() {
   // Pagamento
   const [paymentMethod, setPaymentMethod] = useState('pix');
   const [installments, setInstallments] = useState('1');
-  const [card, setCard] = useState({ number: '', name: '', expiry: '', cvv: '' });
+  const [card, setCard] = useState({ number: '', name: '', expiry: '', cvv: '', cpf: '' });
 
   // Modais
   const [showPix, setShowPix] = useState(false);
   const [showCard, setShowCard] = useState(false);
   const [showBoleto, setShowBoleto] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Checkout Transparente (Mercado Pago)
+  const [publicKey, setPublicKey] = useState('');
+  const mpRef = useRef(null); // instância MercadoPago
+  const orderIdRef = useRef(null); // pedido criado uma única vez (ensureOrder)
+  const pollRef = useRef(null); // setInterval do polling PIX/boleto
+  const [pixData, setPixData] = useState(null); // { qr_code, qr_code_base64, ticket_url, paymentId }
+  const [boletoData, setBoletoData] = useState(null); // { url, barcode, paymentId }
+  const [cardResult, setCardResult] = useState(null); // { status, status_detail }
+  const [paid, setPaid] = useState(false); // pagamento confirmado (PIX/boleto)
+  const [copied, setCopied] = useState(false);
+
+  // Pré-preenche o CPF do titular com o do usuário logado, se existir.
+  useEffect(() => {
+    const userCpf = user?.cpf || user?.document || '';
+    if (userCpf) setCard((c) => (c.cpf ? c : { ...c, cpf: maskCPF(userCpf) }));
+  }, [user]);
+
+  // Carrega a public key + inicializa o SDK no mount.
+  useEffect(() => {
+    let active = true;
+    paymentService
+      .publicKey()
+      .then(async (res) => {
+        const key = res?.public_key;
+        if (!active || !key) return;
+        setPublicKey(key);
+        try {
+          const MP = await loadMercadoPagoSdk();
+          if (active && MP) mpRef.current = new MP(key, { locale: 'pt-BR' });
+        } catch {
+          // SDK indisponível: a tokenização de cartão ficará indisponível, mas PIX/boleto seguem.
+        }
+      })
+      .catch(() => {
+        // Gateway não configurado: tratado ao tentar pagar.
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Encerra qualquer polling pendente ao desmontar.
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, []);
+
+  function stopPolling() {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  }
+
+  // Cria a ordem uma única vez e reusa o id nas tentativas seguintes.
+  async function ensureOrder() {
+    if (orderIdRef.current) return orderIdRef.current;
+    const created = await orderService.checkout({
+      items: items.map((i) => ({ product_id: i.id, quantity: i.qty || i.quantity || 1 })),
+      coupon_code: couponApplied || undefined,
+      // Na retirada presencial o endereço é opcional.
+      address_id:
+        !isPickup && addressMode === 'saved' ? selectedAddressId || undefined : undefined,
+      delivery_method: deliveryMethod,
+      // Frete escolhido (apenas para envio; retirada presencial não tem frete).
+      shipping_option:
+        !isPickup && selectedShipping
+          ? {
+              service_code: selectedShipping.service_code,
+              service_name: selectedShipping.service_name,
+              price: shippingCost,
+              cost: shippingCost,
+            }
+          : undefined,
+    });
+    const orders = Array.isArray(created) ? created : created ? [created] : [];
+    const orderId = orders[0]?.id;
+    if (!orderId) throw new Error('Pedido criado sem identificador. Tente novamente.');
+    orderIdRef.current = orderId;
+    return orderId;
+  }
+
+  // Mensagem amigável para erros do gateway/pagamento.
+  function paymentErrorToast(e) {
+    const notConfigured =
+      e?.status === 503 ||
+      e?.code === 'PAYMENT_NOT_CONFIGURED' ||
+      e?.code === 'GATEWAY_NOT_CONFIGURED';
+    if (notConfigured) {
+      toast({
+        title: 'Pagamento indisponível',
+        description: 'Configure o Mercado Pago no painel admin para concluir a compra.',
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'Não foi possível processar o pagamento',
+        description: e?.message,
+        variant: 'destructive',
+      });
+    }
+  }
+
+  // Sucesso de pagamento → limpa carrinho e leva para os pedidos.
+  function goToSuccess() {
+    stopPolling();
+    if (typeof clear === 'function') clear();
+    router.push('/minha-conta?tab=pedidos');
+  }
+
+  // Inicia o polling de status (PIX/boleto).
+  function startPolling(paymentId) {
+    stopPolling();
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await paymentService.getById(paymentId);
+        if (isPaid(res?.status)) {
+          setPaid(true);
+          stopPolling();
+          toast({ title: 'Pagamento confirmado!', variant: 'success' });
+          setTimeout(goToSuccess, 1200);
+        }
+      } catch {
+        // Mantém o polling em caso de erro transitório.
+      }
+    }, POLL_INTERVAL);
+  }
+
+  // ===== PIX =====
+  async function payWithPix() {
+    if (submitting) return;
+    setSubmitting(true);
+    setPixData(null);
+    setPaid(false);
+    try {
+      const orderId = await ensureOrder();
+      const res = await paymentService.createPayment(orderId, { payment_method_id: 'pix' });
+      const pix = res?.pix;
+      const paymentId = res?.payment?.id;
+      if (!pix?.qr_code_base64 && !pix?.qr_code) {
+        throw new Error('Não foi possível gerar o PIX. Tente novamente.');
+      }
+      setPixData({
+        qr_code: pix.qr_code,
+        qr_code_base64: pix.qr_code_base64,
+        ticket_url: pix.ticket_url,
+        paymentId,
+      });
+      if (paymentId) startPolling(paymentId);
+    } catch (e) {
+      paymentErrorToast(e);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  // ===== Boleto =====
+  async function payWithBoleto() {
+    if (submitting) return;
+    setSubmitting(true);
+    setBoletoData(null);
+    setPaid(false);
+    try {
+      const orderId = await ensureOrder();
+      const res = await paymentService.createPayment(orderId, { payment_method_id: 'bolbradesco' });
+      const boleto = res?.boleto;
+      const paymentId = res?.payment?.id;
+      if (!boleto?.url) {
+        throw new Error('Não foi possível gerar o boleto. Tente novamente.');
+      }
+      setBoletoData({ url: boleto.url, barcode: boleto.barcode, paymentId });
+      if (paymentId) startPolling(paymentId);
+    } catch (e) {
+      paymentErrorToast(e);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  // ===== Cartão =====
+  async function payWithCard() {
+    if (submitting) return;
+    const mp = mpRef.current;
+    if (!mp) {
+      toast({
+        title: 'Pagamento por cartão indisponível',
+        description: 'Não foi possível inicializar o pagamento seguro. Tente PIX ou boleto.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    const numberDigits = onlyDigits(card.number);
+    const cpfDigits = onlyDigits(card.cpf);
+    const exp = onlyDigits(card.expiry);
+    if (numberDigits.length < 13 || !card.name.trim() || exp.length < 4 || card.cvv.length < 3) {
+      toast({ title: 'Preencha todos os dados do cartão.', variant: 'destructive' });
+      return;
+    }
+    if (cpfDigits.length !== 11) {
+      toast({ title: 'Informe um CPF válido do titular.', variant: 'destructive' });
+      return;
+    }
+    setSubmitting(true);
+    setCardResult(null);
+    try {
+      const mm = exp.slice(0, 2);
+      const yy = exp.slice(2, 4);
+      const yyyy = `20${yy}`;
+
+      // Detecta a bandeira a partir do BIN.
+      const bin = numberDigits.slice(0, 8);
+      const { results } = await mp.getPaymentMethods({ bin });
+      const paymentMethodId = results?.[0]?.id;
+      if (!paymentMethodId) {
+        throw new Error('Cartão não reconhecido. Verifique o número informado.');
+      }
+
+      // Tokeniza o cartão (nunca enviamos o cartão cru ao backend).
+      const tk = await mp.createCardToken({
+        cardNumber: numberDigits,
+        cardholderName: card.name,
+        cardExpirationMonth: mm,
+        cardExpirationYear: yyyy,
+        securityCode: card.cvv,
+        identificationType: 'CPF',
+        identificationNumber: cpfDigits,
+      });
+      if (!tk?.id) throw new Error('Não foi possível validar o cartão. Revise os dados.');
+
+      const orderId = await ensureOrder();
+      const res = await paymentService.createPayment(orderId, {
+        token: tk.id,
+        payment_method_id: paymentMethodId,
+        installments: Number(installments) || 1,
+      });
+      const status = res?.gateway?.status || res?.payment?.status;
+      const statusDetail = res?.gateway?.status_detail;
+      setCardResult({ status, status_detail: statusDetail });
+
+      if (isPaid(status)) {
+        toast({ title: 'Pagamento aprovado!', variant: 'success' });
+        setTimeout(goToSuccess, 1200);
+      } else if (status === 'in_process' || status === 'pending') {
+        toast({ title: 'Pagamento em análise', description: 'Avisaremos quando for aprovado.', variant: 'default' });
+      } else {
+        toast({
+          title: 'Pagamento recusado',
+          description: cardStatusMessage(statusDetail),
+          variant: 'destructive',
+        });
+      }
+    } catch (e) {
+      // Erros do SDK costumam vir como array em e.cause/e.message.
+      const msg =
+        (Array.isArray(e?.cause) && e.cause[0]?.description) ||
+        e?.message ||
+        'Não foi possível processar o cartão.';
+      paymentErrorToast({ ...e, message: msg });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function copyPix() {
+    if (!pixData?.qr_code) return;
+    try {
+      navigator.clipboard.writeText(pixData.qr_code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: 'Não foi possível copiar.', variant: 'destructive' });
+    }
+  }
 
   // Carrega os endereços reais do usuário logado.
   useEffect(() => {
@@ -292,86 +614,36 @@ export default function FinalizarCompraPage() {
     if (currentStep > 1) setCurrentStep((s) => s - 1);
   }
 
-  async function finishOrder() {
-    if (submitting) return;
-    setSubmitting(true);
-    try {
-      // 1) Cria a(s) ordem(ns).
-      const created = await orderService.checkout({
-        items: items.map((i) => ({ product_id: i.id, quantity: i.qty || i.quantity || 1 })),
-        coupon_code: couponApplied || undefined,
-        // Na retirada presencial o endereço é opcional.
-        address_id:
-          !isPickup && addressMode === 'saved' ? selectedAddressId || undefined : undefined,
-        delivery_method: deliveryMethod,
-        // Frete escolhido (apenas para envio; retirada presencial não tem frete).
-        shipping_option:
-          !isPickup && selectedShipping
-            ? {
-                service_code: selectedShipping.service_code,
-                service_name: selectedShipping.service_name,
-                price: shippingCost,
-                cost: shippingCost,
-              }
-            : undefined,
-      });
-      const orders = Array.isArray(created) ? created : created ? [created] : [];
-      const orderId = orders[0]?.id;
-      if (!orderId) {
-        throw new Error('Pedido criado sem identificador. Tente novamente.');
-      }
-
-      // 2) Cria a preferência de pagamento (Checkout Pro do Mercado Pago).
-      const pref = await paymentService.createPreference(orderId);
-      const initPoint = pref?.init_point || pref?.sandbox_init_point;
-      if (!initPoint) {
-        throw new Error('Não foi possível iniciar o pagamento. Tente novamente.');
-      }
-
-      // 3) Redireciona o navegador para o checkout do Mercado Pago.
-      // (cartão/Pix/boleto são tratados lá; a retirada presencial usa o mesmo fluxo de cobrança).
-      setShowPix(false);
-      setShowCard(false);
-      setShowBoleto(false);
-      if (typeof clear === 'function') clear();
-      window.location.href = initPoint;
-      // Mantém o loading ativo durante o redirect (não chega no finally por causa do return).
-      return;
-    } catch (e) {
-      // Gateway não configurado no painel admin (ex.: 503 / PAYMENT_NOT_CONFIGURED).
-      const notConfigured =
-        e?.status === 503 ||
-        e?.code === 'PAYMENT_NOT_CONFIGURED' ||
-        e?.code === 'GATEWAY_NOT_CONFIGURED';
-      if (notConfigured) {
-        toast({
-          title: 'Pagamento indisponível',
-          description: 'Configure o Mercado Pago no painel admin para concluir a compra.',
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: 'Não foi possível finalizar o pedido',
-          description: e?.message,
-          variant: 'destructive',
-        });
-      }
-      setSubmitting(false);
-    }
-  }
-
   function handleConfirm() {
     if (!paymentMethod) {
       toast({ title: 'Selecione um método de pagamento.', variant: 'destructive' });
       return;
     }
+    // Reseta o estado do modal antes de abrir.
+    setPaid(false);
     if (paymentMethod === 'pix') {
+      setPixData(null);
       setShowPix(true);
     } else if (paymentMethod === 'credit') {
+      setCardResult(null);
       setShowCard(true);
     } else if (paymentMethod === 'boleto') {
+      setBoletoData(null);
       setShowBoleto(true);
     }
+  }
+
+  // Fechamento dos modais — encerra o polling pendente.
+  function closePix() {
+    stopPolling();
+    setShowPix(false);
+  }
+  function closeBoleto() {
+    stopPolling();
+    setShowBoleto(false);
+  }
+  function closeCard() {
+    setShowCard(false);
   }
 
   const confirmLabel =
@@ -1031,7 +1303,7 @@ export default function FinalizarCompraPage() {
       {/* MODAL PIX */}
       <Modal
         open={showPix}
-        onClose={() => setShowPix(false)}
+        onClose={closePix}
         size="sm"
         title={
           <span className={styles.modalTitle}>
@@ -1041,48 +1313,108 @@ export default function FinalizarCompraPage() {
         }
         footer={
           <>
-            <Button variant="outline" onClick={() => setShowPix(false)} disabled={submitting}>
+            <Button variant="outline" onClick={closePix} disabled={submitting}>
               Fechar
             </Button>
-            <Button onClick={finishOrder} loading={submitting}>
-              Ir para o pagamento
-            </Button>
+            {!pixData && (
+              <Button onClick={payWithPix} loading={submitting}>
+                Gerar QR Code
+              </Button>
+            )}
           </>
         }
       >
-        <div className={styles.pixQrWrap}>
-          <div className={styles.pixQr} aria-label="QR Code PIX">
-            <Icon name="pix" size={64} className={styles.pixQrIcon} />
+        {paid ? (
+          <div className={styles.paySuccess}>
+            <Icon name="check" size={48} className={styles.paySuccessIcon} />
+            <div className={styles.paySuccessTitle}>Pagamento confirmado!</div>
+            <p className={styles.paySuccessText}>Redirecionando para os seus pedidos…</p>
           </div>
-        </div>
+        ) : !pixData ? (
+          submitting ? (
+            <div className={styles.loadingBox}>
+              <Spinner size={32} />
+              <p>Gerando seu PIX…</p>
+            </div>
+          ) : (
+            <>
+              <div className={styles.modalInfo}>
+                <div className={styles.modalInfoRow}>
+                  <span>Valor:</span>
+                  <strong>{BRL.format(total)}</strong>
+                </div>
+                <div className={styles.modalInfoRow}>
+                  <span>Método:</span>
+                  <span>PIX</span>
+                </div>
+              </div>
+              <ol className={styles.pixSteps}>
+                <li>Clique em &quot;Gerar QR Code&quot;</li>
+                <li>Escaneie o QR ou use o Copia e Cola no app do seu banco</li>
+                <li>O pagamento é confirmado automaticamente</li>
+              </ol>
+            </>
+          )
+        ) : (
+          <>
+            {pixData.qr_code_base64 && (
+              <div className={styles.pixQrWrap}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className={styles.pixQrImg}
+                  src={`data:image/png;base64,${pixData.qr_code_base64}`}
+                  alt="QR Code PIX"
+                  width={192}
+                  height={192}
+                />
+              </div>
+            )}
 
-        <div className={styles.modalInfo}>
-          <div className={styles.modalInfoRow}>
-            <span>Valor:</span>
-            <strong>{BRL.format(total)}</strong>
-          </div>
-          <div className={styles.modalInfoRow}>
-            <span>Método:</span>
-            <span>PIX</span>
-          </div>
-          <div className={styles.modalInfoRow}>
-            <span>Status:</span>
-            <Badge variant="neutral" size="sm">Aguardando pagamento</Badge>
-          </div>
-        </div>
+            {pixData.qr_code && (
+              <div className={styles.field}>
+                <label className={styles.label}>PIX Copia e Cola</label>
+                <div className={styles.copyRow}>
+                  <Input value={pixData.qr_code} readOnly className={styles.copyInput} />
+                  <Button variant="outline" onClick={copyPix}>
+                    {copied ? 'Copiado!' : 'Copiar'}
+                  </Button>
+                </div>
+              </div>
+            )}
 
-        <ol className={styles.pixSteps}>
-          <li>Clique em &quot;Ir para o pagamento&quot;</li>
-          <li>O QR Code e o Copia e Cola são gerados no Mercado Pago</li>
-          <li>Confirme o pagamento no app do seu banco</li>
-        </ol>
-        <p className={styles.pixHint}>O pagamento será confirmado automaticamente!</p>
+            <div className={styles.modalInfo}>
+              <div className={styles.modalInfoRow}>
+                <span>Valor:</span>
+                <strong>{BRL.format(total)}</strong>
+              </div>
+              <div className={styles.modalInfoRow}>
+                <span>Status:</span>
+                <Badge variant="neutral" size="sm">Aguardando pagamento…</Badge>
+              </div>
+            </div>
+
+            <div className={styles.pollRow}>
+              <Spinner size={16} />
+              <span>Confirmaremos automaticamente assim que pagar.</span>
+            </div>
+            {pixData.ticket_url && (
+              <a
+                className={styles.ticketLink}
+                href={pixData.ticket_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Abrir comprovante PIX
+              </a>
+            )}
+          </>
+        )}
       </Modal>
 
       {/* MODAL CARTÃO */}
       <Modal
         open={showCard}
-        onClose={() => setShowCard(false)}
+        onClose={closeCard}
         size="sm"
         title={
           <span className={styles.modalTitle}>
@@ -1092,74 +1424,108 @@ export default function FinalizarCompraPage() {
         }
         footer={
           <>
-            <Button variant="outline" onClick={() => setShowCard(false)} disabled={submitting}>
+            <Button variant="outline" onClick={closeCard} disabled={submitting}>
               Cancelar
             </Button>
-            <Button onClick={finishOrder} loading={submitting}>
-              Ir para o pagamento
+            <Button onClick={payWithCard} loading={submitting}>
+              Pagar {BRL.format(total)}
             </Button>
           </>
         }
       >
-        <div className={styles.field}>
-          <label className={styles.label}>Número do cartão</label>
-          <Input
-            placeholder="1234 5678 9012 3456"
-            inputMode="numeric"
-            value={card.number}
-            onChange={(e) => setCard((c) => ({ ...c, number: maskCardNumber(e.target.value) }))}
-          />
-        </div>
-        <div className={styles.field}>
-          <label className={styles.label}>Nome no cartão</label>
-          <Input
-            placeholder="JOÃO DA SILVA"
-            value={card.name}
-            onChange={(e) => setCard((c) => ({ ...c, name: e.target.value.toUpperCase() }))}
-          />
-        </div>
-        <div className={styles.grid2}>
-          <div className={styles.field}>
-            <label className={styles.label}>Validade</label>
-            <Input
-              placeholder="MM/AA"
-              inputMode="numeric"
-              value={card.expiry}
-              onChange={(e) => setCard((c) => ({ ...c, expiry: maskExpiry(e.target.value) }))}
-            />
+        {cardResult && isPaid(cardResult.status) ? (
+          <div className={styles.paySuccess}>
+            <Icon name="check" size={48} className={styles.paySuccessIcon} />
+            <div className={styles.paySuccessTitle}>Pagamento aprovado!</div>
+            <p className={styles.paySuccessText}>Redirecionando para os seus pedidos…</p>
           </div>
-          <div className={styles.field}>
-            <label className={styles.label}>CVV</label>
-            <Input
-              placeholder="123"
-              inputMode="numeric"
-              maxLength={4}
-              value={card.cvv}
-              onChange={(e) => setCard((c) => ({ ...c, cvv: e.target.value.replace(/\D/g, '') }))}
-            />
-          </div>
-        </div>
-        <div className={styles.field}>
-          <label className={styles.label}>Parcelas</label>
-          <Select
-            value={installments}
-            onChange={(e) => setInstallments(e.target.value)}
-            options={Array.from({ length: 12 }, (_, i) => {
-              const n = i + 1;
-              return { value: String(n), label: `${n}x de ${BRL.format(total / n)}${n === 1 ? ' à vista' : ' sem juros'}` };
-            })}
-          />
-        </div>
-        <div className={styles.modalTotal}>
-          <span>Total:</span>
-          <strong>{BRL.format(total)}</strong>
-        </div>
+        ) : (
+          <>
+            {cardResult && (cardResult.status === 'in_process' || cardResult.status === 'pending') && (
+              <div className={styles.confirmBox}>
+                <Icon name="shield" size={18} className={styles.confirmIcon} />
+                <div>
+                  <div className={styles.confirmTitle}>Pagamento em análise</div>
+                  <div className={styles.confirmLine}>
+                    Estamos confirmando o seu pagamento. Avisaremos assim que for aprovado.
+                  </div>
+                </div>
+              </div>
+            )}
+            {cardResult && !isPaid(cardResult.status) && cardResult.status !== 'in_process' && cardResult.status !== 'pending' && (
+              <p className={styles.fieldError}>{cardStatusMessage(cardResult.status_detail)}</p>
+            )}
+
+            <div className={styles.field}>
+              <label className={styles.label}>Número do cartão</label>
+              <Input
+                placeholder="1234 5678 9012 3456"
+                inputMode="numeric"
+                value={card.number}
+                onChange={(e) => setCard((c) => ({ ...c, number: maskCardNumber(e.target.value) }))}
+              />
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label}>Nome no cartão</label>
+              <Input
+                placeholder="JOÃO DA SILVA"
+                value={card.name}
+                onChange={(e) => setCard((c) => ({ ...c, name: e.target.value.toUpperCase() }))}
+              />
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label}>CPF do titular</label>
+              <Input
+                placeholder="000.000.000-00"
+                inputMode="numeric"
+                value={card.cpf}
+                onChange={(e) => setCard((c) => ({ ...c, cpf: maskCPF(e.target.value) }))}
+              />
+            </div>
+            <div className={styles.grid2}>
+              <div className={styles.field}>
+                <label className={styles.label}>Validade</label>
+                <Input
+                  placeholder="MM/AA"
+                  inputMode="numeric"
+                  value={card.expiry}
+                  onChange={(e) => setCard((c) => ({ ...c, expiry: maskExpiry(e.target.value) }))}
+                />
+              </div>
+              <div className={styles.field}>
+                <label className={styles.label}>CVV</label>
+                <Input
+                  placeholder="123"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={card.cvv}
+                  onChange={(e) => setCard((c) => ({ ...c, cvv: e.target.value.replace(/\D/g, '') }))}
+                />
+              </div>
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label}>Parcelas</label>
+              <Select
+                value={installments}
+                onChange={(e) => setInstallments(e.target.value)}
+                options={Array.from({ length: 12 }, (_, i) => {
+                  const n = i + 1;
+                  return { value: String(n), label: `${n}x de ${BRL.format(total / n)}${n === 1 ? ' à vista' : ' sem juros'}` };
+                })}
+              />
+            </div>
+            <div className={styles.modalTotal}>
+              <span>Total:</span>
+              <strong>{BRL.format(total)}</strong>
+            </div>
+          </>
+        )}
       </Modal>
 
       {/* MODAL BOLETO */}
       <Modal
         open={showBoleto}
-        onClose={() => setShowBoleto(false)}
+        onClose={closeBoleto}
         size="md"
         title={
           <span className={styles.modalTitle}>
@@ -1169,20 +1535,68 @@ export default function FinalizarCompraPage() {
         }
         footer={
           <>
-            <Button variant="outline" onClick={() => setShowBoleto(false)} disabled={submitting}>
+            <Button variant="outline" onClick={closeBoleto} disabled={submitting}>
               Fechar
             </Button>
-            <Button onClick={finishOrder} loading={submitting}>
-              Ir para o pagamento
-            </Button>
+            {!boletoData && (
+              <Button onClick={payWithBoleto} loading={submitting}>
+                Gerar boleto
+              </Button>
+            )}
           </>
         }
       >
-        {submitting ? (
+        {paid ? (
+          <div className={styles.paySuccess}>
+            <Icon name="check" size={48} className={styles.paySuccessIcon} />
+            <div className={styles.paySuccessTitle}>Pagamento confirmado!</div>
+            <p className={styles.paySuccessText}>Redirecionando para os seus pedidos…</p>
+          </div>
+        ) : submitting && !boletoData ? (
           <div className={styles.loadingBox}>
             <Spinner size={32} />
-            <p>Redirecionando para o pagamento seguro...</p>
+            <p>Gerando o seu boleto…</p>
           </div>
+        ) : boletoData ? (
+          <>
+            <div className={styles.boletoBanner}>
+              <Icon name="barcode" size={22} className={styles.confirmIcon} />
+              <div>
+                <div className={styles.confirmTitle}>Boleto gerado!</div>
+                <div className={styles.confirmLine}>
+                  Vencimento em 3 dias úteis. O pedido será liberado após a compensação.
+                </div>
+              </div>
+            </div>
+
+            {boletoData.barcode && (
+              <div className={styles.field}>
+                <label className={styles.label}>Linha digitável</label>
+                <Input value={boletoData.barcode} readOnly className={styles.copyInput} />
+              </div>
+            )}
+
+            <div className={styles.modalInfo}>
+              <div className={styles.modalInfoRow}>
+                <span>Valor:</span>
+                <strong>{BRL.format(total)}</strong>
+              </div>
+              <div className={styles.modalInfoRow}>
+                <span>Método:</span>
+                <span>Boleto Bancário</span>
+              </div>
+            </div>
+
+            <div className={styles.boletoActions}>
+              <a href={boletoData.url} target="_blank" rel="noopener noreferrer">
+                <Button fullWidth leftIcon="barcode">Abrir boleto</Button>
+              </a>
+            </div>
+            <div className={styles.pollRow}>
+              <Spinner size={16} />
+              <span>Confirmaremos automaticamente após o pagamento.</span>
+            </div>
+          </>
         ) : (
           <>
             <div className={styles.boletoBanner}>
@@ -1190,13 +1604,9 @@ export default function FinalizarCompraPage() {
               <div>
                 <div className={styles.confirmTitle}>Boleto pelo Mercado Pago</div>
                 <div className={styles.confirmLine}>
-                  A linha digitável será emitida na próxima etapa, com vencimento em 3 dias úteis.
+                  A linha digitável será emitida agora, com vencimento em 3 dias úteis.
                 </div>
               </div>
-            </div>
-
-            <div className={styles.barcodeStrip} aria-hidden="true">
-              <Icon name="barcode" size={48} />
             </div>
 
             <div className={styles.modalInfo}>
