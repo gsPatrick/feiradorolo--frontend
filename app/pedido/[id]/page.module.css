@@ -224,10 +224,11 @@
   flex-wrap: wrap;
 }
 
-/* — Grid principal — */
+/* — Grid principal — itens à esquerda, pessoas à direita — */
 .grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1.15fr 1fr;
+  align-items: start;
   gap: 20px;
   margin-top: 20px;
 }
@@ -235,6 +236,14 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* — Linha de cards logísticos (auto-fit, preenche a largura) — */
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
 }
 
 /* — Itens — */
@@ -355,21 +364,101 @@
   color: var(--muted-foreground);
 }
 
-/* — Vendedor — */
-.sellerCard {
+/* — Cards de pessoas (vendedor / cliente) — */
+.peopleCard {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
 }
-.sellerName {
-  font-size: 0.95rem;
+.personHead {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.avatar {
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: var(--shadow-sm);
+}
+.personMeta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.personName {
+  font-size: 1rem;
   font-weight: 600;
   color: var(--foreground);
+  line-height: 1.25;
+}
+.ratingRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.ratingNum {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+.personContact {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.84rem;
+  color: var(--muted-foreground);
+  word-break: break-word;
+}
+.personContact svg {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+.personSince {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+.personSince svg {
+  flex-shrink: 0;
+}
+.personActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
 }
 .sellerBtn {
   border-color: var(--feira-yellow, #f59e0b);
   color: var(--feira-yellow-strong, #b45309);
+}
+
+/* — Estrelas de avaliação — */
+.stars {
+  position: relative;
+  display: inline-block;
+  line-height: 1;
+  white-space: nowrap;
+  font-family: Arial, sans-serif;
+}
+.starsBack {
+  color: var(--border);
+}
+.starsFront {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  color: var(--feira-yellow, #f59e0b);
 }
 
 /* — Custódia — */
@@ -453,6 +542,9 @@
 
 @media (max-width: 720px) {
   .grid {
+    grid-template-columns: 1fr;
+  }
+  .infoGrid {
     grid-template-columns: 1fr;
   }
   .headRow {

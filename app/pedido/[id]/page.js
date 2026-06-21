@@ -10,15 +10,74 @@ import Badge from '@/components/atoms/Badge/Badge';
 import EmptyState from '@/components/molecules/EmptyState/EmptyState';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { orderService, escrowService, paymentService, chatService, ApiError } from '@/lib/api';
+import { orderService, escrowService, paymentService, chatService, productService, mapProduct, ApiError } from '@/lib/api';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const DATE = new Intl.DateTimeFormat('pt-BR');
+const MONTH_YEAR = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
+const RATING = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 function formatDate(value) {
   if (!value) return '';
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? '' : DATE.format(d);
+}
+
+/* "desde junho de 2024" — usado em "membro desde" / "cliente desde". */
+function formatMonthYear(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? '' : MONTH_YEAR.format(d);
+}
+
+/* Iniciais do nome para o fallback do avatar. */
+function initials(name) {
+  if (!name) return '?';
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '?';
+  const first = parts[0][0] || '';
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : '';
+  return (first + last).toUpperCase();
+}
+
+/* Cor estável e agradável a partir do nome (fallback do avatar). */
+const AVATAR_COLORS = ['#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#ef4444', '#14b8a6', '#f97316'];
+function avatarColor(name) {
+  const s = String(name || '');
+  let h = 0;
+  for (let i = 0; i < s.length; i += 1) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+
+/* Avatar redondo com fallback de iniciais coloridas. */
+function Avatar({ src, name, size = 56 }) {
+  const dim = { width: size, height: size };
+  if (src) {
+    return (
+      /* eslint-disable-next-line @next/next/no-img-element */
+      <img className={styles.avatar} src={src} alt={name || ''} style={dim} />
+    );
+  }
+  return (
+    <span
+      className={styles.avatar}
+      style={{ ...dim, background: avatarColor(name), fontSize: Math.round(size * 0.4) }}
+      aria-hidden="true"
+    >
+      {initials(name)}
+    </span>
+  );
+}
+
+/* Estrelas (0–5) com preenchimento amarelo proporcional à média. */
+function Stars({ value = 0, size = 16 }) {
+  const pct = Math.max(0, Math.min(100, (Number(value) / 5) * 100));
+  return (
+    <span className={styles.stars} style={{ fontSize: size }} aria-label={`${RATING.format(value)} de 5`}>
+      <span className={styles.starsBack}>★★★★★</span>
+      <span className={styles.starsFront} style={{ width: `${pct}%` }}>★★★★★</span>
+    </span>
+  );
 }
 
 /* Ícones faltantes no Icon.js (lucide-style, SVG inline) */
@@ -114,6 +173,7 @@ export default function PedidoDetalhePage() {
   const [unauthorized, setUnauthorized] = useState(false);
   const [error, setError] = useState(false);
   const [escrow, setEscrow] = useState(null); // custódia (pickup): pode trazer pickup_token
+  const [sellerRating, setSellerRating] = useState(null); // { avg, count } | null se indisponível
 
   // — Pagamento PIX —
   const [payState, setPayState] = useState('idle'); // idle | loading | ready | paid
@@ -160,6 +220,33 @@ export default function PedidoDetalhePage() {
       active = false;
     };
   }, [id]);
+
+  // Avaliação média do vendedor — média de mapProduct(p).rating dos seus produtos.
+  useEffect(() => {
+    const sellerId = order?.seller_id || order?.seller?.id;
+    if (!sellerId) return;
+    let active = true;
+    setSellerRating(null);
+    productService
+      .list(`?seller_id=${sellerId}`)
+      .then((data) => {
+        if (!active) return;
+        const list = Array.isArray(data?.products) ? data.products : Array.isArray(data) ? data : [];
+        const ratings = list.map((p) => mapProduct(p)?.rating).filter((r) => Number.isFinite(r));
+        if (!ratings.length) {
+          setSellerRating(null);
+          return;
+        }
+        const avg = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+        setSellerRating({ avg, count: ratings.length });
+      })
+      .catch(() => {
+        if (active) setSellerRating(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, [order?.seller_id, order?.seller?.id]);
 
   // Para o polling do PIX ao desmontar o componente.
   useEffect(() => {
@@ -382,6 +469,10 @@ export default function PedidoDetalhePage() {
     ? [shippingOption.company, shippingOption.service_name].filter(Boolean).join(' • ')
     : '';
 
+  const seller = order.seller || null;
+  const sellerId = order.seller_id || seller?.id || null;
+  const buyer = order.buyer || null;
+
   return (
     <main className={styles.page}>
       <div className={styles.container}>
@@ -546,92 +637,31 @@ export default function PedidoDetalhePage() {
             </div>
           </div>
 
-          {/* Coluna lateral */}
+          {/* Coluna lateral — pessoas (vendedor + cliente) */}
           <div className={styles.side}>
-            {/* Pagamento */}
-            <div className={styles.card}>
+            {/* Vendedor — perfil completo */}
+            <div className={cx(styles.card, styles.peopleCard)}>
               <div className={styles.cardTitle}>
-                <Icon name="card" size={20} /> Pagamento
+                <Icon name="store" size={20} /> Vendedor
               </div>
-              <div className={styles.kv}>
-                <div className={styles.kvRow}><span className={styles.muted}>Método:</span><strong>{paymentMethodLabel}</strong></div>
-                <div className={styles.kvRow}><span className={styles.muted}>Status:</span><Badge variant={meta.variant} size="sm">{meta.label}</Badge></div>
-              </div>
-            </div>
-
-            {/* Endereço de entrega */}
-            <div className={styles.card}>
-              <div className={styles.cardTitle}>
-                <Icon name="map-pin" size={20} /> {isPickup ? 'Entrega' : 'Endereço de Entrega'}
-              </div>
-              <div className={styles.addr}>
-                {isPickup ? (
-                  <p>Retirada presencial — combine o local com o vendedor pelo chat.</p>
-                ) : (() => {
-                  const a = (order.metadata && order.metadata.shipping_address) || null;
-                  if (!a) return <p className={styles.muted}>Endereço de entrega indisponível.</p>;
-                  return (
-                    <>
-                      <p>{a.recipient || a.recipient_name || ''}</p>
-                      <p>{[a.street, a.number].filter(Boolean).join(', ')}{a.complement ? ` - ${a.complement}` : ''}</p>
-                      <p className={styles.muted}>{[a.neighborhood, a.city, a.state].filter(Boolean).join(', ')}</p>
-                      {(a.cep || a.zip_code) && <p className={styles.muted}>CEP: {a.cep || a.zip_code}</p>}
-                    </>
-                  );
-                })()}
-              </div>
-            </div>
-
-            {/* Frete (somente envio com transportadora) */}
-            {shippingOption && (
-              <div className={styles.card}>
-                <div className={styles.cardTitle}>
-                  <Icon name="truck" size={20} /> Frete
-                </div>
-                <div className={styles.kv}>
-                  <div className={styles.kvRow}>
-                    <span className={styles.muted}>Transportadora:</span>
-                    <strong>{shippingCarrier || '—'}</strong>
-                  </div>
-                  {shippingOption.delivery_time != null && (
-                    <div className={styles.kvRow}>
-                      <span className={styles.muted}>Prazo:</span>
-                      <strong>{shippingOption.delivery_time} dias úteis</strong>
-                    </div>
+              <div className={styles.personHead}>
+                <Avatar src={seller?.avatar_url} name={seller?.name} size={56} />
+                <div className={styles.personMeta}>
+                  <p className={styles.personName}>{seller?.name || 'Vendedor'}</p>
+                  {sellerRating ? (
+                    <span className={styles.ratingRow}>
+                      <Stars value={sellerRating.avg} size={16} />
+                      <strong className={styles.ratingNum}>{RATING.format(sellerRating.avg)}</strong>
+                    </span>
+                  ) : null}
+                  {seller?.created_at && (
+                    <span className={styles.personSince}>
+                      <Clock size={13} /> Membro desde {formatMonthYear(seller.created_at)}
+                    </span>
                   )}
-                  <div className={styles.kvRow}>
-                    <span className={styles.muted}>Valor:</span>
-                    <strong>{shipping === 0 ? 'Grátis' : BRL.format(shipping)}</strong>
-                  </div>
                 </div>
               </div>
-            )}
-
-            {/* Cliente */}
-            <div className={styles.card}>
-              <div className={styles.cardTitle}>
-                <Icon name="user" size={20} /> Cliente
-              </div>
-              <div className={styles.addr}>
-                {order.buyer ? (
-                  <>
-                    <p>{order.buyer.name}</p>
-                    {order.buyer.email && <p className={styles.muted}>{order.buyer.email}</p>}
-                    {order.buyer.phone && <p className={styles.muted}>{order.buyer.phone}</p>}
-                  </>
-                ) : (
-                  <p className={styles.muted}>Dados do cliente indisponíveis.</p>
-                )}
-              </div>
-            </div>
-
-            {/* Vendedor */}
-            <div className={styles.card}>
-              <div className={styles.cardTitle}>
-                <Icon name="user" size={20} /> Vendedor
-              </div>
-              <div className={styles.sellerCard}>
-                <p className={styles.sellerName}>{order.seller?.name || 'Vendedor'}</p>
+              <div className={styles.personActions}>
                 <Button
                   variant="outline"
                   size="sm"
@@ -641,9 +671,108 @@ export default function PedidoDetalhePage() {
                 >
                   Falar com o vendedor
                 </Button>
+                {sellerId && (
+                  <Button variant="ghost" size="sm" leftIcon="store" href={`/loja/${sellerId}`}>
+                    Ver loja
+                  </Button>
+                )}
               </div>
             </div>
+
+            {/* Cliente — perfil completo */}
+            <div className={cx(styles.card, styles.peopleCard)}>
+              <div className={styles.cardTitle}>
+                <Icon name="user" size={20} /> Cliente
+              </div>
+              {buyer ? (
+                <div className={styles.personHead}>
+                  <Avatar src={buyer.avatar_url} name={buyer.name} size={56} />
+                  <div className={styles.personMeta}>
+                    <p className={styles.personName}>{buyer.name}</p>
+                    {buyer.email && (
+                      <span className={styles.personContact}>
+                        <Icon name="mail" size={14} /> {buyer.email}
+                      </span>
+                    )}
+                    {buyer.phone && (
+                      <span className={styles.personContact}>
+                        <Icon name="smartphone" size={14} /> {buyer.phone}
+                      </span>
+                    )}
+                    {buyer.created_at && (
+                      <span className={styles.personSince}>
+                        <Clock size={13} /> Cliente desde {formatMonthYear(buyer.created_at)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <p className={styles.muted}>Dados do cliente indisponíveis.</p>
+              )}
+            </div>
           </div>
+        </div>
+
+        {/* Cards de logística — preenchem a largura (auto-fit) */}
+        <div className={styles.infoGrid}>
+          {/* Pagamento */}
+          <div className={styles.card}>
+            <div className={styles.cardTitle}>
+              <Icon name="card" size={20} /> Pagamento
+            </div>
+            <div className={styles.kv}>
+              <div className={styles.kvRow}><span className={styles.muted}>Método:</span><strong>{paymentMethodLabel}</strong></div>
+              <div className={styles.kvRow}><span className={styles.muted}>Status:</span><Badge variant={meta.variant} size="sm">{meta.label}</Badge></div>
+            </div>
+          </div>
+
+          {/* Endereço de entrega */}
+          <div className={styles.card}>
+            <div className={styles.cardTitle}>
+              <Icon name="map-pin" size={20} /> {isPickup ? 'Entrega' : 'Endereço de Entrega'}
+            </div>
+            <div className={styles.addr}>
+              {isPickup ? (
+                <p>Retirada presencial — combine o local com o vendedor pelo chat.</p>
+              ) : (() => {
+                const a = (order.metadata && order.metadata.shipping_address) || null;
+                if (!a) return <p className={styles.muted}>Endereço de entrega indisponível.</p>;
+                return (
+                  <>
+                    <p>{a.recipient || a.recipient_name || ''}</p>
+                    <p>{[a.street, a.number].filter(Boolean).join(', ')}{a.complement ? ` - ${a.complement}` : ''}</p>
+                    <p className={styles.muted}>{[a.neighborhood, a.city, a.state].filter(Boolean).join(', ')}</p>
+                    {(a.cep || a.zip_code) && <p className={styles.muted}>CEP: {a.cep || a.zip_code}</p>}
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+
+          {/* Frete (somente envio com transportadora) */}
+          {shippingOption && (
+            <div className={styles.card}>
+              <div className={styles.cardTitle}>
+                <Icon name="truck" size={20} /> Frete
+              </div>
+              <div className={styles.kv}>
+                <div className={styles.kvRow}>
+                  <span className={styles.muted}>Transportadora:</span>
+                  <strong>{shippingCarrier || '—'}</strong>
+                </div>
+                {shippingOption.delivery_time != null && (
+                  <div className={styles.kvRow}>
+                    <span className={styles.muted}>Prazo:</span>
+                    <strong>{shippingOption.delivery_time} dias úteis</strong>
+                  </div>
+                )}
+                <div className={styles.kvRow}>
+                  <span className={styles.muted}>Valor:</span>
+                  <strong>{shipping === 0 ? 'Grátis' : BRL.format(shipping)}</strong>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Retirada presencial — código para o comprador */}

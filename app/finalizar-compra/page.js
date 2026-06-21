@@ -67,6 +67,22 @@ function cardStatusMessage(detail) {
   return map[detail] || 'Pagamento não autorizado. Tente outro cartão ou meio de pagamento.';
 }
 
+// Mensagens amigáveis por código de erro do backend. Sempre mostramos o MOTIVO
+// ao usuário (nunca "erro 400/500" nem stack). Códigos não mapeados caem na
+// própria e.message.
+const FRIENDLY = {
+  CANNOT_BUY_OWN_PRODUCT: { title: 'Não dá pra comprar seu próprio anúncio', message: 'Este produto é seu — você não pode comprá-lo. Use outra conta para testar a compra.' },
+  PRODUCT_NOT_AVAILABLE: { title: 'Produto indisponível', message: 'Este produto não está mais disponível para compra.' },
+  INSUFFICIENT_STOCK: { title: 'Estoque insuficiente', message: 'Não há estoque suficiente para a quantidade escolhida.' },
+  PRODUCT_NOT_FOUND: { title: 'Produto não encontrado', message: 'Não encontramos este produto. Atualize a página e tente de novo.' },
+  PAYMENT_NOT_CONFIGURED: { title: 'Pagamento indisponível', message: 'O meio de pagamento não está configurado no momento. Tente mais tarde.' },
+};
+
+// Converte um erro qualquer em { title, message } amigável.
+function friendlyError(e) {
+  return FRIENDLY[e?.code] || { title: 'Não foi possível concluir', message: e?.message || 'Tente novamente em instantes.' };
+}
+
 const UF_OPTIONS = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS',
   'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC',
@@ -142,6 +158,8 @@ export default function FinalizarCompraPage() {
   const [showCard, setShowCard] = useState(false);
   const [showBoleto, setShowBoleto] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  // Modal de erro amigável: guarda { title, message } e mostra o MOTIVO ao usuário.
+  const [errModal, setErrModal] = useState(null);
 
   // Checkout Transparente (Mercado Pago)
   const [publicKey, setPublicKey] = useState('');
@@ -246,27 +264,6 @@ export default function FinalizarCompraPage() {
     return orderId;
   }
 
-  // Mensagem amigável para erros do gateway/pagamento.
-  function paymentErrorToast(e) {
-    const notConfigured =
-      e?.status === 503 ||
-      e?.code === 'PAYMENT_NOT_CONFIGURED' ||
-      e?.code === 'GATEWAY_NOT_CONFIGURED';
-    if (notConfigured) {
-      toast({
-        title: 'Pagamento indisponível',
-        description: 'Configure o Mercado Pago no painel admin para concluir a compra.',
-        variant: 'destructive',
-      });
-    } else {
-      toast({
-        title: 'Não foi possível processar o pagamento',
-        description: e?.message,
-        variant: 'destructive',
-      });
-    }
-  }
-
   // Sucesso de pagamento → limpa carrinho e leva para os pedidos.
   function goToSuccess() {
     stopPolling();
@@ -338,7 +335,9 @@ export default function FinalizarCompraPage() {
         if (paymentId) startPolling(paymentId);
       });
     } catch (e) {
-      paymentErrorToast(e);
+      // Verificação (e-mail/telefone) já é tratada por runWithVerification.
+      setSubmitting(false);
+      setErrModal(friendlyError(e));
     } finally {
       setSubmitting(false);
     }
@@ -363,7 +362,9 @@ export default function FinalizarCompraPage() {
         if (paymentId) startPolling(paymentId);
       });
     } catch (e) {
-      paymentErrorToast(e);
+      // Verificação (e-mail/telefone) já é tratada por runWithVerification.
+      setSubmitting(false);
+      setErrModal(friendlyError(e));
     } finally {
       setSubmitting(false);
     }
@@ -444,12 +445,16 @@ export default function FinalizarCompraPage() {
         }
       });
     } catch (e) {
+      // Verificação (e-mail/telefone) já é tratada por runWithVerification.
       // Erros do SDK costumam vir como array em e.cause/e.message.
+      setSubmitting(false);
       const msg =
         (Array.isArray(e?.cause) && e.cause[0]?.description) ||
         e?.message ||
         'Não foi possível processar o cartão.';
-      paymentErrorToast({ ...e, message: msg });
+      // Mantém o mapeamento por código (ex.: PAYMENT_NOT_CONFIGURED) e cai na
+      // mensagem do SDK quando não houver código mapeado.
+      setErrModal(FRIENDLY[e?.code] || { title: 'Não foi possível concluir', message: msg });
     } finally {
       setSubmitting(false);
     }
@@ -1782,6 +1787,24 @@ export default function FinalizarCompraPage() {
             </div>
           </>
         )}
+      </Modal>
+
+      {/* MODAL DE ERRO AMIGÁVEL — mostra sempre o MOTIVO, nunca o erro cru */}
+      <Modal
+        open={!!errModal}
+        onClose={() => setErrModal(null)}
+        size="sm"
+        title={
+          <span className={styles.modalTitle}>
+            <span aria-hidden="true">⚠️</span>
+            {errModal?.title}
+          </span>
+        }
+        footer={
+          <Button onClick={() => setErrModal(null)}>Entendi</Button>
+        }
+      >
+        <p className={styles.confirmLine}>{errModal?.message}</p>
       </Modal>
 
       {/* MODAL DE VERIFICAÇÃO (e-mail / WhatsApp) — exigido pelo backend */}
