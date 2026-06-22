@@ -1,6 +1,9 @@
 .card {
   display: flex;
   flex-direction: column;
+  /* Preenche a altura da célula da grade → todos os cards da linha ficam iguais,
+     independentemente de tags/rating/verificado a mais. */
+  height: 100%;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--r-xl);
@@ -69,6 +72,9 @@
   flex-direction: column;
   gap: 6px;
   padding: 14px 15px 16px;
+  /* Cresce para ocupar o card; o preço/botão são empurrados para o rodapé,
+     alinhando o CTA de todos os cards na mesma linha. */
+  flex: 1;
 }
 
 .title {
@@ -128,7 +134,9 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--foreground);
-  margin-top: 2px;
+  /* Empurra preço + parcelas + botão para o rodapé do card (alinhamento). */
+  margin-top: auto;
+  padding-top: 4px;
 }
 
 .installments {
