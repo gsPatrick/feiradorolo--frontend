@@ -3,11 +3,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import styles from './page.module.css';
-import { contentService } from '@/lib/api';
+import { contentService, shipmentService } from '@/lib/api';
 import Button from '@/components/atoms/Button/Button';
 import Input from '@/components/atoms/Input/Input';
 import Icon from '@/components/atoms/Icon/Icon';
 import Badge from '@/components/atoms/Badge/Badge';
+import { maskCEP } from '@/lib/masks';
+
+const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
 // Ícones ausentes no Icon atom — SVG inline (lucide-style).
 function ClockIcon({ size = 32 }) {
@@ -178,6 +181,38 @@ function mergeContent(base, over) {
 export default function FreteEEntregaPage() {
   const [content, setContent] = useState(FALLBACK);
 
+  // Calculadora de frete (estimativa por CEP, pacote padrão 1kg).
+  const [cep, setCep] = useState('');
+  const [calcLoading, setCalcLoading] = useState(false);
+  const [calcOptions, setCalcOptions] = useState(null);
+  const [calcError, setCalcError] = useState('');
+
+  async function calcularFrete() {
+    const digits = cep.replace(/\D/g, '');
+    if (digits.length !== 8) {
+      setCalcError('Informe um CEP válido (8 dígitos).');
+      setCalcOptions(null);
+      return;
+    }
+    setCalcLoading(true);
+    setCalcError('');
+    setCalcOptions(null);
+    try {
+      const res = await shipmentService.quote({ to_zip: digits });
+      const opts = Array.isArray(res) ? res : [];
+      setCalcOptions(opts);
+      if (!opts.length) setCalcError('Nenhuma opção de frete disponível para este CEP.');
+    } catch (e) {
+      setCalcError(
+        e?.code === 'SHIPPING_NOT_CONFIGURED'
+          ? 'Cálculo de frete indisponível no momento.'
+          : (e?.message || 'Não foi possível calcular o frete agora.')
+      );
+    } finally {
+      setCalcLoading(false);
+    }
+  }
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -221,9 +256,40 @@ export default function FreteEEntregaPage() {
               {c.hero.calculatorTitle}
             </h3>
             <div className={styles.calcForm}>
-              <Input placeholder={c.hero.calculatorPlaceholder} className={styles.calcInput} />
-              <Button className={styles.calcBtn}>{c.hero.calculatorButton}</Button>
+              <Input
+                placeholder={c.hero.calculatorPlaceholder || 'Digite seu CEP'}
+                className={styles.calcInput}
+                value={cep}
+                inputMode="numeric"
+                maxLength={9}
+                onChange={(e) => { setCep(maskCEP(e.target.value)); setCalcError(''); }}
+                onKeyDown={(e) => e.key === 'Enter' && calcularFrete()}
+              />
+              <Button className={styles.calcBtn} onClick={calcularFrete} loading={calcLoading}>
+                {c.hero.calculatorButton}
+              </Button>
             </div>
+
+            {calcError && <p className={styles.calcError}>{calcError}</p>}
+
+            {calcOptions && calcOptions.length > 0 && (
+              <div className={styles.calcResults}>
+                <p className={styles.calcResultsHint}>Estimativa para um pacote de 1kg:</p>
+                <ul className={styles.calcList}>
+                  {calcOptions.map((o) => (
+                    <li key={o.service_code} className={styles.calcRow}>
+                      <span className={styles.calcSvc}>
+                        {o.company ? `${o.company} · ` : ''}{o.service_name}
+                        {o.delivery_time != null && <span className={styles.calcEta}> · {o.delivery_time} dias úteis</span>}
+                      </span>
+                      <span className={styles.calcPrice}>
+                        {o.free_shipping || Number(o.price) === 0 ? 'Grátis' : BRL.format(Number(o.price) || 0)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </div>

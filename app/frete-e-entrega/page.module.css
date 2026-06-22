@@ -395,3 +395,14 @@
     font-size: 1.5rem;
   }
 }
+
+/* — Calculadora: resultados — */
+.calcError { margin-top: 10px; font-size: 0.9rem; color: #fca5a5; }
+.calcResults { margin-top: 14px; background: rgba(255,255,255,0.1); border-radius: 12px; padding: 14px 16px; }
+.calcResultsHint { font-size: 0.82rem; color: rgba(255,255,255,0.85); margin-bottom: 8px; }
+.calcList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.calcRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.15); font-size: 0.9rem; }
+.calcRow:last-child { border-bottom: none; }
+.calcSvc { color: #fff; }
+.calcEta { color: rgba(255,255,255,0.75); }
+.calcPrice { font-weight: 800; color: #FFD700; white-space: nowrap; }
