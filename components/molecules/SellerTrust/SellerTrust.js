@@ -6,6 +6,19 @@ import { cx } from '@/lib/cx';
 import Icon from '../../atoms/Icon/Icon';
 import { userService } from '@/lib/api';
 
+// Verificação facial desligada por enquanto — true para reativar.
+const FACIAL_ENABLED = false;
+
+/* Logo do WhatsApp inline (glifo oficial, verde #25D366). A verificação de
+   telefone é feita por WhatsApp, então usamos o símbolo do app. */
+function WhatsAppIcon({ size = 16 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="#25D366" aria-hidden="true">
+      <path d="M17.47 14.38c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51-.17-.01-.37-.01-.57-.01-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.49 0 1.47 1.07 2.89 1.22 3.09.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5h-.01a9.45 9.45 0 0 1-4.82-1.32l-.35-.21-3.58.94.96-3.49-.23-.36a9.44 9.44 0 0 1-1.45-5.04c0-5.22 4.25-9.47 9.48-9.47 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.77 6.7c0 5.22-4.25 9.47-9.47 9.47zM20.52 3.49A11.78 11.78 0 0 0 12.04 0C5.5 0 .18 5.32.18 11.86c0 2.09.55 4.13 1.59 5.93L.08 24l6.36-1.67a11.85 11.85 0 0 0 5.6 1.42h.01c6.54 0 11.86-5.32 11.86-11.86 0-3.17-1.23-6.15-3.39-8.4z" />
+    </svg>
+  );
+}
+
 /* Ícone "documento" inline (lucide) — não existe no Icon.js. */
 function DocIcon({ size = 16 }) {
   return (
@@ -31,9 +44,10 @@ function FaceIcon({ size = 16 }) {
 /* Níveis de confiança gerais (verification_level 0-3). */
 const TRUST_LEVELS = {
   0: { label: 'Não verificado', cls: 'lvl0', desc: 'Este vendedor ainda não validou seus dados.' },
-  1: { label: 'Verificação básica', cls: 'lvl1', desc: 'Dados de contato confirmados.' },
-  2: { label: 'Vendedor verificado', cls: 'lvl2', desc: 'Identidade confirmada — vendedor confiável.' },
-  3: { label: 'Segurança máxima', cls: 'lvl3', desc: 'Todas as verificações concluídas.' },
+  1: { label: 'Básico', cls: 'lvl1', desc: 'Dados de contato confirmados.' },
+  2: { label: 'Confiável', cls: 'lvl2', desc: 'Identidade confirmada — vendedor confiável.' },
+  // Nível 3 ("Máximo") só é alcançável com verificação facial — ver FACIAL_ENABLED.
+  3: { label: 'Máximo', cls: 'lvl3', desc: 'Todas as verificações concluídas.' },
 };
 
 /**
@@ -90,11 +104,13 @@ export default function SellerTrust({ seller, sellerId, compact = false, classNa
 
   const items = [
     { key: 'email', label: 'E-mail', short: 'E-mail', ok: !!s.email_verified, icon: <Icon name="mail" size={compact ? 14 : 16} /> },
-    { key: 'phone', label: 'Telefone', short: 'Telefone', ok: !!s.phone_verified, icon: <Icon name="smartphone" size={compact ? 14 : 16} /> },
+    { key: 'phone', label: 'WhatsApp', short: 'WhatsApp', ok: !!s.phone_verified, icon: <WhatsAppIcon size={compact ? 14 : 16} /> },
     { key: 'document', label: 'Documento (CPF/CNPJ)', short: 'Documento', ok: !!s.document_verified, icon: <DocIcon size={compact ? 14 : 16} /> },
-    { key: 'facial', label: 'Biometria facial', short: 'Biometria', ok: !!s.facial_verified, icon: <FaceIcon size={compact ? 14 : 16} /> },
-  ];
+    // Item facial mantido atrás do flag — religa trocando FACIAL_ENABLED para true.
+    FACIAL_ENABLED && { key: 'facial', label: 'Biometria facial', short: 'Biometria', ok: !!s.facial_verified, icon: <FaceIcon size={compact ? 14 : 16} /> },
+  ].filter(Boolean);
 
+  const totalCount = items.length;
   const doneCount = items.filter((i) => i.ok).length;
 
   if (compact) {
@@ -117,7 +133,7 @@ export default function SellerTrust({ seller, sellerId, compact = false, classNa
             </li>
           ))}
         </ul>
-        <span className={styles.summary}>{doneCount}/4 verificações</span>
+        <span className={styles.summary}>{doneCount}/{totalCount} verificações</span>
       </div>
     );
   }
@@ -130,7 +146,7 @@ export default function SellerTrust({ seller, sellerId, compact = false, classNa
           <strong>{trust.label}</strong>
           <span>{trust.desc}</span>
         </div>
-        <span className={styles.sealCount}>{doneCount}/4</span>
+        <span className={styles.sealCount}>{doneCount}/{totalCount}</span>
       </div>
       <ul className={styles.list} aria-label="Verificações de segurança do vendedor">
         {items.map((it) => (

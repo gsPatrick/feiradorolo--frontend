@@ -842,6 +842,25 @@
   color: var(--foreground);
   white-space: nowrap;
 }
+.sellerTrustBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.sellerTrustLabel {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.sellerTrustItem {
+  width: 100%;
+}
+
 .summaryTotals {
   margin-top: 14px;
   padding-top: 14px;

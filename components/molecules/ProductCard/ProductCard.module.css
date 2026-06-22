@@ -112,6 +112,17 @@
   border: 1px solid var(--info-soft, rgba(37, 99, 235, 0.2));
 }
 
+.verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  margin-top: 1px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--success, #16a34a);
+}
+
 .price {
   font-size: 1.3rem;
   font-weight: 800;

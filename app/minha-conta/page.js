@@ -32,6 +32,15 @@ const STATUS_LABELS = {
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
+/* Logo do WhatsApp inline (verde #25D366) — a verificação de telefone é por WhatsApp. */
+function WhatsAppGlyph({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="#25D366" aria-hidden="true">
+      <path d="M17.47 14.38c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51-.17-.01-.37-.01-.57-.01-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.49 0 1.47 1.07 2.89 1.22 3.09.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35zM12.04 21.5h-.01a9.45 9.45 0 0 1-4.82-1.32l-.35-.21-3.58.94.96-3.49-.23-.36a9.44 9.44 0 0 1-1.45-5.04c0-5.22 4.25-9.47 9.48-9.47 2.53 0 4.91.99 6.7 2.78a9.42 9.42 0 0 1 2.77 6.7c0 5.22-4.25 9.47-9.47 9.47zM20.52 3.49A11.78 11.78 0 0 0 12.04 0C5.5 0 .18 5.32.18 11.86c0 2.09.55 4.13 1.59 5.93L.08 24l6.36-1.67a11.85 11.85 0 0 0 5.6 1.42h.01c6.54 0 11.86-5.32 11.86-11.86 0-3.17-1.23-6.15-3.39-8.4z" />
+    </svg>
+  );
+}
+
 // Slot de imagem neutro para pedidos (a API não traz imagem do pedido).
 const ORDER_PLACEHOLDER =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Crect width='60' height='60' fill='%23f1f5f9'/%3E%3C/svg%3E";
@@ -678,7 +687,18 @@ export default function MinhaContaPage() {
                     </>
                   )}
 
-                  {tab === 'perfil' && <ProfileTab onEdit={() => setModal('profile')} user={user} />}
+                  {tab === 'perfil' && (
+                    <ProfileTab
+                      onEdit={() => setModal('profile')}
+                      user={user}
+                      ordersCount={allOrders.length}
+                      reviewsCount={reviews.length}
+                      favoritesCount={favorites.length}
+                      ordersLoaded={ordersState === 'ready'}
+                      reviewsLoaded={reviewsState === 'ready'}
+                      favoritesLoaded={favState === 'ready'}
+                    />
+                  )}
                 </div>
               </>
             )}
@@ -1085,8 +1105,69 @@ function PlansTab({ plan, fees, state = 'idle', onRetry, onReload, onAuth }) {
   );
 }
 
+/* — Estatísticas da Conta: rótulos do nível de confiança (verification_level real).
+   0 "Não verificado", 1 "Básico", 2 "Confiável". Nível 3 ("Máximo") só volta
+   quando a verificação facial for reativada. */
+const TRUST_LEVEL_LABELS = { 0: 'Não verificado', 1: 'Básico', 2: 'Confiável', 3: 'Máximo' };
+
+// Formata uma data como "mês ano" em pt-BR (ex.: "junho 2026"), capitalizado.
+function formatMemberSince(value) {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '—';
+  const s = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 /* — Aba Meu Perfil — */
-function ProfileTab({ onEdit, user }) {
+function ProfileTab({
+  onEdit,
+  user,
+  ordersCount = 0,
+  reviewsCount = 0,
+  favoritesCount = 0,
+  ordersLoaded = false,
+  reviewsLoaded = false,
+  favoritesLoaded = false,
+}) {
+  // Nível de confiança REAL: o status é buscado por VerificationStatus e
+  // borbulhado via onStatus — assim o bloco de estatísticas reflete a mesma
+  // verification_level e atualiza quando o usuário valida e-mail/telefone/doc.
+  const [verifLevel, setVerifLevel] = useState(null);
+
+  // Contagens reais. Reaproveita o estado já carregado nas outras abas; quando
+  // a aba-fonte ainda não foi aberta (lazy-load), busca aqui mesmo — sem mock.
+  const [stats, setStats] = useState({ orders: null, reviews: null, favorites: null });
+
+  useEffect(() => {
+    if (!user || !user.id) { setStats({ orders: 0, reviews: 0, favorites: 0 }); return; }
+    let active = true;
+    const wants = (loaded, fetcher) =>
+      loaded ? Promise.resolve(null) : fetcher().then((d) => (Array.isArray(d) ? d.length : 0)).catch(() => 0);
+    Promise.all([
+      wants(ordersLoaded, () => orderService.listMine()),
+      wants(reviewsLoaded, () => reviewService.listMine()),
+      wants(favoritesLoaded, () => favoriteService.listMine()),
+    ]).then(([o, r, f]) => {
+      if (!active) return;
+      setStats({ orders: o, reviews: r, favorites: f });
+    });
+    return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user && user.id, ordersLoaded, reviewsLoaded, favoritesLoaded]);
+
+  // Usa a contagem do estado da aba quando carregada; senão a buscada aqui (0 fallback).
+  const ordersN = ordersLoaded ? ordersCount : (stats.orders ?? 0);
+  const reviewsN = reviewsLoaded ? reviewsCount : (stats.reviews ?? 0);
+  const favoritesN = favoritesLoaded ? favoritesCount : (stats.favorites ?? 0);
+
+  const level = Math.max(0, Math.min(3, Number(verifLevel) || 0));
+  const trustLabel = TRUST_LEVEL_LABELS[level] || TRUST_LEVEL_LABELS[0];
+  const trustOk = level >= 2;
+  const trustText = trustOk
+    ? 'Você é um vendedor Confiável ✓'
+    : 'Complete suas verificações para alcançar nível “Confiável”';
+
   const dimRow = (label, value) => (
     <div className={styles.infoRow}>
       <span>{label}</span>
@@ -1096,7 +1177,7 @@ function ProfileTab({ onEdit, user }) {
   return (
     <>
       <div className={styles.sectionHead}><h2>Meu Perfil</h2><Button variant="outline" size="sm" leftIcon="filter" onClick={onEdit}>Editar Perfil</Button></div>
-      <VerificationStatus user={user} />
+      <VerificationStatus user={user} onStatus={(s) => setVerifLevel(Number((s && s.verification_level) || 0))} />
       <div className={styles.profileGrid}>
         <div className={styles.infoCard}>
           <h3>Informações Pessoais</h3>
@@ -1108,13 +1189,16 @@ function ProfileTab({ onEdit, user }) {
         </div>
         <div className={styles.infoCard}>
           <h3>Estatísticas da Conta</h3>
-          <div className={styles.statRow}><span>Membro desde</span><strong>Dezembro 2024</strong></div>
-          <div className={styles.statRow}><span>Compras realizadas</span><strong>12</strong></div>
-          <div className={styles.statRow}><span>Avaliações feitas</span><strong>8</strong></div>
-          <div className={styles.statRow}><span>Produtos favoritos</span><strong>24</strong></div>
+          <div className={styles.statRow}><span>Membro desde</span><strong>{formatMemberSince(user?.created_at || user?.createdAt)}</strong></div>
+          <div className={styles.statRow}><span>Compras realizadas</span><strong>{ordersN}</strong></div>
+          <div className={styles.statRow}><span>Avaliações feitas</span><strong>{reviewsN}</strong></div>
+          <div className={styles.statRow}><span>Produtos favoritos</span><strong>{favoritesN}</strong></div>
           <div className={styles.trust}>
-            <div className={styles.trustTop}><span>Nível de Confiança</span><span className={`${styles.vBadge} ${styles.vPend}`}>Básico</span></div>
-            <p>Complete suas verificações para alcançar nível “Confiável”</p>
+            <div className={styles.trustTop}>
+              <span>Nível de Confiança</span>
+              <span className={`${styles.vBadge} ${trustOk ? styles.vOk : styles.vPend}`}>{trustLabel}</span>
+            </div>
+            <p>{trustText}</p>
           </div>
         </div>
       </div>
@@ -1131,7 +1215,7 @@ const DOC_ERROR_MSGS = {
   DOCUMENT_NOT_PROVIDED: 'Cadastre seu CPF/CNPJ no perfil antes de validar.',
 };
 
-function VerificationStatus({ user }) {
+function VerificationStatus({ user, onStatus }) {
   const { toast } = useToast();
   const [status, setStatus] = useState(null);
   const [state, setState] = useState('idle'); // idle | loading | ready | error
@@ -1143,7 +1227,13 @@ function VerificationStatus({ user }) {
     setState('loading');
     verificationService
       .status()
-      .then((s) => { setStatus(s || {}); setState('ready'); })
+      .then((s) => {
+        const st = s || {};
+        setStatus(st);
+        setState('ready');
+        // Borbulha o status (verification_level) para o pai usar nas estatísticas.
+        if (typeof onStatus === 'function') onStatus(st);
+      })
       .catch(() => setState('error'));
   };
 
@@ -1184,12 +1274,16 @@ function VerificationStatus({ user }) {
     }
   }
 
-  // Trilha dos 3 níveis de verificação.
+  // Verificação facial desligada por enquanto — true para reativar o Nível 3.
+  const FACIAL_ENABLED = false;
+
+  // Trilha de níveis de verificação. O passo facial (Nível 3) fica atrás do flag
+  // e o filtro .filter(Boolean) o remove enquanto FACIAL_ENABLED for false.
   const LEVELS = [
-    { n: 1, label: 'E-mail / Telefone', icon: 'mail' },
+    { n: 1, label: 'E-mail / WhatsApp', icon: 'mail' },
     { n: 2, label: 'Documento', icon: 'card' },
-    { n: 3, label: 'Biometria facial (no app)', icon: 'camera' },
-  ];
+    FACIAL_ENABLED && { n: 3, label: 'Biometria facial (no app)', icon: 'camera' },
+  ].filter(Boolean);
 
   return (
     <div className={styles.verifCard}>
@@ -1230,10 +1324,10 @@ function VerificationStatus({ user }) {
               )}
             </div>
 
-            {/* Telefone / WhatsApp */}
+            {/* Telefone / WhatsApp — verificação feita por WhatsApp. */}
             <div className={styles.verifItem}>
-              <span className={cx(styles.vIcon, phoneVerified ? styles.vi_verified : styles.vi_pending)}><Icon name="phone" size={18} /></span>
-              <span className={styles.vLabel}>Telefone / WhatsApp</span>
+              <span className={cx(styles.vIcon, phoneVerified ? styles.vi_verified : styles.vi_pending)}><WhatsAppGlyph size={18} /></span>
+              <span className={styles.vLabel}>WhatsApp</span>
               {phoneVerified ? okBadge : (
                 <Button variant="outline" size="sm" disabled={state !== 'ready'} onClick={() => setModalChannel('phone')}>Verificar</Button>
               )}

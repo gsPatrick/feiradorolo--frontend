@@ -35,7 +35,14 @@ export function CartProvider({ children }) {
       }
       return [
         ...prev,
-        { id: product.id, title: product.title, price: Number(product.price), image: product.image || null, qty },
+        {
+          id: product.id,
+          title: product.title,
+          price: Number(product.price),
+          image: product.image || null,
+          sellerId: product.sellerId || product.seller?.id || null,
+          qty,
+        },
       ];
     });
   }, []);

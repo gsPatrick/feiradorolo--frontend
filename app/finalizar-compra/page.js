@@ -17,6 +17,7 @@ import Badge from '@/components/atoms/Badge/Badge';
 import Spinner from '@/components/atoms/Spinner/Spinner';
 import Modal from '@/components/organisms/Modal/Modal';
 import VerificationModal from '@/components/organisms/VerificationModal/VerificationModal';
+import SellerTrust from '@/components/molecules/SellerTrust/SellerTrust';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const STEPS = 3;
@@ -529,6 +530,16 @@ export default function FinalizarCompraPage() {
     () => shippingOptions.find((o) => o.service_code === selectedShippingId) || null,
     [shippingOptions, selectedShippingId]
   );
+
+  // Vendedores únicos do carrinho (para o selo de confiança no resumo).
+  // Itens antigos sem sellerId são ignorados (não quebra).
+  const cartSellerIds = useMemo(() => {
+    const seen = new Set();
+    items.forEach((i) => {
+      if (i.sellerId != null && i.sellerId !== '') seen.add(i.sellerId);
+    });
+    return Array.from(seen);
+  }, [items]);
 
   const shippingCost = isPickup
     ? 0
@@ -1416,6 +1427,16 @@ export default function FinalizarCompraPage() {
                     </div>
                   ))}
                 </div>
+                {cartSellerIds.length > 0 && (
+                  <div className={styles.sellerTrustBlock}>
+                    <span className={styles.sellerTrustLabel}>
+                      {cartSellerIds.length === 1 ? 'Vendedor' : 'Vendedores'}
+                    </span>
+                    {cartSellerIds.map((sid) => (
+                      <SellerTrust key={sid} sellerId={sid} compact className={styles.sellerTrustItem} />
+                    ))}
+                  </div>
+                )}
                 <div className={styles.field}>
                   <label className={styles.label}>Cupom de desconto</label>
                   <div className={styles.copyRow}>

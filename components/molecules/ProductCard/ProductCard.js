@@ -23,7 +23,13 @@ export default function ProductCard({ product, loading = false, className }) {
   useEffect(() => () => clearTimeout(timer.current), []);
 
   function handleAdd() {
-    addItem({ id: product.id, title: product.title, price: product.price, image: product.image });
+    addItem({
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      image: product.image,
+      sellerId: product.seller?.id || product.sellerId || null,
+    });
     toast({ title: '✓ Adicionado!', variant: 'success', duration: 1000 });
     setAdded(true);
     clearTimeout(timer.current);
@@ -59,6 +65,13 @@ export default function ProductCard({ product, loading = false, className }) {
   const href = product.id ? `/produto/${product.id}` : '#';
   const fav = isFavorite(product.id);
   const hasReviews = reviewsCount > 0;
+
+  // Selo de confiança DISCRETO: usa o objeto seller embarcado (sem fetch por card).
+  // Só aparece quando o vendedor é verificado (verification_level >= 2).
+  const sellerObj =
+    product.sellerInfo ||
+    (product.seller && typeof product.seller === 'object' ? product.seller : null);
+  const sellerVerified = sellerObj && Number(sellerObj.verification_level) >= 2;
 
   return (
     <article className={cx(styles.card, className)}>
@@ -106,6 +119,11 @@ export default function ProductCard({ product, loading = false, className }) {
             </>
           )}
         </div>
+        {sellerVerified && (
+          <span className={styles.verified} title="Identidade do vendedor confirmada">
+            <Icon name="shield" size={12} /> Vendedor verificado
+          </span>
+        )}
         <div className={styles.price}>{BRL.format(price)}</div>
         <span className={styles.installments}>em até {installments}x sem juros</span>
         <button className={cx(styles.add, added && styles.added)} type="button" onClick={handleAdd}>
