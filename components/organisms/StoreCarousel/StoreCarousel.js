@@ -4,12 +4,18 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import styles from './StoreCarousel.module.css';
 import Icon from '../../atoms/Icon/Icon';
+import VerifiedSeal from '../../atoms/VerifiedSeal/VerifiedSeal';
 import { productService, mapProduct } from '@/lib/api';
-
-const GRADS = ['g1', 'g2', 'g3'];
 
 const fmtPrice = (v) =>
   Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+const discountPct = (price, oldPrice) => {
+  const p = Number(price) || 0;
+  const o = Number(oldPrice) || 0;
+  if (!o || o <= p) return 0;
+  return Math.round(((o - p) / o) * 100);
+};
 
 export default function StoreCarousel() {
   const [slides, setSlides] = useState([]);
@@ -17,7 +23,7 @@ export default function StoreCarousel() {
   const [index, setIndex] = useState(0);
 
   const count = slides.length;
-  const go = useCallback((i) => setIndex((p) => (count ? (i + count) % count : 0)), [count]);
+  const go = useCallback((i) => setIndex(() => (count ? (i + count) % count : 0)), [count]);
   const next = useCallback(() => setIndex((p) => (count ? (p + 1) % count : 0)), [count]);
 
   useEffect(() => {
@@ -61,78 +67,101 @@ export default function StoreCarousel() {
 
   const safeIndex = index % count;
   const slide = slides[safeIndex];
-  const grad = GRADS[safeIndex % GRADS.length];
+  const pct = discountPct(slide.price, slide.oldPrice);
 
   return (
-    <div className={`${styles.banner} ${styles[grad]}`}>
-      <button className={`${styles.arrow} ${styles.left}`} onClick={() => go(safeIndex - 1)} aria-label="Anterior">
-        <Icon name="chevron-left" size={22} />
-      </button>
+    <div className={styles.banner}>
+      <span className={styles.glow} aria-hidden="true" />
 
-      <div className={styles.slide} key={safeIndex}>
-        <div className={styles.store}>
-          <span className={styles.logo}>
+      {count > 1 ? (
+        <button
+          className={`${styles.arrow} ${styles.left}`}
+          onClick={() => go(safeIndex - 1)}
+          aria-label="Anterior"
+        >
+          <Icon name="chevron-left" size={22} />
+        </button>
+      ) : null}
+
+      <article className={styles.slide} key={slide.id}>
+        <div className={styles.media}>
+          <span className={styles.badge}>
+            <Icon name="star" size={14} /> Destaque
+          </span>
+          <span className={styles.sponsored}>Patrocinado</span>
+
+          <span className={styles.frame}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className={styles.cover} src={slide.image} alt={slide.title} />
+            {pct > 0 ? <span className={styles.off}>-{pct}%</span> : null}
           </span>
-          <div className={styles.storeMeta}>
-            <h2 className={styles.name}>{slide.title}</h2>
-            <span className={styles.tag}>{slide.seller}</span>
+        </div>
+
+        <div className={styles.info}>
+          <div className={styles.seller}>
+            <Icon name="store" size={15} />
+            <span className={styles.sellerName}>{slide.seller}</span>
+            {slide.sellerInfo ? (
+              <VerifiedSeal seller={slide.sellerInfo} size={15} />
+            ) : null}
+          </div>
+
+          <h2 className={styles.title}>{slide.title}</h2>
+
+          <div className={styles.tags}>
+            {slide.category ? (
+              <span className={styles.tag}>{slide.category}</span>
+            ) : null}
+            <span className={styles.tag}>
+              {slide.condition === 'used' ? 'Usado' : 'Novo'}
+            </span>
+            {slide.freeShipping ? (
+              <span className={`${styles.tag} ${styles.ship}`}>
+                <Icon name="truck" size={15} /> Frete grátis
+              </span>
+            ) : null}
+          </div>
+
+          <div className={styles.priceBox}>
+            {slide.oldPrice ? (
+              <div className={styles.priceTop}>
+                <span className={styles.old}>{fmtPrice(slide.oldPrice)}</span>
+                {pct > 0 ? <span className={styles.offTag}>{pct}% OFF</span> : null}
+              </div>
+            ) : null}
+            <strong className={styles.price}>{fmtPrice(slide.price)}</strong>
+          </div>
+
+          <div className={styles.actions}>
+            <Link href={`/produto/${slide.id}`} className={styles.primary}>
+              Ver produto <Icon name="arrow-right" size={18} />
+            </Link>
+            <Link href="/favoritos" className={styles.secondary} aria-label="Favoritar">
+              <Icon name="heart" size={19} />
+              <span className={styles.secondaryLabel}>Favoritar</span>
+            </Link>
           </div>
         </div>
+      </article>
 
-        <div className={styles.stats}>
-          <div className={styles.stat}>
-            <strong>{fmtPrice(slide.price)}</strong>
-            <span>{slide.oldPrice ? `de ${fmtPrice(slide.oldPrice)}` : 'à vista'}</span>
-          </div>
-          {slide.category ? (
-            <div className={styles.stat}>
-              <strong>{slide.category}</strong>
-              <span>categoria</span>
-            </div>
-          ) : null}
-          {slide.freeShipping ? (
-            <div className={styles.stat}>
-              <strong>Frete</strong>
-              <span>grátis</span>
-            </div>
-          ) : (
-            <div className={styles.stat}>
-              <strong>{slide.condition === 'used' ? 'Usado' : 'Novo'}</strong>
-              <span>condição</span>
-            </div>
-          )}
+      {count > 1 ? (
+        <button className={`${styles.arrow} ${styles.right}`} onClick={next} aria-label="Próximo">
+          <Icon name="arrow-right" size={22} />
+        </button>
+      ) : null}
+
+      {count > 1 ? (
+        <div className={styles.dots}>
+          {slides.map((s, i) => (
+            <button
+              key={s.id}
+              className={`${styles.dot} ${i === safeIndex ? styles.dotActive : ''}`}
+              onClick={() => go(i)}
+              aria-label={`Slide ${i + 1}`}
+            />
+          ))}
         </div>
-
-        <div className={styles.lines}>
-          <p>Destaque da Feira do Rolo — confira agora!</p>
-        </div>
-
-        <div className={styles.actions}>
-          <Link href={`/produto/${slide.id}`} className={styles.primary}>
-            <Icon name="store" size={18} /> Ver Produto
-          </Link>
-          <Link href="/favoritos" className={styles.secondary}>
-            <Icon name="heart" size={18} /> Favoritar
-          </Link>
-        </div>
-      </div>
-
-      <button className={`${styles.arrow} ${styles.right}`} onClick={next} aria-label="Próximo">
-        <Icon name="arrow-right" size={22} />
-      </button>
-
-      <div className={styles.dots}>
-        {slides.map((s, i) => (
-          <button
-            key={s.id}
-            className={`${styles.dot} ${i === safeIndex ? styles.dotActive : ''}`}
-            onClick={() => go(i)}
-            aria-label={`Slide ${i + 1}`}
-          />
-        ))}
-      </div>
+      ) : null}
     </div>
   );
 }
