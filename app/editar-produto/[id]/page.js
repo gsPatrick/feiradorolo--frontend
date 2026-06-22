@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import styles from './page.module.css';
 import { cx } from '@/lib/cx';
-import { productService, getToken, ApiError } from '@/lib/api';
+import { productService, shipmentService, getToken, ApiError } from '@/lib/api';
 import { useToast } from '@/components/providers/ToastProvider';
 import Button from '@/components/atoms/Button/Button';
 import Input from '@/components/atoms/Input/Input';
@@ -89,6 +89,27 @@ export default function EditarProdutoPage() {
   // Carregamento do produto real.
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
+
+  // Transportadoras reais do Melhor Envio (com fallback para a lista fixa em caso de erro).
+  const [carriers, setCarriers] = useState(SHIPPING_METHODS);
+  useEffect(() => {
+    shipmentService
+      .carriers()
+      .then((list) => {
+        if (Array.isArray(list) && list.length) {
+          setCarriers(
+            list.map((c) => ({
+              id: c.code,
+              name: c.name,
+              description: c.description || c.company || 'Calculado pelo Melhor Envio',
+              picture: c.picture,
+              company: c.company,
+            }))
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const set = (patch) => setForm((prev) => ({ ...prev, ...patch }));
 
@@ -446,7 +467,7 @@ export default function EditarProdutoPage() {
                     </div>
                     <div className={styles.shipActions}>
                       <Button variant="outline" size="sm"
-                        onClick={() => set({ shippingMethods: SHIPPING_METHODS.map((m) => m.id) })}>
+                        onClick={() => set({ shippingMethods: carriers.map((m) => m.id) })}>
                         Selecionar Todos
                       </Button>
                       <Button variant="outline" size="sm" onClick={() => set({ shippingMethods: [] })}>
@@ -460,7 +481,7 @@ export default function EditarProdutoPage() {
                   </p>
 
                   <div className={styles.shipGrid}>
-                    {SHIPPING_METHODS.map((method) => {
+                    {carriers.map((method) => {
                       const active = form.shippingMethods.includes(method.id);
                       return (
                         <button
@@ -470,7 +491,16 @@ export default function EditarProdutoPage() {
                           onClick={() => toggleShipping(method.id)}
                         >
                           <span className={styles.shipInfo}>
-                            <span className={styles.shipIcon}>{method.icon}</span>
+                            {method.picture ? (
+                              <img
+                                src={method.picture}
+                                alt={method.name}
+                                className={styles.shipIcon}
+                                style={{ objectFit: 'contain' }}
+                              />
+                            ) : (
+                              <span className={styles.shipIcon}>{method.icon}</span>
+                            )}
                             <span>
                               <span className={styles.shipName}>{method.name}</span>
                               <span className={styles.shipDesc}>{method.description}</span>
