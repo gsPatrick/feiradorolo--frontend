@@ -451,6 +451,9 @@
 .personSince svg {
   flex-shrink: 0;
 }
+.sellerTrust {
+  margin-top: 14px;
+}
 .personActions {
   display: flex;
   flex-wrap: wrap;

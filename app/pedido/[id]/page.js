@@ -11,6 +11,7 @@ import EmptyState from '@/components/molecules/EmptyState/EmptyState';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
 import ReturnModal from '@/components/organisms/ReturnModal/ReturnModal';
+import SellerTrust from '@/components/molecules/SellerTrust/SellerTrust';
 import { orderService, escrowService, paymentService, chatService, productService, disputeService, mapProduct, ApiError } from '@/lib/api';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -729,6 +730,9 @@ export default function PedidoDetalhePage() {
                   )}
                 </div>
               </div>
+              {sellerId && (
+                <SellerTrust sellerId={sellerId} compact className={styles.sellerTrust} />
+              )}
               <div className={styles.personActions}>
                 <Button
                   variant="outline"

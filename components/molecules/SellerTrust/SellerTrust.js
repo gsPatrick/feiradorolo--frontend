@@ -1,6 +1,10 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import styles from './SellerTrust.module.css';
 import { cx } from '@/lib/cx';
 import Icon from '../../atoms/Icon/Icon';
+import { userService } from '@/lib/api';
 
 /* Ícone "documento" inline (lucide) — não existe no Icon.js. */
 function DocIcon({ size = 16 }) {
@@ -34,11 +38,53 @@ const TRUST_LEVELS = {
 
 /**
  * Checklist de segurança/verificação do vendedor.
- * @param {object} props.seller  Objeto seller enriquecido da API.
- * @param {boolean} props.compact  Versão enxuta (card do produto).
+ * @param {object} props.seller   Objeto seller enriquecido da API (uso direto).
+ * @param {string|number} props.sellerId  Se passado sem `seller`, busca o perfil
+ *   público via userService.sellerProfile e renderiza ao carregar.
+ * @param {boolean} props.compact  Versão enxuta (card do produto/header).
  */
-export default function SellerTrust({ seller, compact = false, className }) {
-  const s = seller || {};
+export default function SellerTrust({ seller, sellerId, compact = false, className }) {
+  // Auto-fetch: só dispara quando há sellerId e NÃO há objeto seller pronto.
+  const needsFetch = !seller && sellerId != null && sellerId !== '';
+  const [fetched, setFetched] = useState(null);
+  const [loading, setLoading] = useState(needsFetch);
+
+  useEffect(() => {
+    if (!needsFetch) return;
+    let active = true;
+    setLoading(true);
+    setFetched(null);
+    userService
+      .sellerProfile(sellerId)
+      .then((data) => {
+        if (active) setFetched(data || null);
+      })
+      .catch(() => {
+        if (active) setFetched(null);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [needsFetch, sellerId]);
+
+  const resolved = seller || fetched;
+
+  // Loading discreto enquanto busca pelo sellerId.
+  if (needsFetch && loading && !resolved) {
+    return (
+      <div className={cx(styles.root, compact && styles.compact, styles.skeleton, className)} aria-hidden="true">
+        <span className={styles.skeletonSeal} />
+      </div>
+    );
+  }
+
+  // Sem dado nenhum (id/seller ausente ou fetch falhou) → não quebra: não renderiza.
+  if (!resolved) return null;
+
+  const s = resolved;
   const level = Math.max(0, Math.min(3, Number(s.verification_level) || 0));
   const trust = TRUST_LEVELS[level] || TRUST_LEVELS[0];
 

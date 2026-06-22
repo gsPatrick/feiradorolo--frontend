@@ -5,6 +5,28 @@
   width: 100%;
 }
 
+/* ───────── Loading discreto (auto-fetch via sellerId) ───────── */
+.skeleton {
+  min-height: 28px;
+}
+.skeletonSeal {
+  display: block;
+  width: 100%;
+  max-width: 220px;
+  height: 22px;
+  border-radius: var(--r-md, 10px);
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.05) 25%, rgba(0, 0, 0, 0.09) 37%, rgba(0, 0, 0, 0.05) 63%);
+  background-size: 400% 100%;
+  animation: sellerTrustShimmer 1.4s ease infinite;
+}
+@keyframes sellerTrustShimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeletonSeal { animation: none; }
+}
+
 /* ───────── Selo geral (modo normal) ───────── */
 .sealRow {
   display: flex;

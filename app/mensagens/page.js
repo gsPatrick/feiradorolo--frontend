@@ -7,6 +7,7 @@ import Icon from '@/components/atoms/Icon/Icon';
 import Button from '@/components/atoms/Button/Button';
 import Spinner from '@/components/atoms/Spinner/Spinner';
 import EmptyState from '@/components/molecules/EmptyState/EmptyState';
+import SellerTrust from '@/components/molecules/SellerTrust/SellerTrust';
 import { authService, chatService, ApiError } from '@/lib/api';
 import { getSocket } from '@/lib/socket';
 import { useAuth } from '@/components/providers/AuthProvider';
@@ -238,6 +239,13 @@ export default function MensagensPage() {
                     <strong>{(counterpart(selectedChat) || {}).name || 'Usuário'}</strong>
                     <span>{selectedChat.product ? 'Conversa sobre produto' : 'Chat'}</span>
                   </div>
+                  {(() => {
+                    // Selo de confiança do VENDEDOR da conversa (independe de quem sou eu).
+                    const sellerId = selectedChat.seller_id || selectedChat.seller?.id || null;
+                    return sellerId ? (
+                      <SellerTrust sellerId={sellerId} compact className={styles.winTrust} />
+                    ) : null;
+                  })()}
                 </header>
 
                 {selectedChat.product && (
