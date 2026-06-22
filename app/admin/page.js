@@ -26,8 +26,10 @@ import AdminCustomization from '@/components/organisms/admin/AdminCustomization/
 import AdminIntegrations from '@/components/organisms/admin/AdminIntegrations/AdminIntegrations';
 import AdminFinance from '@/components/organisms/admin/AdminFinance/AdminFinance';
 import AdminPlans from '@/components/organisms/admin/AdminPlans/AdminPlans';
+import AdminHome from '@/components/organisms/admin/AdminHome/AdminHome';
 
 const TABS = [
+  { k: 'home', label: 'Início', icon: 'grid' },
   { k: 'orders', label: 'Pedidos', icon: 'package', Comp: AdminOrders },
   { k: 'disputes', label: 'Disputas', icon: 'shield', Comp: AdminDisputes },
   { k: 'users', label: 'Usuários', icon: 'user', Comp: AdminUsers },
@@ -51,7 +53,7 @@ export default function AdminPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { user, authReady, openAuth, logout: authLogout } = useAuth();
-  const [active, setActive] = useState('orders');
+  const [active, setActive] = useState('home');
 
   const Current = (TABS.find((t) => t.k === active) || TABS[0]).Comp;
   const isAdmin = !!(user && (user.is_admin || user.admin_role));
@@ -115,7 +117,7 @@ export default function AdminPage() {
       </header>
 
       <main className={styles.content}>
-        <Current />
+        {active === 'home' ? <AdminHome onNavigate={setActive} /> : Current ? <Current /> : null}
       </main>
     </div>
   );
