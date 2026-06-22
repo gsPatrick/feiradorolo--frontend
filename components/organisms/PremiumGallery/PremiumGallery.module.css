@@ -1,14 +1,20 @@
+/* ===========================================================
+   Galeria Premium — CARROSSEL horizontal com VÁRIOS cards visíveis
+   que deslizam (scroll-snap + setas + dots), com a linguagem
+   PREMIUM do StoreCarousel (fundo escuro azul→roxo + dourado).
+   =========================================================== */
 .section {
   position: relative;
   width: 100%;
-  padding: 28px;
-  border-radius: var(--r-lg, 16px);
-  /* Realce dourado/diamante sutil */
+  padding: clamp(20px, 3vw, 30px);
+  border-radius: 22px;
+  color: #f8fafc;
   background:
-    linear-gradient(180deg, rgba(255, 215, 0, 0.08), rgba(255, 215, 0, 0) 60%),
-    var(--bg, #fff);
-  border: 1px solid var(--feira-yellow);
-  box-shadow: 0 10px 34px rgba(255, 193, 7, 0.16);
+    radial-gradient(120% 140% at 6% 0%, rgba(124, 58, 237, 0.4) 0%, transparent 55%),
+    radial-gradient(120% 130% at 100% 100%, rgba(37, 99, 235, 0.36) 0%, transparent 52%),
+    linear-gradient(135deg, #0b1220 0%, #131c33 46%, #1a1330 100%);
+  border: 1px solid rgba(255, 215, 0, 0.14);
+  box-shadow: 0 22px 60px -22px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 215, 0, 0.05);
   overflow: hidden;
 }
 
@@ -18,32 +24,32 @@
   position: absolute;
   inset: 0 0 auto 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--feira-yellow), var(--feira-yellow-strong), var(--feira-yellow));
+  z-index: 2;
+  background: linear-gradient(90deg, rgba(255, 193, 7, 0), var(--feira-yellow), var(--feira-yellow-strong), var(--feira-yellow), rgba(255, 193, 7, 0));
 }
-
-/* Brilho radial decorativo (canto superior direito) */
+/* Glow dourado decorativo no canto */
 .section::after {
   content: '';
   position: absolute;
-  top: -80px;
-  right: -60px;
-  width: 240px;
-  height: 240px;
+  top: -90px;
+  right: -50px;
+  width: 280px;
+  height: 280px;
   pointer-events: none;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.18), rgba(255, 215, 0, 0) 70%);
+  background: radial-gradient(circle, var(--feira-yellow-soft, rgba(255, 215, 0, 0.16)), transparent 70%);
 }
 
+/* ===== Cabeçalho ===== */
 .head {
   position: relative;
   z-index: 1;
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 22px;
   flex-wrap: wrap;
   min-width: 0;
 }
-
 .heading {
   display: flex;
   align-items: center;
@@ -53,7 +59,6 @@
 .headingText {
   min-width: 0;
 }
-
 .seal {
   display: grid;
   place-items: center;
@@ -64,12 +69,11 @@
   line-height: 1;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(255, 215, 0, 0.2)),
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.85), rgba(255, 215, 0, 0.25)),
     var(--feira-yellow-soft, rgba(255, 215, 0, 0.16));
-  border: 1px solid var(--feira-yellow);
-  box-shadow: 0 4px 14px rgba(217, 161, 0, 0.25);
+  border: 1px solid rgba(255, 215, 0, 0.55);
+  box-shadow: 0 6px 18px -4px rgba(255, 193, 7, 0.5);
 }
-
 .title {
   display: flex;
   align-items: center;
@@ -77,19 +81,16 @@
   gap: 10px;
   font-size: clamp(1.45rem, 3vw, 1.95rem);
   font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--foreground);
+  letter-spacing: -0.015em;
+  color: #fff;
   min-width: 0;
   overflow-wrap: anywhere;
 }
-
 .subtitle {
   margin-top: 4px;
   font-size: 0.92rem;
-  color: var(--muted-foreground);
+  color: rgba(255, 255, 255, 0.66);
 }
-
-/* Linha de acento dourada que preenche o restante do cabeçalho */
 .accent {
   flex: 1;
   min-width: 60px;
@@ -98,28 +99,119 @@
   background: linear-gradient(90deg, var(--feira-yellow), rgba(255, 215, 0, 0));
 }
 
-.grid {
+/* ===== Carrossel ===== */
+.viewport {
   position: relative;
   z-index: 1;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  max-width: 100%;
   min-width: 0;
 }
 
+.track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - 3 * 20px) / 4); /* ~4 cards visíveis no desktop */
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  padding: 6px 2px 8px;
+  /* Sangra levemente para a esquerda/direita acomodar o glow do card */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.track::-webkit-scrollbar {
+  display: none;
+}
+.cell {
+  min-width: 0;
+  scroll-snap-align: start;
+  display: flex;
+}
+.cell > * {
+  width: 100%;
+}
+
+/* ===== Setas premium (estilo StoreCarousel) ===== */
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  cursor: pointer;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  transition: transform var(--t-fast, 0.15s) var(--ease, ease),
+    background var(--t-fast, 0.15s) var(--ease, ease),
+    opacity var(--t-fast, 0.15s) var(--ease, ease);
+}
+.arrow:hover {
+  background: rgba(15, 23, 42, 0.85);
+  transform: translateY(-50%) scale(1.08);
+}
+.arrow:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+.left {
+  left: -6px;
+}
+.right {
+  right: -6px;
+}
+
+/* ===== Dots premium ===== */
+.dots {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+.dot {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.28);
+  transition: background var(--t-fast, 0.15s) var(--ease, ease),
+    width var(--t-fast, 0.15s) var(--ease, ease);
+}
+.dot:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+.dotActive {
+  width: 26px;
+  border-radius: var(--r-pill, 999px);
+  background: var(--feira-yellow, #ffd700);
+}
+
+/* ===== Responsivo ===== */
 @media (max-width: 1200px) {
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
+  .track {
+    grid-auto-columns: calc((100% - 2 * 20px) / 3); /* 3 cards */
   }
 }
 @media (max-width: 900px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
+  .track {
+    grid-auto-columns: calc((100% - 1 * 18px) / 2); /* 2 cards */
+    gap: 18px;
   }
 }
-
-/* Mobile: carrossel horizontal com scroll-snap (sem overflow vertical). */
+@media (max-width: 640px) {
+  .arrow {
+    display: none; /* mobile: swipe + dots */
+  }
+}
 @media (max-width: 560px) {
   .section {
     padding: 18px;
@@ -127,30 +219,16 @@
   .accent {
     display: none;
   }
-  .grid {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: 78%;
-    grid-template-columns: none;
+  .track {
+    grid-auto-columns: 80%; /* ~1.25 card por vez, "espia" o próximo */
     gap: 14px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    /* sangra até as bordas do section para o card "espiar" no lado */
+    /* sangra até as bordas do section */
     margin: 0 -18px;
-    padding: 4px 18px 12px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .grid::-webkit-scrollbar {
-    display: none;
-  }
-  .grid > * {
-    scroll-snap-align: start;
+    padding: 6px 18px 10px;
   }
 }
-
 @media (max-width: 380px) {
-  .grid {
+  .track {
     grid-auto-columns: 86%;
   }
 }
