@@ -97,6 +97,20 @@
 .rating i {
   font-style: normal;
 }
+.reviews {
+  color: var(--text-dim, var(--muted-foreground));
+}
+.newBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: var(--r-pill);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--info, #2563eb);
+  background: var(--info-soft, rgba(37, 99, 235, 0.1));
+  border: 1px solid var(--info-soft, rgba(37, 99, 235, 0.2));
+}
 
 .price {
   font-size: 1.3rem;

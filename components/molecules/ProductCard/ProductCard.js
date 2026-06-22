@@ -55,9 +55,10 @@ export default function ProductCard({ product, loading = false, className }) {
     );
   }
 
-  const { title, price, image, rating = 4.5, sales = 127, installments = 3 } = product;
+  const { title, price, image, rating = 0, reviewsCount = 0, sold = 0, installments = 3 } = product;
   const href = product.id ? `/produto/${product.id}` : '#';
   const fav = isFavorite(product.id);
+  const hasReviews = reviewsCount > 0;
 
   return (
     <article className={cx(styles.card, className)}>
@@ -89,10 +90,21 @@ export default function ProductCard({ product, loading = false, className }) {
           <h3 className={styles.title}>{title}</h3>
         </Link>
         <div className={styles.rating}>
-          <Icon name="star" size={14} className={styles.star} />
-          <span>{rating.toFixed(1).replace('.', ',')}</span>
-          <i>•</i>
-          <span>{sales} vendas</span>
+          {hasReviews ? (
+            <>
+              <Icon name="star" size={14} className={styles.star} />
+              <span>{rating.toFixed(1).replace('.', ',')}</span>
+              <span className={styles.reviews}>({reviewsCount})</span>
+            </>
+          ) : (
+            <span className={styles.newBadge}>Novo</span>
+          )}
+          {sold > 0 && (
+            <>
+              {hasReviews && <i>•</i>}
+              <span>{sold} {sold === 1 ? 'venda' : 'vendas'}</span>
+            </>
+          )}
         </div>
         <div className={styles.price}>{BRL.format(price)}</div>
         <span className={styles.installments}>em até {installments}x sem juros</span>

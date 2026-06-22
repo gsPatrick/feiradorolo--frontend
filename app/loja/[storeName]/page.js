@@ -41,6 +41,30 @@ function Medal({ size = 16 }) {
   );
 }
 
+function Shield({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="m9 12 2 2 4-4" />
+    </svg>
+  );
+}
+
+const VERIFICATION = [
+  { label: 'Não verificado', cls: 'verifL0', title: 'Vendedor ainda não verificado' },
+  { label: 'E-mail e telefone verificados', cls: 'verifL1', title: 'E-mail e telefone verificados' },
+  { label: 'Documento validado', cls: 'verifL2', title: 'Documento de identidade validado' },
+  { label: 'Verificação facial', cls: 'verifL3', title: 'Verificação facial concluída — nível máximo' },
+];
+
+function SellerVerificationBadge({ level = 0 }) {
+  const v = VERIFICATION[Math.max(0, Math.min(3, level))] || VERIFICATION[0];
+  return (
+    <span className={cx(styles.verifBadge, styles[v.cls])} title={v.title}>
+      <Shield size={13} /> {v.label}
+    </span>
+  );
+}
+
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const slugify = (s) =>
   String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -101,11 +125,17 @@ export default function LojaPage() {
   const colorKey = AVATAR_KEYS[(name.length || 0) % AVATAR_KEYS.length];
   const initials = name.trim().slice(0, 2).toUpperCase();
 
-  // Métricas derivadas (estáveis a partir dos dados disponíveis)
-  const ratings = products.map((p) => p.rating).filter((r) => r > 0);
-  const avgRating = ratings.length ? (ratings.reduce((a, b) => a + b, 0) / ratings.length) : 0;
-  const totalSales = useMemo(() => 120 + ((name.length * 137) % 900), [name]);
-  const reputation = avgRating >= 4.7 ? 'Vendedor Platinum' : avgRating >= 4.4 ? 'Vendedor Líder' : 'Vendedor';
+  // Métricas reais do vendedor (vindas da API) com fallbacks seguros
+  const sellerRating = Number(seller && seller.rating) || 0;
+  const sellerReviews = Number(seller && seller.reviews_count) || 0;
+  const salesCount = Number(seller && seller.sales_count) || 0;
+  const productsCount = seller && seller.products_count != null ? Number(seller.products_count) : null;
+  const sellerTier = (seller && seller.seller_tier) || 'standard';
+  const verificationLevel = Math.max(0, Math.min(3, Number(seller && seller.verification_level) || 0));
+  const reputationLabel = (seller && seller.reputation_label) || null;
+  const sellerStatus = (seller && seller.status) || 'active';
+  const chatOnly = !!(seller && seller.chat_only);
+  const memberSince = seller && seller.member_since ? Number(seller.member_since) : null;
 
   // Categorias derivadas dos produtos do vendedor
   const categories = useMemo(() => {
@@ -185,12 +215,40 @@ export default function LojaPage() {
                 <span className={styles.verified} title="Loja verificada"><CheckCircle size={20} /></span>
               </div>
               <div className={styles.badges}>
-                <span className={cx(styles.repBadge, avgRating >= 4.7 && styles.repPlatinum)}>
-                  <Medal size={14} /> {reputation}
-                </span>
-                <span className={styles.locBadge}><Icon name="map-pin" size={13} /> São Paulo, SP</span>
-                <span className={styles.locBadge}><Calendar size={13} /> Desde 2023</span>
+                {reputationLabel && (
+                  <span className={cx(styles.repBadge, reputationLabel === 'Vendedor Platinum' && styles.repPlatinum)}>
+                    <Medal size={14} /> {reputationLabel}
+                  </span>
+                )}
+                {sellerTier === 'premium' && (
+                  <span className={styles.premiumBadge}>
+                    <Icon name="gem" size={13} /> Premium
+                  </span>
+                )}
+                <SellerVerificationBadge level={verificationLevel} />
+                {memberSince && (
+                  <span className={styles.locBadge}><Calendar size={13} /> Desde {memberSince}</span>
+                )}
               </div>
+              {(sellerStatus !== 'active' || chatOnly) && (
+                <div className={styles.statusRow}>
+                  {sellerStatus === 'suspended' && (
+                    <span className={cx(styles.statusBadge, styles.statusWarn)}>
+                      <Icon name="bell" size={13} /> Vendedor suspenso
+                    </span>
+                  )}
+                  {sellerStatus === 'banned' && (
+                    <span className={cx(styles.statusBadge, styles.statusDanger)}>
+                      <Icon name="bell" size={13} /> Conta indisponível
+                    </span>
+                  )}
+                  {chatOnly && sellerStatus === 'active' && (
+                    <span className={cx(styles.statusBadge, styles.statusInfo)}>
+                      <Icon name="chat" size={13} /> Apenas chat
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -215,19 +273,29 @@ export default function LojaPage() {
         <div className={styles.metricsBar}>
           <div className={styles.metric}>
             <strong className={styles.metricValue}>
-              <Icon name="star" size={16} className={styles.starIcon} />
-              {avgRating ? avgRating.toFixed(1).replace('.', ',') : '—'}
+              {sellerReviews > 0 ? (
+                <>
+                  <Icon name="star" size={16} className={styles.starIcon} />
+                  {sellerRating.toFixed(1).replace('.', ',')}
+                </>
+              ) : (
+                'Novo'
+              )}
             </strong>
-            <span className={styles.metricLabel}>Reputação</span>
+            <span className={styles.metricLabel}>
+              {sellerReviews > 0 ? `Reputação · ${sellerReviews}` : 'Reputação'}
+            </span>
           </div>
           <span className={styles.metricSep} aria-hidden="true" />
           <div className={styles.metric}>
-            <strong className={styles.metricValue}>{loading ? '—' : products.length}</strong>
+            <strong className={styles.metricValue}>
+              {loading ? '—' : productsCount != null ? productsCount : products.length}
+            </strong>
             <span className={styles.metricLabel}>Produtos</span>
           </div>
           <span className={styles.metricSep} aria-hidden="true" />
           <div className={styles.metric}>
-            <strong className={styles.metricValue}>{totalSales}+</strong>
+            <strong className={styles.metricValue}>{salesCount}</strong>
             <span className={styles.metricLabel}>Vendas</span>
           </div>
           <span className={styles.metricSep} aria-hidden="true" />

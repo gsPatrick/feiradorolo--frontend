@@ -131,6 +131,87 @@
   border: 1px solid var(--border);
 }
 
+/* Selo Premium */
+.premiumBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: var(--r-pill);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #7c3aed, #c026d3);
+  border: 1px solid transparent;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
+/* Selo de verificação (níveis 0-3) */
+.verifBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: var(--r-pill);
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+}
+.verifL0 {
+  color: var(--text-muted);
+  background: var(--card);
+  border-color: var(--border);
+}
+.verifL1 {
+  color: #0369a1;
+  background: rgba(14, 165, 233, 0.1);
+  border-color: rgba(14, 165, 233, 0.3);
+}
+.verifL2 {
+  color: #047857;
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+.verifL3 {
+  color: #fff;
+  background: linear-gradient(135deg, #059669, #047857);
+  border-color: transparent;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+}
+
+/* Avisos de status do vendedor */
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: var(--r-pill);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.statusWarn {
+  color: #92400e;
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+.statusDanger {
+  color: var(--destructive);
+  background: var(--destructive-soft, rgba(239, 68, 68, 0.12));
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+.statusInfo {
+  color: var(--info, #2563eb);
+  background: rgba(37, 99, 235, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.3);
+}
+
 .headerActions {
   display: flex;
   align-items: center;

@@ -27,6 +27,19 @@
   font-weight: 600;
 }
 
+/* --------------------------- Intro da escolha -------------------------- */
+.chooseIntro {
+  margin: 0 0 18px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.chooseIntro strong {
+  color: var(--text);
+}
+
 /* --------------------------- Grid de tiers ----------------------------- */
 .tierGrid {
   display: grid;
@@ -118,6 +131,13 @@
   color: var(--text);
 }
 
+.tierTagline {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: -2px;
+}
+
 .tierPrice {
   font-size: 1.9rem;
   font-weight: 900;
@@ -131,9 +151,27 @@
   font-weight: 600;
 }
 
+.tierBoost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 5px 12px;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--accent, var(--brand)) 16%, transparent);
+  color: var(--accent, var(--brand));
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.tierBoost :global(svg) {
+  flex: 0 0 auto;
+}
+
 .perks {
   list-style: none;
-  margin: 14px 0 18px;
+  margin: 14px 0 14px;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -155,6 +193,19 @@
   flex: 0 0 auto;
   margin-top: 2px;
   color: var(--success);
+}
+
+.tierAfter {
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 9px 11px;
+  border-radius: var(--r-md);
+  background: var(--bg-2, var(--surface-2, rgba(0, 0, 0, 0.03)));
+  border: 1px dashed var(--border);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+  text-align: left;
 }
 
 .tierCta {
@@ -212,19 +263,30 @@
   border: 1px solid var(--border);
 }
 
-.paySummary > div {
+.paySummaryBody {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.paySummaryDur {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
 }
 
 .payTierIcon {
   font-size: 2rem;
+  flex: 0 0 auto;
 }
 
 .payAmount {
   font-size: 1.35rem;
   font-weight: 900;
   color: var(--brand);
+  flex: 0 0 auto;
 }
 
 .pixBox {
@@ -372,6 +434,127 @@
   font-size: 0.9rem;
 }
 
+/* Cartão de detalhes do destaque ativado */
+.successCard {
+  width: 100%;
+  max-width: 440px;
+  margin-top: 6px;
+  padding: 18px;
+  border-radius: var(--r-xl);
+  border: 2px solid var(--border);
+  background: var(--surface);
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.successCard::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+  background: var(--accent, var(--brand));
+}
+
+.successCard.silver {
+  --accent: var(--tier-silver, #9ca3af);
+}
+.successCard.gold {
+  --accent: var(--tier-gold, #f59e0b);
+}
+.successCard.diamond {
+  --accent: var(--tier-diamond, #38bdf8);
+}
+
+.successCardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+/* Reposiciona o HighlightBadge (que é absolute por padrão) para o fluxo */
+.successFlowBadge {
+  position: static;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.successLive {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--success);
+  white-space: nowrap;
+}
+
+.liveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45);
+  animation: pulse 1.6s infinite;
+}
+
+.successDetails {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 0 0 12px;
+}
+
+.successDetails > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.successDetails dt {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.successDetails dd {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.successSummary {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: var(--success-soft);
+  color: var(--success);
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.successSummary :global(svg) {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
 .successBtn {
   margin-top: 8px;
+}
+
+@media (max-width: 480px) {
+  .successDetails {
+    grid-template-columns: 1fr;
+  }
 }
