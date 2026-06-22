@@ -581,7 +581,7 @@ export default function ProdutoPage() {
   }));
 
   function add() {
-    addItem({ id: product.id, title: product.title, price: product.price, image: product.image, sellerId: product.sellerId || product.sellerData?.id || null }, qty);
+    addItem({ id: product.id, title: product.title, price: product.price, image: product.image, sellerId: product.sellerId || product.sellerData?.id || null, allowPickup: product.allowPickup }, qty);
     toast({ title: '✓ Adicionado!', variant: 'success', duration: 1000 });
   }
   function buyNow() {

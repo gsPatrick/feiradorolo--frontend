@@ -8,12 +8,18 @@
   justify-content: space-between;
   gap: 20px;
   margin-bottom: 22px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .heading {
   display: flex;
   align-items: flex-start;
   gap: 12px;
+  min-width: 0;
+}
+.heading > div {
+  min-width: 0;
 }
 
 .icon {
@@ -26,9 +32,12 @@
 .title {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   font-size: clamp(1.4rem, 3vw, 1.85rem);
   color: var(--foreground);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .badge {
   vertical-align: middle;
@@ -63,6 +72,13 @@
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 18px;
+  max-width: 100%;
+  min-width: 0;
+}
+/* filhos (ProductCard) nunca podem forçar a largura da faixa */
+.grid > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 @media (max-width: 1200px) {
@@ -73,5 +89,29 @@
 @media (max-width: 760px) {
   .grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+/* Mobile estreito: faixa vira carrossel horizontal com snap (touch) */
+@media (max-width: 520px) {
+  .grid {
+    display: flex;
+    grid-template-columns: none;
+    gap: 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 6px;
+    margin: 0 -12px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .grid::-webkit-scrollbar {
+    height: 0;
+  }
+  .grid > * {
+    flex: 0 0 64%;
+    max-width: 64%;
+    scroll-snap-align: start;
   }
 }

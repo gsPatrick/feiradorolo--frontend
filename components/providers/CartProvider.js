@@ -41,6 +41,7 @@ export function CartProvider({ children }) {
           price: Number(product.price),
           image: product.image || null,
           sellerId: product.sellerId || product.seller?.id || null,
+          allowPickup: !!(product.allowPickup ?? product.allow_pickup),
           qty,
         },
       ];

@@ -1,11 +1,14 @@
 .content {
   background: #f6f7f9;
+  overflow-x: hidden;
 }
 
 .container {
   max-width: var(--container);
   margin: 0 auto;
   padding: 0 28px;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .heroWrap {

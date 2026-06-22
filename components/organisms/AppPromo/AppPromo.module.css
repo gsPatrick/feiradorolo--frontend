@@ -1,5 +1,6 @@
 .section {
   background: #f3f4f6;
+  overflow-x: hidden;
 }
 .inner {
   max-width: var(--container);
@@ -9,6 +10,7 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
+  min-width: 0;
 }
 
 .title {
@@ -101,6 +103,24 @@
   margin-top: 18px;
   font-size: 0.82rem;
   color: var(--text-dim);
+}
+
+@media (max-width: 640px) {
+  .inner {
+    padding: 44px 16px 52px;
+  }
+  .features {
+    gap: 28px 40px;
+    margin: 28px 0 24px;
+  }
+  .badges {
+    width: 100%;
+  }
+  .badge {
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: center;
+  }
 }
 
 /* Selo "Em breve" */

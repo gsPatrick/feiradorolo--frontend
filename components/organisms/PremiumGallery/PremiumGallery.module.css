@@ -27,12 +27,18 @@
   justify-content: space-between;
   gap: 20px;
   margin-bottom: 22px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .heading {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
+}
+.heading > div {
+  min-width: 0;
 }
 
 .seal {
@@ -51,9 +57,12 @@
 .title {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   font-size: clamp(1.4rem, 3vw, 1.85rem);
   color: var(--foreground);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .subtitle {
@@ -66,10 +75,14 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 18px;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .cardWrap {
   position: relative;
+  min-width: 0;
+  max-width: 100%;
   border-radius: var(--r-md, 12px);
   /* Realce premium sutil em cada card */
   box-shadow: 0 0 0 1px var(--feira-yellow-soft, rgba(255, 215, 0, 0.16));

@@ -8,7 +8,7 @@ import { onlyDigits, maskCPF } from '@/lib/masks';
 import { useCart } from '@/components/providers/CartProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { addressService, couponService, shipmentService, orderService, paymentService, ApiError } from '@/lib/api';
+import { addressService, couponService, shipmentService, orderService, paymentService, productService, ApiError } from '@/lib/api';
 import Button from '@/components/atoms/Button/Button';
 import Input from '@/components/atoms/Input/Input';
 import Select from '@/components/atoms/Select/Select';
@@ -125,6 +125,62 @@ export default function FinalizarCompraPage() {
   // Método de entrega: 'shipping' (Melhor Envio) | 'pickup' (retirada presencial)
   const [deliveryMethod, setDeliveryMethod] = useState('shipping');
   const isPickup = deliveryMethod === 'pickup';
+
+  // Retirada presencial só é oferecida quando TODOS os itens permitem retirada.
+  // Itens antigos no carrinho podem não ter o flag `allowPickup`; nesse caso
+  // buscamos o produto real e guardamos o `allow_pickup` aqui (cache por id).
+  const [pickupOverrides, setPickupOverrides] = useState({});
+
+  // Descobre o allow_pickup real dos itens sem flag (undefined). Em paralelo,
+  // com cache. Se o fetch falhar, assume false (= só frete) — nunca quebra.
+  useEffect(() => {
+    const unknown = items.filter(
+      (it) => it.allowPickup === undefined && pickupOverrides[it.id] === undefined
+    );
+    if (unknown.length === 0) return;
+    let active = true;
+    Promise.all(
+      unknown.map((it) =>
+        productService
+          .getById(it.id)
+          .then((raw) => {
+            const meta = (raw && raw.metadata) || {};
+            const allow = !!(meta.allow_pickup || meta.pickup_available || (raw && raw.allow_pickup));
+            return [it.id, allow];
+          })
+          .catch(() => [it.id, false])
+      )
+    ).then((entries) => {
+      if (!active) return;
+      setPickupOverrides((prev) => {
+        const next = { ...prev };
+        entries.forEach(([id, allow]) => {
+          next[id] = allow;
+        });
+        return next;
+      });
+    });
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items]);
+
+  // Só oferece retirada se TODOS os itens permitirem. Para itens sem flag,
+  // usa o valor resolvido pelo fetch (pickupOverrides); ausente = ainda não sei
+  // → trata como "não permite" até resolver (false-safe).
+  const canPickup =
+    items.length > 0 &&
+    items.every((it) =>
+      it.allowPickup === undefined ? pickupOverrides[it.id] === true : it.allowPickup === true
+    );
+
+  // Se a retirada não é possível, garante que o método fique em 'shipping'.
+  useEffect(() => {
+    if (!canPickup && deliveryMethod === 'pickup') {
+      setDeliveryMethod('shipping');
+    }
+  }, [canPickup, deliveryMethod]);
 
   // Endereço
   const [addresses, setAddresses] = useState([]);
@@ -837,24 +893,32 @@ export default function FinalizarCompraPage() {
                 </span>
               </button>
 
-              <button
-                type="button"
-                className={cx(styles.methodCard, isPickup && styles.methodCardActive)}
-                onClick={() => setDeliveryMethod('pickup')}
-                aria-pressed={isPickup}
-              >
-                {isPickup && (
-                  <span className={styles.methodCheck}>
-                    <Icon name="check" size={16} />
+              {canPickup && (
+                <button
+                  type="button"
+                  className={cx(styles.methodCard, isPickup && styles.methodCardActive)}
+                  onClick={() => setDeliveryMethod('pickup')}
+                  aria-pressed={isPickup}
+                >
+                  {isPickup && (
+                    <span className={styles.methodCheck}>
+                      <Icon name="check" size={16} />
+                    </span>
+                  )}
+                  <span className={styles.methodEmoji}>🤝</span>
+                  <span className={styles.methodTitle}>Retirada presencial</span>
+                  <span className={styles.methodSub}>
+                    Combine o encontro com o vendedor pelo chat
                   </span>
-                )}
-                <span className={styles.methodEmoji}>🤝</span>
-                <span className={styles.methodTitle}>Retirada presencial</span>
-                <span className={styles.methodSub}>
-                  Combine o encontro com o vendedor pelo chat
-                </span>
-              </button>
+                </button>
+              )}
             </div>
+
+            {!canPickup && (
+              <p className={styles.stepLead} style={{ textAlign: 'center', marginTop: 8 }}>
+                A retirada presencial não está disponível para um ou mais itens deste pedido.
+              </p>
+            )}
 
             <div className={styles.navCenter}>
               <Button onClick={next} size="lg" rightIcon="arrow-right">

@@ -35,6 +35,7 @@
 .slide {
   width: 100%;
   max-width: 920px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -95,11 +96,13 @@
   gap: 16px;
   width: 100%;
   max-width: 720px;
+  min-width: 0;
 }
 .stat {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
   padding: 22px 16px;
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -217,6 +220,10 @@
   .arrow {
     display: none;
   }
+  .banner {
+    min-height: 380px;
+    padding: 32px 18px 44px;
+  }
   .stats {
     grid-template-columns: 1fr;
   }
@@ -225,5 +232,13 @@
   }
   .store {
     flex-direction: column;
+  }
+  .actions {
+    width: 100%;
+  }
+  .primary,
+  .secondary {
+    flex: 1 1 auto;
+    justify-content: center;
   }
 }

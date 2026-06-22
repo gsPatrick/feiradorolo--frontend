@@ -29,6 +29,7 @@ export default function ProductCard({ product, loading = false, className }) {
       price: product.price,
       image: product.image,
       sellerId: product.seller?.id || product.sellerId || null,
+      allowPickup: product.allowPickup,
     });
     toast({ title: '✓ Adicionado!', variant: 'success', duration: 1000 });
     setAdded(true);
