@@ -1,0 +1,99 @@
+.section {
+  position: relative;
+  width: 100%;
+  padding: 26px;
+  border-radius: var(--r-lg, 16px);
+  /* Realce dourado/diamante sutil */
+  background:
+    linear-gradient(180deg, rgba(255, 215, 0, 0.07), rgba(255, 215, 0, 0) 70%),
+    var(--bg, #fff);
+  border: 1px solid var(--feira-yellow);
+  box-shadow: 0 8px 28px rgba(255, 193, 7, 0.14);
+}
+
+/* Borda dourada com brilho no topo */
+.section::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  border-radius: var(--r-lg, 16px) var(--r-lg, 16px) 0 0;
+  background: linear-gradient(90deg, var(--feira-yellow), var(--feira-yellow-strong), var(--feira-yellow));
+}
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.seal {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  font-size: 1.4rem;
+  line-height: 1;
+  border-radius: 50%;
+  background: var(--feira-yellow-soft, rgba(255, 215, 0, 0.16));
+  border: 1px solid var(--feira-yellow);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: clamp(1.4rem, 3vw, 1.85rem);
+  color: var(--foreground);
+}
+
+.subtitle {
+  margin-top: 4px;
+  font-size: 0.92rem;
+  color: var(--muted-foreground);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+.cardWrap {
+  position: relative;
+  border-radius: var(--r-md, 12px);
+  /* Realce premium sutil em cada card */
+  box-shadow: 0 0 0 1px var(--feira-yellow-soft, rgba(255, 215, 0, 0.16));
+  transition: box-shadow var(--t-fast, 0.15s) var(--ease, ease);
+}
+.cardWrap:hover {
+  box-shadow: 0 0 0 2px var(--feira-yellow);
+}
+
+@media (max-width: 1200px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 520px) {
+  .section {
+    padding: 18px;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

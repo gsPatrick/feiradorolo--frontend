@@ -8,6 +8,7 @@ import StoreCarousel from '@/components/organisms/StoreCarousel/StoreCarousel';
 import QuickAccessCards from '@/components/organisms/QuickAccessCards/QuickAccessCards';
 import FlashSaleBar from '@/components/organisms/FlashSaleBar/FlashSaleBar';
 import ProductSection from '@/components/organisms/ProductSection/ProductSection';
+import PremiumGallery from '@/components/organisms/PremiumGallery/PremiumGallery';
 import CategoryGrid from '@/components/organisms/CategoryGrid/CategoryGrid';
 import AppPromo from '@/components/organisms/AppPromo/AppPromo';
 
@@ -43,6 +44,10 @@ export default function HomePage() {
         <FlashSaleBar />
 
         <div className={styles.container}>
+          <div className={styles.sectionWrap}>
+            <PremiumGallery />
+          </div>
+
           <div className={styles.sectionWrap}>
             <ProductSection
               icon="trending-up"
