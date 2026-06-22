@@ -8,8 +8,11 @@ import { cx } from '@/lib/cx';
 import Button from '@/components/atoms/Button/Button';
 import Badge from '@/components/atoms/Badge/Badge';
 import Icon from '@/components/atoms/Icon/Icon';
+import Modal from '@/components/organisms/Modal/Modal';
+import PlanCardPayment from '@/components/organisms/PlanCardPayment/PlanCardPayment';
 import { contentService, configService, planService, getToken, ApiError } from '@/lib/api';
 import { useToast } from '@/components/providers/ToastProvider';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 /* ----------------------------------------------------------------
    Conteúdo editável (intro) — vem de contentService('planos-e-taxas').
@@ -100,6 +103,7 @@ function extractPix(res) {
 export default function PlanosETaxas() {
   const router = useRouter();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const [header, setHeader] = useState(FALLBACK_HEADER);
   const [fees, setFees] = useState(null);
@@ -107,8 +111,12 @@ export default function PlanosETaxas() {
   const [plans, setPlans] = useState(null); // null = carregando; [] = vazio/deslogado
   const [plansAuthed, setPlansAuthed] = useState(false);
 
-  const [subscribing, setSubscribing] = useState(null); // planId em processamento
+  const [subscribing, setSubscribing] = useState(null); // planId em processamento (Pix)
   const [pixCode, setPixCode] = useState(null);
+
+  // Escolha da forma de pagamento (Pix x Cartão) e modal de cartão.
+  const [methodPlan, setMethodPlan] = useState(null); // plano escolhendo a forma de pagamento
+  const [cardPlan, setCardPlan] = useState(null); // plano pagando com cartão
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -188,13 +196,22 @@ export default function PlanosETaxas() {
   const showCategoryFallback = !categoryPlans.length;
   const categoryRows = showCategoryFallback ? CATEGORY_FALLBACK : categoryPlans;
 
-  async function handleSubscribe(plan) {
+  // "Assinar" → abre o seletor de forma de pagamento (Pix x Cartão).
+  function handleSubscribe(plan) {
     if (!getToken()) {
       toast({ title: 'Entre na sua conta para assinar um plano.', variant: 'default' });
       router.push('/login?redirect=/planos-e-taxas');
       return;
     }
     if (!plan || !plan.id) return;
+    setPixCode(null);
+    setMethodPlan(plan);
+  }
+
+  // Paga a assinatura com Pix (fluxo original).
+  async function subscribeWithPix(plan) {
+    if (!plan || !plan.id) return;
+    setMethodPlan(null);
     setSubscribing(plan.id);
     setPixCode(null);
     try {
@@ -449,6 +466,74 @@ export default function PlanosETaxas() {
           </div>
         </div>
       </div>
+
+      {/* Seletor de forma de pagamento (Pix x Cartão) */}
+      <Modal
+        open={!!methodPlan}
+        onClose={() => setMethodPlan(null)}
+        size="sm"
+        title={
+          <span className={styles.modalTitle}>
+            <Icon name="package" size={20} />
+            Assinar {methodPlan?.name}
+          </span>
+        }
+      >
+        <p className={styles.methodLead}>Escolha como deseja pagar o pacote de publicação.</p>
+        <div className={styles.methodList}>
+          <button
+            type="button"
+            className={styles.methodOption}
+            onClick={() => subscribeWithPix(methodPlan)}
+          >
+            <span className={styles.methodBadgePix}>PIX</span>
+            <span className={styles.methodOptBody}>
+              <span className={styles.methodOptName}>Pix</span>
+              <span className={styles.methodOptSub}>Pague na hora pelo app do seu banco</span>
+            </span>
+            <Icon name="chevron-left" size={18} className={styles.methodChevron} />
+          </button>
+          <button
+            type="button"
+            className={styles.methodOption}
+            onClick={() => {
+              const p = methodPlan;
+              setMethodPlan(null);
+              setCardPlan(p);
+            }}
+          >
+            <Icon name="card" size={24} className={styles.methodCardIcon} />
+            <span className={styles.methodOptBody}>
+              <span className={styles.methodOptName}>Cartão de crédito</span>
+              <span className={styles.methodOptSub}>Ative na hora e renove automaticamente</span>
+            </span>
+            <Icon name="chevron-left" size={18} className={styles.methodChevron} />
+          </button>
+        </div>
+      </Modal>
+
+      {/* Pagamento com cartão (tokenização Mercado Pago + salvar cartão) */}
+      <PlanCardPayment
+        open={!!cardPlan}
+        plan={cardPlan}
+        userCpf={user?.cpf || user?.document || ''}
+        onClose={() => setCardPlan(null)}
+        onSuccess={() => {
+          toast({
+            title: 'Assinatura ativada!',
+            description: 'Seu plano de categoria já está ativo.',
+            variant: 'success',
+            duration: 5000,
+          });
+          // Atualiza a lista de planos para refletir o status, se logado.
+          if (getToken()) {
+            planService
+              .list()
+              .then((list) => setPlans(Array.isArray(list) ? list : []))
+              .catch(() => {});
+          }
+        }}
+      />
     </main>
   );
 }

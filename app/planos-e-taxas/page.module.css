@@ -548,3 +548,77 @@
     flex-direction: column;
   }
 }
+
+/* ===== Seletor de forma de pagamento (modal Assinar) ===== */
+.modalTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.methodLead {
+  margin: 0 0 14px;
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+}
+.methodList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.methodOption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg, #fff);
+  cursor: pointer;
+  transition: border-color var(--t-fast, 0.15s) var(--ease, ease),
+    background var(--t-fast, 0.15s) var(--ease, ease),
+    transform var(--t-fast, 0.15s) var(--ease, ease);
+}
+.methodOption:hover {
+  border-color: var(--feira-yellow-strong, #f5a623);
+  background: color-mix(in srgb, var(--feira-yellow-strong, #f5a623) 6%, transparent);
+}
+.methodBadgePix {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  background: #32bcad;
+  flex-shrink: 0;
+}
+.methodCardIcon {
+  color: var(--feira-yellow-strong, #f5a623);
+  flex-shrink: 0;
+}
+.methodOptBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.methodOptName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.methodOptSub {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+.methodChevron {
+  transform: rotate(180deg);
+  color: var(--text-dim, #999);
+  flex-shrink: 0;
+}

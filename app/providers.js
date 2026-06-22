@@ -8,6 +8,7 @@ import { FavoritesProvider } from '@/components/providers/FavoritesProvider';
 import CartDrawer from '@/components/organisms/CartDrawer/CartDrawer';
 import MpSignupInvite from '@/components/organisms/MpSignupInvite/MpSignupInvite';
 import EmailVerifyInvite from '@/components/organisms/EmailVerifyInvite/EmailVerifyInvite';
+import RenewalReminder from '@/components/organisms/RenewalReminder/RenewalReminder';
 
 export default function Providers({ children }) {
   return (
@@ -20,6 +21,7 @@ export default function Providers({ children }) {
               <CartDrawer />
               <MpSignupInvite />
               <EmailVerifyInvite />
+              <RenewalReminder />
             </CartProvider>
           </FavoritesProvider>
         </AuthProvider>
