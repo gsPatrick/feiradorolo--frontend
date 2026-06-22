@@ -8,6 +8,7 @@ import Button from '@/components/atoms/Button/Button';
 import Spinner from '@/components/atoms/Spinner/Spinner';
 import EmptyState from '@/components/molecules/EmptyState/EmptyState';
 import SellerTrust from '@/components/molecules/SellerTrust/SellerTrust';
+import VerifiedSeal from '@/components/atoms/VerifiedSeal/VerifiedSeal';
 import { authService, chatService, ApiError } from '@/lib/api';
 import { getSocket } from '@/lib/socket';
 import { useAuth } from '@/components/providers/AuthProvider';
@@ -234,7 +235,13 @@ export default function MensagensPage() {
                   <button className={styles.back} onClick={() => setSelectedId(null)} aria-label="Voltar">
                     <Icon name="arrow-left" size={20} />
                   </button>
-                  <span className={styles.avatar}>{((counterpart(selectedChat) || {}).name || 'U').charAt(0).toUpperCase()}</span>
+                  <span style={{ position: 'relative', display: 'inline-flex', flexShrink: 0 }}>
+                    <span className={styles.avatar}>{((counterpart(selectedChat) || {}).name || 'U').charAt(0).toUpperCase()}</span>
+                    {(() => {
+                      const sId = selectedChat.seller_id || selectedChat.seller?.id || null;
+                      return sId ? <VerifiedSeal overlay sellerId={sId} size={16} /> : null;
+                    })()}
+                  </span>
                   <div className={styles.winInfo}>
                     <strong>{(counterpart(selectedChat) || {}).name || 'Usuário'}</strong>
                     <span>{selectedChat.product ? 'Conversa sobre produto' : 'Chat'}</span>

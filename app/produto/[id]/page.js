@@ -9,6 +9,7 @@ import Breadcrumb from '@/components/molecules/Breadcrumb/Breadcrumb';
 import Gallery from '@/components/molecules/Gallery/Gallery';
 import Rating from '@/components/molecules/Rating/Rating';
 import SellerTrust from '@/components/molecules/SellerTrust/SellerTrust';
+import VerifiedSeal from '@/components/atoms/VerifiedSeal/VerifiedSeal';
 import Badge from '@/components/atoms/Badge/Badge';
 import Icon from '@/components/atoms/Icon/Icon';
 import Skeleton from '@/components/atoms/Skeleton/Skeleton';
@@ -940,8 +941,13 @@ export default function ProdutoPage() {
                 return (
                   <div className={styles.sideCard}>
                     <div className={styles.sellerHead}>
-                      <span className={styles.sellerAvatar} aria-hidden="true">
-                        {(product.seller || 'V').trim().charAt(0).toUpperCase()}
+                      <span className={styles.sellerAvatar}>
+                        <span aria-hidden="true">{(product.seller || 'V').trim().charAt(0).toUpperCase()}</span>
+                        {seller ? (
+                          <VerifiedSeal overlay seller={seller} size={18} />
+                        ) : product.sellerId ? (
+                          <VerifiedSeal overlay sellerId={product.sellerId} size={18} />
+                        ) : null}
                       </span>
                       <div className={styles.sellerMeta}>
                         <strong>{product.seller}</strong>

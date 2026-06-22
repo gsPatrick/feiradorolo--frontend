@@ -12,6 +12,7 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
 import ReturnModal from '@/components/organisms/ReturnModal/ReturnModal';
 import SellerTrust from '@/components/molecules/SellerTrust/SellerTrust';
+import VerifiedSeal from '@/components/atoms/VerifiedSeal/VerifiedSeal';
 import { orderService, escrowService, paymentService, chatService, productService, disputeService, mapProduct, ApiError } from '@/lib/api';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -714,7 +715,10 @@ export default function PedidoDetalhePage() {
                 <Icon name="store" size={20} /> Vendedor
               </div>
               <div className={styles.personHead}>
-                <Avatar src={seller?.avatar_url} name={seller?.name} size={56} />
+                <span style={{ position: 'relative', display: 'inline-block', flexShrink: 0 }}>
+                  <Avatar src={seller?.avatar_url} name={seller?.name} size={56} />
+                  {sellerId && <VerifiedSeal overlay sellerId={sellerId} size={18} />}
+                </span>
                 <div className={styles.personMeta}>
                   <p className={styles.personName}>{seller?.name || 'Vendedor'}</p>
                   {sellerRating ? (

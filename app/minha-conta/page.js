@@ -15,6 +15,7 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { orderService, favoriteService, userService, addressService, productService, paymentService, verificationService, reviewService, planService, configService, uploadImage, mapProduct, ApiError } from '@/lib/api';
 import VerificationModal from '@/components/organisms/VerificationModal/VerificationModal';
+import VerifiedSeal from '@/components/atoms/VerifiedSeal/VerifiedSeal';
 import { maskPhone, maskCPF, maskCNPJ, onlyDigits, isEmail, isPhone, isCPF, isCNPJ } from '@/lib/masks';
 // Rótulos de status dos pedidos (mapa estático de UI).
 const STATUS_LABELS = {
@@ -112,6 +113,8 @@ export default function MinhaContaPage() {
   const [myPlan, setMyPlan] = useState(null);
   const [fees, setFees] = useState(null);
   const [planState, setPlanState] = useState('idle');
+  // Status de verificação do próprio usuário (p/ o selo no avatar do perfil)
+  const [myVerif, setMyVerif] = useState(null); // { email_verified, phone_verified, document_verified }
 
   const isCompras = view === 'compras';
   const isVendas = view === 'vendas';
@@ -142,6 +145,26 @@ export default function MinhaContaPage() {
     setSellerProdState('idle');
     setReviewsState('idle');
     setPlanState('idle');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user && user.id]);
+
+  // Busca o status de verificação do usuário logado para montar o selo do avatar.
+  useEffect(() => {
+    if (!user || !user.id) { setMyVerif(null); return; }
+    let active = true;
+    verificationService
+      .status()
+      .then((s) => {
+        if (!active) return;
+        const st = s || {};
+        setMyVerif({
+          email_verified: !!st.email_verified,
+          phone_verified: !!st.phone_verified,
+          document_verified: !!st.document_verified,
+        });
+      })
+      .catch(() => active && setMyVerif(null));
+    return () => { active = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user && user.id]);
 
@@ -448,11 +471,14 @@ export default function MinhaContaPage() {
           <aside className={styles.profileCard}>
             {user ? (
               <>
-                <div className={styles.avatar}>
-                  {user.avatar_url
-                    ? <img src={user.avatar_url} alt="" className={styles.avatarImg} />
-                    : (user.name || user.email || 'U').charAt(0).toUpperCase()}
-                </div>
+                <span style={{ position: 'relative', display: 'inline-grid' }}>
+                  <div className={styles.avatar}>
+                    {user.avatar_url
+                      ? <img src={user.avatar_url} alt="" className={styles.avatarImg} />
+                      : (user.name || user.email || 'U').charAt(0).toUpperCase()}
+                  </div>
+                  {myVerif && <VerifiedSeal overlay seller={myVerif} size={20} />}
+                </span>
                 <strong className={styles.name}>{(user.name || 'Conta').split(' ')[0]}</strong>
                 <span className={styles.email}>{user.email}</span>
                 <button className={styles.changePhoto} onClick={() => setModal('photo')}>

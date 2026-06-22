@@ -7,6 +7,7 @@ import Button from '@/components/atoms/Button/Button';
 import Icon from '@/components/atoms/Icon/Icon';
 import ProductCard from '@/components/molecules/ProductCard/ProductCard';
 import SellerTrust from '@/components/molecules/SellerTrust/SellerTrust';
+import VerifiedSeal from '@/components/atoms/VerifiedSeal/VerifiedSeal';
 import { cx } from '@/lib/cx';
 import { productService, mapProduct, chatService } from '@/lib/api';
 import { useToast } from '@/components/providers/ToastProvider';
@@ -207,9 +208,12 @@ export default function LojaPage() {
         <div className={styles.bannerGlow} aria-hidden="true" />
         <div className={styles.bannerInner}>
           <div className={styles.identity}>
-            <div className={cx(styles.avatar, styles[`av_${colorKey}`])}>
-              {avatarUrl ? <img src={avatarUrl} alt={name} className={styles.avatarImg} /> : initials}
-            </div>
+            <span style={{ position: 'relative', display: 'inline-block', flexShrink: 0 }}>
+              <div className={cx(styles.avatar, styles[`av_${colorKey}`])}>
+                {avatarUrl ? <img src={avatarUrl} alt={name} className={styles.avatarImg} /> : initials}
+              </div>
+              {seller && <VerifiedSeal overlay seller={seller} size={22} />}
+            </span>
             <div className={styles.identityText}>
               <div className={styles.nameRow}>
                 <h1 className={styles.storeName}>{name}</h1>
