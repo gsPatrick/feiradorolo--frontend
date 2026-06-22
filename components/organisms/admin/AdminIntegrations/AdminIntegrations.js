@@ -72,6 +72,30 @@ const CATALOG = [
     items: [
       {
         kind: 'integration',
+        key: 'zoho_mail',
+        match: { service: 'zoho_mail' },
+        service: 'zoho_mail',
+        icon: 'mail',
+        name: 'Zoho Mail',
+        purpose: 'Enviar e-mails transacionais pela API do Zoho Mail (OAuth Self Client).',
+        link: 'https://api-console.zoho.com/',
+        steps: [
+          'No console (api-console.zoho.com) crie um Self Client e copie Client ID e Secret.',
+          'Em Generate Code use o escopo: ZohoMail.accounts.READ,ZohoMail.messages.CREATE e gere o grant code.',
+          'Troque o grant code por refresh_token; pegue o accountId (GET /api/accounts). Cole tudo abaixo.',
+        ],
+        config: [
+          { name: 'from_address', label: 'E-mail remetente (verificado no Zoho)', placeholder: 'no-reply@feiradorolo.com' },
+          { name: 'account_id', label: 'Account ID', placeholder: 'Ex.: 123456789' },
+        ],
+        secrets: [
+          { name: 'client_id', label: 'Client ID' },
+          { name: 'client_secret', label: 'Client Secret' },
+          { name: 'refresh_token', label: 'Refresh Token' },
+        ],
+      },
+      {
+        kind: 'integration',
         key: 'resend',
         match: { service: 'resend' },
         service: 'resend',
