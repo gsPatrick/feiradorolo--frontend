@@ -93,6 +93,26 @@ function formatDate(value) {
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
+// Rótulos amigáveis para chaves de specification comuns (o backend manda
+// `specs_list` já rotulado via field_definitions; isto é fallback).
+const SPEC_LABELS = {
+  brand: 'Marca', volume: 'Volume', country: 'País de origem', material: 'Material',
+  quantity: 'Quantidade', anvisa_code: 'Código Anvisa', formulation: 'Formulação',
+  ingredients: 'Ingredientes', package_size: 'Tamanho da embalagem', custom_product: 'Produto personalizado',
+  color: 'Cor', size: 'Tamanho', model: 'Modelo', weight: 'Peso', warranty: 'Garantia',
+  gender: 'Gênero', voltage: 'Voltagem', capacity: 'Capacidade',
+};
+function prettyLabel(key) {
+  if (SPEC_LABELS[key]) return SPEC_LABELS[key];
+  return String(key).replace(/[_-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+/** Converte o objeto specifications { chave: valor } numa lista [{label,value}]. */
+function specsObjectToList(obj) {
+  return Object.entries(obj)
+    .filter(([, v]) => v != null && v !== '' && !(Array.isArray(v) && v.length === 0))
+    .map(([k, v]) => ({ label: prettyLabel(k), value: Array.isArray(v) ? v.join(', ') : String(v) }));
+}
+
 /** Monta o objeto de produto consumido pelo layout a partir do bruto da API. */
 function buildProduct(raw) {
   const mapped = mapProduct(raw);
@@ -101,23 +121,30 @@ function buildProduct(raw) {
   const images = Array.isArray(raw.images) ? raw.images : [];
   const condition = raw.condition || 'new';
   const categoryName = (raw.category && raw.category.name) || mapped.category || '';
-  const specsFromApi = Array.isArray(raw.specifications) ? raw.specifications : null;
+  // O backend manda `specs_list` (array rotulado); senão `specifications` pode
+  // vir array OU objeto { chave: valor } — convertemos o objeto em lista.
+  const specsFromApi = Array.isArray(raw.specs_list)
+    ? raw.specs_list
+    : Array.isArray(raw.specifications)
+      ? raw.specifications
+      : raw.specifications && typeof raw.specifications === 'object'
+        ? specsObjectToList(raw.specifications)
+        : null;
   return {
     ...mapped,
     // Preserva o objeto seller enriquecido (verificações, tier, reputação…)
     // que o mapProduct achata para string. Fallback seguro p/ undefined.
     sellerData: raw.seller && typeof raw.seller === 'object' ? raw.seller : null,
+    allowPickup: !!(meta.allow_pickup || meta.pickup_available || raw.allow_pickup),
     images: images.length ? images : (mapped.image ? [mapped.image] : []),
     description: raw.description || '',
     stock: typeof raw.stock === 'number' ? raw.stock : 5,
     sales: Number(raw.favorites_count) || 0,
     installments: 12,
     categoryLabel: categoryName,
-    specs: specsFromApi || [
+    specs: (specsFromApi && specsFromApi.length) ? specsFromApi : [
       { label: 'Marca', value: mapped.brand || '—' },
       { label: 'Condição', value: condition === 'new' ? 'Novo' : 'Usado' },
-      { label: 'Garantia', value: '90 dias' },
-      { label: 'Origem', value: 'Brasil' },
       { label: 'Categoria', value: categoryName || '—' },
     ],
   };
@@ -905,13 +932,15 @@ export default function ProdutoPage() {
                   Adicionar ao carrinho
                 </button>
 
-                <div className={styles.pickupNote}>
-                  <Icon name="shield" size={16} />
-                  <span>
-                    <strong>Retirada presencial disponível</strong> — escolha no checkout. Um código de
-                    6 dígitos protege a entrega; combine em local público e movimentado.
-                  </span>
-                </div>
+                {product.allowPickup && (
+                  <div className={styles.pickupNote}>
+                    <Icon name="shield" size={16} />
+                    <span>
+                      <strong>Retirada presencial disponível</strong> — escolha no checkout. Um código de
+                      6 dígitos protege a entrega; combine em local público e movimentado.
+                    </span>
+                  </div>
+                )}
 
                 {/* Selos informativos */}
                 <ul className={styles.seals}>
@@ -922,10 +951,6 @@ export default function ProdutoPage() {
                   <li>
                     <span className={styles.sealIcon}><Icon name="shield" size={16} /></span>
                     <span><strong>Compra garantida.</strong> Receba o produto ou devolvemos o dinheiro.</span>
-                  </li>
-                  <li>
-                    <span className={styles.sealIcon}><GiftIcon size={16} /></span>
-                    <span><strong>Vale-troca para presente.</strong> Quem ganhar pode trocar.</span>
                   </li>
                 </ul>
               </div>

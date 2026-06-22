@@ -270,6 +270,13 @@
 }
 .shipIcon {
   font-size: 1.2rem;
+  flex-shrink: 0;
+}
+img.shipIcon {
+  width: 64px;
+  height: 30px;
+  object-fit: contain;
+  object-position: left center;
 }
 .shipName {
   display: block;

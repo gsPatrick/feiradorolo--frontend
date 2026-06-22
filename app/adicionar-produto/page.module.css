@@ -250,6 +250,14 @@
 }
 .shipIcon {
   font-size: 1.2rem;
+  flex-shrink: 0;
+}
+/* Logo real da transportadora (Melhor Envio): limita o tamanho do <img>. */
+img.shipIcon {
+  width: 64px;
+  height: 30px;
+  object-fit: contain;
+  object-position: left center;
 }
 .shipName {
   display: block;
