@@ -9,6 +9,7 @@ import CartDrawer from '@/components/organisms/CartDrawer/CartDrawer';
 import MpSignupInvite from '@/components/organisms/MpSignupInvite/MpSignupInvite';
 import EmailVerifyInvite from '@/components/organisms/EmailVerifyInvite/EmailVerifyInvite';
 import RenewalReminder from '@/components/organisms/RenewalReminder/RenewalReminder';
+import PresencePinger from '@/components/providers/PresencePinger';
 
 export default function Providers({ children }) {
   return (
@@ -18,6 +19,7 @@ export default function Providers({ children }) {
           <FavoritesProvider>
             <CartProvider>
               {children}
+              <PresencePinger />
               <CartDrawer />
               <MpSignupInvite />
               <EmailVerifyInvite />

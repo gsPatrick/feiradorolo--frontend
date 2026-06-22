@@ -135,6 +135,21 @@ const TODAY_FMT = new Intl.DateTimeFormat('pt-BR', {
   year: 'numeric',
 });
 
+const DAY_FMT = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' });
+// Formata "YYYY-MM-DD" -> "dd/mm" (sem fuso, evita deslocamento de dia).
+function dayLabel(iso) {
+  if (!iso) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (m) {
+    try {
+      return DAY_FMT.format(new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+    } catch {
+      return `${m[3]}/${m[2]}`;
+    }
+  }
+  return iso;
+}
+
 /* ---------- Métricas ---------- */
 function buildMetrics(d) {
   if (!d) return [];
@@ -185,6 +200,10 @@ export default function AdminHome({ onNavigate }) {
   const [metricsLoading, setMetricsLoading] = useState(true);
   const [metricsError, setMetricsError] = useState(false);
 
+  // Tráfego / presença ao vivo
+  const [traffic, setTraffic] = useState(null);
+  const [trafficError, setTrafficError] = useState(false);
+
   // Modal de atalho próprio
   const [shortcutModal, setShortcutModal] = useState(false);
   const [draft, setDraft] = useState(EMPTY_DRAFT);
@@ -217,8 +236,25 @@ export default function AdminHome({ onNavigate }) {
         if (alive) setMetricsLoading(false);
       }
     })();
+
+    // Tráfego/presença — busca inicial + atualização do "online" a cada ~30s.
+    const loadTraffic = async () => {
+      try {
+        const data = await adminService.traffic();
+        if (!alive) return;
+        setTraffic(data && typeof data === 'object' ? data : null);
+        setTrafficError(false);
+      } catch {
+        if (!alive) return;
+        setTrafficError(true);
+      }
+    };
+    loadTraffic();
+    const trafficTimer = setInterval(loadTraffic, 30_000);
+
     return () => {
       alive = false;
+      clearInterval(trafficTimer);
     };
   }, []);
 
@@ -335,6 +371,17 @@ export default function AdminHome({ onNavigate }) {
 
   const metricCards = metrics ? buildMetrics(metrics) : [];
 
+  // Mini gráfico de visitantes/dia (últimos 14 dias).
+  const series = useMemo(() => {
+    const raw = traffic && Array.isArray(traffic.series) ? traffic.series : [];
+    return raw.slice(-14).map((p) => ({
+      date: String(p && p.date ? p.date : ''),
+      visitors: Math.max(0, Number(p && p.visitors) || 0),
+    }));
+  }, [traffic]);
+  const seriesMax = useMemo(() => series.reduce((m, p) => Math.max(m, p.visitors), 0), [series]);
+  const showTraffic = !trafficError && traffic;
+
   return (
     <section className={styles.wrap}>
       <header className={styles.head}>
@@ -376,6 +423,68 @@ export default function AdminHome({ onNavigate }) {
                   </Tag>
                 );
               })}
+        </div>
+      ) : null}
+
+      {/* ---------- TRÁFEGO / PRESENÇA ---------- */}
+      {showTraffic ? (
+        <div className={styles.traffic}>
+          <div className={styles.trafficCards}>
+            <div className={cx(styles.trafficCard, styles.trafficOnline)}>
+              <span className={styles.onlineLabel}>
+                <span className={styles.onlineDot} aria-hidden="true" />
+                Pessoas online agora
+              </span>
+              <span className={styles.trafficValue}>{num(traffic.online_now)}</span>
+              <span className={styles.trafficHint}>
+                {num(traffic.online_users)} logado{Number(traffic.online_users) === 1 ? '' : 's'}
+              </span>
+            </div>
+
+            <div className={styles.trafficCard}>
+              <span className={styles.trafficLabel}>Visitantes hoje</span>
+              <span className={styles.trafficValue}>{num(traffic.visitors_today)}</span>
+              <span className={styles.trafficHint}>{num(traffic.page_hits_today)} acessos hoje</span>
+            </div>
+
+            <div className={styles.trafficCard}>
+              <span className={styles.trafficLabel}>Visitantes na semana</span>
+              <span className={styles.trafficValue}>{num(traffic.visitors_week)}</span>
+            </div>
+
+            <div className={styles.trafficCard}>
+              <span className={styles.trafficLabel}>Visitantes no mês</span>
+              <span className={styles.trafficValue}>{num(traffic.visitors_month)}</span>
+            </div>
+          </div>
+
+          {series.length ? (
+            <div className={styles.chartBlock}>
+              <div className={styles.chartHead}>
+                <h3 className={styles.sectionTitle}>Visitantes por dia</h3>
+                <span className={styles.chartSub}>Últimos {series.length} dias</span>
+              </div>
+              <div className={styles.chart} role="img" aria-label="Visitantes por dia nos últimos dias">
+                {series.map((p, i) => {
+                  const pct = seriesMax > 0 ? Math.round((p.visitors / seriesMax) * 100) : 0;
+                  return (
+                    <div
+                      key={`${p.date}-${i}`}
+                      className={styles.bar}
+                      title={`${dayLabel(p.date)}: ${num(p.visitors)} visitantes`}
+                    >
+                      <span className={styles.barCount}>{p.visitors}</span>
+                      <span
+                        className={styles.barFill}
+                        style={{ height: `${Math.max(pct, p.visitors > 0 ? 4 : 0)}%` }}
+                      />
+                      <span className={styles.barLabel}>{dayLabel(p.date)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
 

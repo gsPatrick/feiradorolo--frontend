@@ -133,6 +133,135 @@
   50% { opacity: 1; }
 }
 
+/* ---------- Tráfego / presença ---------- */
+.traffic {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.trafficCards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.trafficCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  min-height: 92px;
+}
+.trafficOnline {
+  border-color: var(--success, #2e9e5b);
+  background: color-mix(in srgb, var(--success, #2e9e5b) 7%, var(--bg));
+}
+.trafficLabel,
+.onlineLabel {
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+  line-height: 1.3;
+}
+.onlineLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 600;
+  color: var(--success, #2e9e5b);
+}
+.onlineDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--success, #2e9e5b);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--success, #2e9e5b) 60%, transparent);
+  animation: fdrPulseDot 1.8s ease-out infinite;
+}
+@keyframes fdrPulseDot {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--success, #2e9e5b) 55%, transparent); }
+  70% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--success, #2e9e5b) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--success, #2e9e5b) 0%, transparent); }
+}
+.trafficValue {
+  font-size: 1.4rem;
+  font-weight: 750;
+  color: var(--foreground);
+  line-height: 1.15;
+}
+.trafficHint {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+.trafficOnline .trafficValue {
+  color: var(--success, #2e9e5b);
+}
+
+/* Mini gráfico de visitantes/dia */
+.chartBlock {
+  padding: 18px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.chartHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.chartSub {
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+}
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 160px;
+}
+.bar {
+  position: relative;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  min-width: 0;
+}
+.barFill {
+  width: 100%;
+  max-width: 34px;
+  min-height: 2px;
+  border-radius: 5px 5px 0 0;
+  background: linear-gradient(180deg, var(--primary), color-mix(in srgb, var(--primary) 70%, transparent));
+  transition: height var(--t-fast, 0.18s) var(--ease, ease);
+}
+.bar:hover .barFill {
+  filter: brightness(1.06);
+}
+.barCount {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 4px;
+  opacity: 0;
+  transition: opacity var(--t-fast, 0.18s) var(--ease, ease);
+}
+.bar:hover .barCount {
+  opacity: 1;
+}
+.barLabel {
+  margin-top: 6px;
+  font-size: 0.66rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
 .ghostBtn,
 .primaryBtn {
   display: inline-flex;
@@ -452,6 +581,12 @@
   .metrics {
     grid-template-columns: repeat(2, 1fr);
   }
+  .trafficCards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .barLabel {
+    font-size: 0.6rem;
+  }
 }
 @media (max-width: 560px) {
   .grid {
@@ -459,6 +594,21 @@
   }
   .metrics {
     grid-template-columns: 1fr;
+  }
+  .trafficCards {
+    grid-template-columns: 1fr;
+  }
+  .chart {
+    height: 130px;
+    gap: 4px;
+  }
+  .barCount {
+    opacity: 1;
+    font-size: 0.6rem;
+  }
+  /* Em telas estreitas, mostra rótulo a cada 2 dias pra não embolar. */
+  .bar:nth-child(even) .barLabel {
+    visibility: hidden;
   }
   .iconPicker {
     grid-template-columns: repeat(6, 1fr);
