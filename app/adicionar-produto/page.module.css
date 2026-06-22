@@ -594,12 +594,17 @@ img.shipIcon {
   border: 1px solid var(--border);
   border-radius: var(--r-xl);
   box-shadow: var(--shadow-md);
-  padding: 24px;
+  padding: 22px 24px;
   width: 100%;
   max-width: 420px;
+  /* Nunca corta na altura: cresce até quase a viewport e rola se precisar. */
+  max-height: 92vh;
+  overflow-y: auto;
 }
+/* Modal largo (upsell de destaque): cresce pros lados pra caber os 3 cards
+   com menos altura. */
 .modalWide {
-  max-width: 640px;
+  max-width: 960px;
 }
 .modalTitle {
   font-size: 1.2rem;
