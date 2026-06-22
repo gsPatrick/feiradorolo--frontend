@@ -3,7 +3,9 @@
 import { useState, useMemo, useEffect } from 'react';
 import styles from './AdminUsers.module.css';
 import { cx } from '@/lib/cx';
-import { adminService } from '@/lib/api';
+import { adminService, ApiError } from '@/lib/api';
+import { useToast } from '@/components/providers/ToastProvider';
+import { useAuth } from '@/components/providers/AuthProvider';
 import Icon from '@/components/atoms/Icon/Icon';
 import Button from '@/components/atoms/Button/Button';
 import Input from '@/components/atoms/Input/Input';
@@ -66,6 +68,7 @@ function mapApiUser(u) {
     status,
     accountStatus: u.account_status || null,
     role,
+    chatOnly: !!u.is_shadowbanned,
     hasFirstSale: !!u.has_first_sale,
     hasFirstPurchase: !!u.has_first_purchase,
     createdAt: u.createdAt || null,
@@ -117,7 +120,16 @@ function formatDate(iso) {
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+function errMessage(err, fallback) {
+  if (err instanceof ApiError && err.message) return err.message;
+  return fallback;
+}
+
 export default function AdminUsers() {
+  const { toast } = useToast();
+  const { user: authUser } = useAuth();
+  const currentUserId = authUser?.id ?? null;
+
   const [users, setUsers] = useState([]);
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -127,6 +139,13 @@ export default function AdminUsers() {
   const [documentFilter, setDocumentFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
   const [selectedUser, setSelectedUser] = useState(null);
+
+  // Ação em andamento: `${userId}:${action}` p/ loading granular nos botões.
+  const [busy, setBusy] = useState(null);
+  // Modal de confirmação/motivo: { user, action } com action ∈ suspend | ban | delete.
+  const [confirm, setConfirm] = useState(null);
+  const [reason, setReason] = useState('');
+  const [confirmText, setConfirmText] = useState('');
 
   const loadUsers = async () => {
     setLoading(true);
@@ -169,6 +188,269 @@ export default function AdminUsers() {
 
   const totalUsers = dashboard?.totalUsers ?? users.length;
   const newUsersToday = dashboard?.newUsersToday ?? null;
+
+  /* — Helpers de ação — */
+  const isSelf = (user) => currentUserId != null && user.id === currentUserId;
+  const isBusy = (userId, action) => busy === `${userId}:${action}`;
+
+  // Atualiza um usuário in-place a partir do payload retornado pela API (sem refetch global).
+  const applyUpdated = (id, apiUser) => {
+    if (apiUser && typeof apiUser === 'object' && apiUser.id) {
+      const mapped = mapApiUser(apiUser);
+      // is_shadowbanned (chatOnly) nem sempre vem no payload sanitizado;
+      // preserva o valor anterior quando a API não o informa.
+      const merge = (prev) => (prev && prev.id === id
+        ? { ...mapped, chatOnly: 'is_shadowbanned' in apiUser ? mapped.chatOnly : prev.chatOnly }
+        : prev);
+      setUsers((prev) => prev.map(merge));
+      setSelectedUser((prev) => merge(prev));
+      return mapped;
+    }
+    return null;
+  };
+
+  // Executa uma ação simples (sem confirmação): approve, unban, chat-only toggle.
+  const runAction = async ({ user, action, fn, patch, successTitle, successDesc, errorTitle, errorDesc }) => {
+    if (busy) return;
+    setBusy(`${user.id}:${action}`);
+    try {
+      const result = await fn();
+      const updated = applyUpdated(user.id, result);
+      if (!updated) await loadUsers();
+      // Patch local p/ campos que a API pode não devolver (ex.: chatOnly).
+      if (patch) {
+        const apply = (prev) => (prev && prev.id === user.id ? { ...prev, ...patch } : prev);
+        setUsers((prev) => prev.map(apply));
+        setSelectedUser((prev) => apply(prev));
+      }
+      toast({ title: successTitle, description: successDesc, variant: 'success' });
+    } catch (err) {
+      toast({ title: errorTitle, description: errMessage(err, errorDesc), variant: 'error' });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleApprove = (user) => runAction({
+    user, action: 'approve',
+    fn: () => adminService.approveUser(user.id),
+    successTitle: 'Conta aprovada',
+    successDesc: `${user.name} agora está com a conta ativa.`,
+    errorTitle: 'Não foi possível aprovar',
+    errorDesc: 'Tente novamente em instantes.',
+  });
+
+  const handleUnban = (user) => runAction({
+    user, action: 'unban',
+    fn: () => adminService.unbanUser(user.id),
+    successTitle: 'Usuário desbanido',
+    successDesc: `${user.name} teve o banimento removido.`,
+    errorTitle: 'Não foi possível desbanir',
+    errorDesc: 'Tente novamente em instantes.',
+  });
+
+  const handleToggleChatOnly = (user) => runAction({
+    user, action: 'chat',
+    fn: () => (user.chatOnly ? adminService.removeChatOnly(user.id) : adminService.setChatOnly(user.id)),
+    patch: { chatOnly: !user.chatOnly },
+    successTitle: user.chatOnly ? 'Restrição removida' : 'Restrição "apenas chat" aplicada',
+    successDesc: user.chatOnly
+      ? `${user.name} voltou a usar a plataforma normalmente.`
+      : `${user.name} agora só pode usar o chat.`,
+    errorTitle: 'Não foi possível atualizar a restrição',
+    errorDesc: 'Tente novamente em instantes.',
+  });
+
+  /* — Modal de confirmação / motivo (suspend, ban, delete) — */
+  const openConfirm = (user, action) => {
+    setReason('');
+    setConfirmText('');
+    setConfirm({ user, action });
+  };
+  const closeConfirm = () => {
+    if (busy) return;
+    setConfirm(null);
+    setReason('');
+    setConfirmText('');
+  };
+
+  const submitConfirm = async () => {
+    if (!confirm) return;
+    const { user, action } = confirm;
+    setBusy(`${user.id}:${action}`);
+    try {
+      let result;
+      let successTitle;
+      let successDesc;
+      if (action === 'suspend') {
+        result = await adminService.suspendUser(user.id, reason.trim() ? { reason: reason.trim() } : {});
+        successTitle = 'Conta suspensa';
+        successDesc = `${user.name} foi suspenso.`;
+      } else if (action === 'ban') {
+        result = await adminService.banUser(user.id, reason.trim() ? { reason: reason.trim() } : {});
+        successTitle = 'Usuário banido';
+        successDesc = `${user.name} foi banido da plataforma.`;
+      } else if (action === 'delete') {
+        result = await adminService.deleteUser(user.id);
+        successTitle = 'Conta excluída';
+        successDesc = `A conta de ${user.name} foi excluída permanentemente.`;
+      }
+
+      if (action === 'delete') {
+        // Removida da lista; fecha o detalhe se for o mesmo usuário.
+        setUsers((prev) => prev.filter((u) => u.id !== user.id));
+        setSelectedUser((prev) => (prev && prev.id === user.id ? null : prev));
+      } else {
+        const updated = applyUpdated(user.id, result);
+        if (!updated) await loadUsers();
+      }
+
+      toast({ title: successTitle, description: successDesc, variant: 'success' });
+      setConfirm(null);
+      setReason('');
+      setConfirmText('');
+    } catch (err) {
+      const titles = {
+        suspend: 'Não foi possível suspender',
+        ban: 'Não foi possível banir',
+        delete: 'Não foi possível excluir',
+      };
+      toast({ title: titles[action], description: errMessage(err, 'Tente novamente em instantes.'), variant: 'error' });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  /* — Conjunto de ações disponíveis p/ um usuário, conforme status — */
+  const ActionButtons = ({ user, stacked = false }) => {
+    const self = isSelf(user);
+    const anyBusy = !!busy;
+    const wrapClass = stacked ? styles.actionStack : styles.rowActionBtns;
+
+    return (
+      <div className={wrapClass}>
+        {user.status === 'pending' && (
+          <Button
+            size="sm"
+            className={styles.btnApprove}
+            loading={isBusy(user.id, 'approve')}
+            disabled={anyBusy}
+            onClick={() => handleApprove(user)}
+            leftIcon="check"
+          >
+            Aprovar
+          </Button>
+        )}
+
+        {(user.status === 'active' || user.status === 'pending' || user.status === 'suspended') && !self && (
+          <Button
+            size="sm"
+            variant="outline"
+            className={styles.btnChat}
+            loading={isBusy(user.id, 'chat')}
+            disabled={anyBusy}
+            onClick={() => handleToggleChatOnly(user)}
+            leftIcon="chat"
+          >
+            {user.chatOnly ? 'Liberar chat' : 'Apenas chat'}
+          </Button>
+        )}
+
+        {(user.status === 'active' || user.status === 'pending') && !self && (
+          <Button
+            size="sm"
+            variant="outline"
+            className={styles.btnSuspend}
+            disabled={anyBusy}
+            onClick={() => openConfirm(user, 'suspend')}
+            leftIcon="lock"
+          >
+            Suspender
+          </Button>
+        )}
+
+        {user.status === 'banned' ? (
+          !self && (
+            <Button
+              size="sm"
+              variant="outline"
+              className={styles.btnApproveOutline}
+              loading={isBusy(user.id, 'unban')}
+              disabled={anyBusy}
+              onClick={() => handleUnban(user)}
+              leftIcon="shield"
+            >
+              Desbanir
+            </Button>
+          )
+        ) : (
+          !self && (
+            <Button
+              size="sm"
+              className={styles.btnBan}
+              disabled={anyBusy}
+              onClick={() => openConfirm(user, 'ban')}
+              leftIcon="shield"
+            >
+              Banir
+            </Button>
+          )
+        )}
+
+        {!self && (
+          <Button
+            size="sm"
+            variant="outline"
+            className={styles.btnDelete}
+            disabled={anyBusy}
+            onClick={() => openConfirm(user, 'delete')}
+            leftIcon="trash"
+          >
+            Excluir
+          </Button>
+        )}
+
+        {self && (
+          <span className={styles.selfTag} title="Você não pode aplicar ações destrutivas à sua própria conta.">
+            <Icon name="shield" size={14} /> Sua conta
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  /* — Conteúdo do modal de confirmação — */
+  const confirmCopy = {
+    suspend: {
+      title: 'Suspender conta',
+      tone: 'warn',
+      cta: 'Suspender',
+      lead: (u) => `O usuário ${u.name} ficará impedido de operar até ser reativado.`,
+      askReason: true,
+      requireType: false,
+    },
+    ban: {
+      title: 'Banir usuário',
+      tone: 'danger',
+      cta: 'Banir',
+      lead: (u) => `${u.name} será banido e perderá o acesso à plataforma.`,
+      askReason: true,
+      requireType: false,
+    },
+    delete: {
+      title: 'Excluir conta',
+      tone: 'danger',
+      cta: 'Excluir permanentemente',
+      lead: (u) => `Esta ação é PERMANENTE e não pode ser desfeita. A conta de ${u.name} e seus dados serão removidos.`,
+      askReason: false,
+      requireType: true,
+    },
+  };
+
+  const confirmCfg = confirm ? confirmCopy[confirm.action] : null;
+  const deleteReady = !confirmCfg?.requireType
+    || confirmText.trim().toUpperCase() === 'EXCLUIR';
+  const confirmBusy = confirm ? isBusy(confirm.user.id, confirm.action) : false;
 
   return (
     <div className={styles.root}>
@@ -281,13 +563,19 @@ export default function AdminUsers() {
                           )}
                         </td>
 
-                        <td><Badge variant={STATUS_BADGE[user.status].variant} size="sm">{STATUS_BADGE[user.status].label}</Badge></td>
+                        <td>
+                          <Badge variant={STATUS_BADGE[user.status].variant} size="sm">{STATUS_BADGE[user.status].label}</Badge>
+                          {user.chatOnly && (
+                            <div className={styles.subLabel}>Apenas chat</div>
+                          )}
+                        </td>
 
                         <td><div className={styles.dateValue}>{formatDate(user.createdAt)}</div></td>
 
                         <td>
-                          <div className={styles.actions}>
+                          <div className={styles.actionsCell}>
                             <button className={styles.iconBtn} onClick={() => setSelectedUser(user)} aria-label="Ver perfil" title="Ver perfil"><Icon name="eye" size={16} /></button>
+                            <ActionButtons user={user} />
                           </div>
                         </td>
                       </tr>
@@ -323,6 +611,7 @@ export default function AdminUsers() {
                 <h3>Conta</h3>
                 <div className={styles.detailRow}><span>Papel</span><Badge variant={ROLE_BADGE[selectedUser.role].variant} size="sm">{ROLE_BADGE[selectedUser.role].label}</Badge></div>
                 <div className={styles.detailRow}><span>Status</span><Badge variant={STATUS_BADGE[selectedUser.status].variant} size="sm">{STATUS_BADGE[selectedUser.status].label}</Badge></div>
+                <div className={styles.detailRow}><span>Restrição</span><strong>{selectedUser.chatOnly ? 'Apenas chat' : 'Nenhuma'}</strong></div>
                 <div className={styles.detailRow}><span>Tipo de Pessoa</span><strong>{selectedUser.accountType === 'business' ? 'Pessoa Jurídica' : 'Pessoa Física'}</strong></div>
                 {selectedUser.isSeller && (
                   <div className={styles.detailRow}><span>Tier de Vendedor</span><strong>{selectedUser.sellerTier || '—'}</strong></div>
@@ -334,6 +623,74 @@ export default function AdminUsers() {
                 <div className={styles.detailRow}><span>Primeira compra</span><strong>{selectedUser.hasFirstPurchase ? 'Sim' : 'Não'}</strong></div>
               </div>
             </div>
+
+            {/* Ações de moderação */}
+            <div className={styles.detailCard}>
+              <h3>Moderação</h3>
+              {isSelf(selectedUser) ? (
+                <p className={styles.selfNote}>
+                  <Icon name="shield" size={16} /> Você não pode aplicar ações de moderação à sua própria conta.
+                </p>
+              ) : (
+                <ActionButtons user={selectedUser} stacked />
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal — Confirmação / motivo (suspender, banir, excluir) */}
+      <Modal
+        open={!!confirm}
+        onClose={closeConfirm}
+        size="sm"
+        title={confirmCfg ? confirmCfg.title : ''}
+        footer={confirm && (
+          <div className={styles.confirmFooter}>
+            <Button variant="outline" onClick={closeConfirm} disabled={confirmBusy}>Cancelar</Button>
+            <Button
+              className={confirmCfg.tone === 'danger' ? styles.btnBan : styles.btnSuspend}
+              variant={confirmCfg.tone === 'danger' ? 'primary' : 'outline'}
+              loading={confirmBusy}
+              disabled={confirmBusy || !deleteReady}
+              onClick={submitConfirm}
+            >
+              {confirmCfg.cta}
+            </Button>
+          </div>
+        )}
+      >
+        {confirm && (
+          <div className={styles.confirmBody}>
+            <p className={cx(styles.confirmLead, confirmCfg.tone === 'danger' && styles.confirmDanger)}>
+              {confirmCfg.lead(confirm.user)}
+            </p>
+
+            {confirmCfg.askReason && (
+              <label className={styles.confirmField}>
+                <span>Motivo (opcional)</span>
+                <textarea
+                  className={styles.confirmTextarea}
+                  rows={3}
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="Descreva o motivo desta ação para registro interno…"
+                  disabled={confirmBusy}
+                />
+              </label>
+            )}
+
+            {confirmCfg.requireType && (
+              <label className={styles.confirmField}>
+                <span>Para confirmar, digite <strong>EXCLUIR</strong></span>
+                <Input
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  placeholder="EXCLUIR"
+                  disabled={confirmBusy}
+                />
+              </label>
+            )}
           </div>
         )}
       </Modal>

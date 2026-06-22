@@ -525,6 +525,96 @@
   color: var(--foreground);
 }
 
+/* — Célula de ações da tabela (ver perfil + botões de moderação) — */
+.actionsCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.rowActionBtns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Botão "desbanir" (contorno verde) */
+.btnApproveOutline {
+  color: var(--success);
+  border-color: rgba(34, 197, 94, 0.5);
+}
+.btnApproveOutline:hover {
+  background: var(--success-soft);
+}
+
+/* Marcador "sua conta" (ações destrutivas escondidas) */
+.selfTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+.selfNote {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+
+/* — Modal de confirmação / motivo — */
+.confirmBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.confirmLead {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--foreground);
+  margin: 0;
+}
+.confirmDanger {
+  color: var(--destructive);
+  font-weight: 600;
+}
+.confirmField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.confirmField > span {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+.confirmTextarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--foreground);
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 0.875rem;
+  resize: vertical;
+  transition: border-color var(--t-fast) var(--ease);
+}
+.confirmTextarea:focus {
+  outline: none;
+  border-color: var(--brand-strong);
+}
+.confirmFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  width: 100%;
+}
+
 /* — Mobile: alvos de toque maiores na tabela de ações — */
 @media (max-width: 720px) {
   .iconBtn {
@@ -533,5 +623,8 @@
   }
   .actions {
     gap: 8px;
+  }
+  .rowActionBtns {
+    width: 100%;
   }
 }
