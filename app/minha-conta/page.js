@@ -960,10 +960,21 @@ function ProfileTab({ onEdit, user }) {
 }
 
 /* — Perfil: Status de Verificação (REAL, via verificationService) — */
+// Mensagens amigáveis para os códigos de erro da validação de documento.
+const DOC_ERROR_MSGS = {
+  INVALID_CPF: 'CPF inválido, confira seu cadastro.',
+  INVALID_CNPJ: 'CNPJ inválido.',
+  CNPJ_INACTIVE: 'CNPJ com situação não ativa na Receita.',
+  DOCUMENT_NOT_PROVIDED: 'Cadastre seu CPF/CNPJ no perfil antes de validar.',
+};
+
 function VerificationStatus({ user }) {
+  const { toast } = useToast();
   const [status, setStatus] = useState(null);
   const [state, setState] = useState('idle'); // idle | loading | ready | error
   const [modalChannel, setModalChannel] = useState(null); // 'email' | 'phone' | null
+  const [docValidating, setDocValidating] = useState(false);
+  const [docError, setDocError] = useState('');
 
   const load = () => {
     setState('loading');
@@ -983,9 +994,39 @@ function VerificationStatus({ user }) {
   const emailVerified = !!(status && status.email_verified);
   const phoneVerified = !!(status && status.phone_verified);
   const cpfInformed = !!(status && status.cpf_informed);
-  const allDone = emailVerified && phoneVerified && cpfInformed;
+  const documentVerified = !!(status && status.document_verified);
+  const level = Number((status && status.verification_level) || 0);
+  const allDone = emailVerified && phoneVerified && documentVerified;
+
+  // PF/PJ: infere pelo person_type do usuário para o texto explicativo.
+  const personType = user && (user.person_type || user.personType);
+  const isPJ = personType === 'pj' || personType === 'PJ' || personType === 'juridica';
+  const isPF = personType === 'pf' || personType === 'PF' || personType === 'fisica';
+  const docHint = isPJ ? 'Consulta do CNPJ na Receita' : isPF ? 'Validação do CPF' : 'Validar CPF/CNPJ';
 
   const okBadge = <span className={`${styles.vBadge} ${styles.vOk}`}>✓ Verificado</span>;
+
+  async function validateDocument() {
+    setDocValidating(true);
+    setDocError('');
+    try {
+      await verificationService.validateDocument();
+      toast({ title: 'Documento validado!', variant: 'success', duration: 2000 });
+      load(); // refetch para refletir document_verified / verification_level
+    } catch (e) {
+      const codeErr = e instanceof ApiError ? e.code : null;
+      setDocError(DOC_ERROR_MSGS[codeErr] || 'Não foi possível validar o documento. Tente novamente.');
+    } finally {
+      setDocValidating(false);
+    }
+  }
+
+  // Trilha dos 3 níveis de verificação.
+  const LEVELS = [
+    { n: 1, label: 'E-mail / Telefone', icon: 'mail' },
+    { n: 2, label: 'Documento', icon: 'card' },
+    { n: 3, label: 'Biometria facial (no app)', icon: 'camera' },
+  ];
 
   return (
     <div className={styles.verifCard}>
@@ -997,37 +1038,72 @@ function VerificationStatus({ user }) {
           <button className={styles.addrEdit} onClick={load}>Tentar novamente</button>
         </div>
       ) : (
-        <div className={styles.verifGrid}>
-          {/* E-mail */}
-          <div className={styles.verifItem}>
-            <span className={cx(styles.vIcon, emailVerified ? styles.vi_verified : styles.vi_pending)}><Icon name="mail" size={18} /></span>
-            <span className={styles.vLabel}>E-mail</span>
-            {emailVerified ? okBadge : (
-              <Button variant="outline" size="sm" disabled={state !== 'ready'} onClick={() => setModalChannel('email')}>Verificar</Button>
-            )}
+        <>
+          {/* Trilha de níveis (0-3) */}
+          <div className={styles.verifTrack} role="list" aria-label="Níveis de verificação">
+            {LEVELS.map((lv) => {
+              const reached = level >= lv.n;
+              return (
+                <div key={lv.n} className={cx(styles.vTrackItem, reached ? styles.vt_reached : styles.vt_pending)} role="listitem">
+                  <span className={styles.vTrackIcon}>
+                    <Icon name={reached ? 'check' : lv.icon} size={16} />
+                  </span>
+                  <span className={styles.vTrackText}>
+                    <strong>Nível {lv.n}</strong>
+                    <span>{lv.label}</span>
+                  </span>
+                </div>
+              );
+            })}
           </div>
 
-          {/* Telefone / WhatsApp */}
-          <div className={styles.verifItem}>
-            <span className={cx(styles.vIcon, phoneVerified ? styles.vi_verified : styles.vi_pending)}><Icon name="phone" size={18} /></span>
-            <span className={styles.vLabel}>Telefone / WhatsApp</span>
-            {phoneVerified ? okBadge : (
-              <Button variant="outline" size="sm" disabled={state !== 'ready'} onClick={() => setModalChannel('phone')}>Verificar</Button>
-            )}
+          <div className={styles.verifGrid}>
+            {/* E-mail */}
+            <div className={styles.verifItem}>
+              <span className={cx(styles.vIcon, emailVerified ? styles.vi_verified : styles.vi_pending)}><Icon name="mail" size={18} /></span>
+              <span className={styles.vLabel}>E-mail</span>
+              {emailVerified ? okBadge : (
+                <Button variant="outline" size="sm" disabled={state !== 'ready'} onClick={() => setModalChannel('email')}>Verificar</Button>
+              )}
+            </div>
+
+            {/* Telefone / WhatsApp */}
+            <div className={styles.verifItem}>
+              <span className={cx(styles.vIcon, phoneVerified ? styles.vi_verified : styles.vi_pending)}><Icon name="phone" size={18} /></span>
+              <span className={styles.vLabel}>Telefone / WhatsApp</span>
+              {phoneVerified ? okBadge : (
+                <Button variant="outline" size="sm" disabled={state !== 'ready'} onClick={() => setModalChannel('phone')}>Verificar</Button>
+              )}
+            </div>
+
+            {/* Documento (Nível 2) */}
+            <div className={cx(styles.verifItem, styles.verifItemWide)}>
+              <span className={cx(styles.vIcon, documentVerified ? styles.vi_verified : styles.vi_pending)}><Icon name="card" size={18} /></span>
+              <span className={styles.vLabelBlock}>
+                <span className={styles.vLabel}>Documento</span>
+                <span className={styles.vHint}>{docHint}</span>
+              </span>
+              {documentVerified ? (
+                <span className={`${styles.vBadge} ${styles.vOk}`}>✓ Documento validado (Nível 2)</span>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  loading={docValidating}
+                  disabled={state !== 'ready' || docValidating}
+                  onClick={validateDocument}
+                >
+                  Validar documento
+                </Button>
+              )}
+            </div>
           </div>
 
-          {/* CPF */}
-          <div className={styles.verifItem}>
-            <span className={cx(styles.vIcon, cpfInformed ? styles.vi_verified : styles.vi_none)}><Icon name="card" size={18} /></span>
-            <span className={styles.vLabel}>CPF</span>
-            {cpfInformed
-              ? <span className={`${styles.vBadge} ${styles.vOk}`}>✓ Informado</span>
-              : <span className={`${styles.vBadge} ${styles.vNone}`}>—</span>}
-          </div>
-        </div>
+          {docError && <div className={styles.verifWarn}>⚠ {docError}</div>}
+        </>
       )}
 
-      {!allDone && state !== 'error' && (
+      {!allDone && state !== 'error' && !docError && (
         <div className={styles.verifWarn}>⚠ Complete suas verificações para aumentar a confiança dos vendedores e ter acesso a todas as funcionalidades.</div>
       )}
 

@@ -566,6 +566,81 @@
   color: #92670c;
 }
 
+/* — Trilha de níveis (0-3) — */
+.verifTrack {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.vTrackItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+.vt_reached {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+.vt_pending {
+  opacity: 0.85;
+}
+.vTrackIcon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  background: var(--muted);
+}
+.vt_reached .vTrackIcon {
+  color: #16a34a;
+  background: #dcfce7;
+}
+.vTrackText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  font-size: 0.78rem;
+}
+.vTrackText strong {
+  color: var(--foreground);
+  font-weight: 700;
+}
+.vTrackText span {
+  color: var(--muted-foreground);
+}
+
+/* Item de documento ocupa a linha inteira do grid 2-col. */
+.verifItemWide {
+  grid-column: 1 / -1;
+}
+.vLabelBlock {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.vLabelBlock .vLabel {
+  flex: initial;
+}
+.vHint {
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 560px) {
+  .verifTrack {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* — Meu Perfil: cards — */
 .profileGrid {
   display: grid;
