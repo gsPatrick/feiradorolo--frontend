@@ -203,23 +203,197 @@
   color: var(--text-muted);
 }
 
-/* --------------------------- Destaque atual --------------------------- */
-.currentHighlight {
+.mutedSm {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* ----------------------- Destaque ATIVO (card rico) ------------------- */
+.activeCard {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
   border-radius: var(--r-md);
+  border: 1px solid var(--success);
   background: var(--success-soft);
 }
 
-.currentHighlight > div {
+.activeHead {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.currentIcon {
+.activeTier {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.remaining {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.remaining strong {
+  color: var(--feira-green, var(--success));
+}
+
+/* Barra de progresso do período */
+.progressWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.progressFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--feira-green, var(--success));
+  transition: width 0.4s ease;
+}
+
+.progressLabel {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* Datas + duração */
+.dateGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.dateItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm, 8px);
+  background: var(--card, var(--surface));
+  border: 1px solid var(--border);
+}
+
+.dateLabel {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.dateValue {
+  font-size: 0.92rem;
+  color: var(--text);
+}
+
+/* Resultados do impulso */
+.resultsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.resultsTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--text);
+}
+
+.resultsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.resultCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 8px;
+  border-radius: var(--r-sm, 8px);
+  background: var(--card, var(--surface));
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.resultCard strong {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.resultCard span:last-child {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.resultIcon {
+  color: var(--brand);
+}
+
+/* ----------------------- Destaque PENDENTE (aviso) -------------------- */
+.pendingCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--warning, #e0a106);
+  background: var(--warning-soft, rgba(224, 161, 6, 0.08));
+}
+
+.pendingHead {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.pendingIcon {
   font-size: 2rem;
+  line-height: 1;
+}
+
+.pendingInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pendingTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.pendingHint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
 }
 
 /* ------------------------------ Histórico ----------------------------- */
@@ -230,12 +404,12 @@
 
 .historyRow {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1.6fr 0.9fr;
+  grid-template-columns: 1.2fr 0.9fr 0.9fr 1.4fr 1.4fr 0.8fr 1.1fr auto;
   gap: 12px;
   align-items: center;
   padding: 12px 4px;
   border-bottom: 1px solid var(--border);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
 }
 
 .historyRow:last-child {
@@ -246,18 +420,232 @@
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   letter-spacing: 0.04em;
 }
 
+.histCell {
+  min-width: 0;
+}
+
 .histTier {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-weight: 700;
   color: var(--text);
 }
 
-.histStatus {
+.histTierIcon {
+  font-size: 1.05rem;
+}
+
+.histResults {
+  display: inline-flex;
+  gap: 10px;
+  color: var(--text-muted);
+}
+
+.histResults span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.histPayCell {
   display: flex;
-  justify-content: flex-start;
+  justify-content: flex-end;
+}
+
+/* ------------------------- Pagamento Pix (modal) ---------------------- */
+.payFlow,
+.paySuccess {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.paySuccess {
+  align-items: center;
+  text-align: center;
+  padding: 12px 0 4px;
+}
+
+.paySuccessIcon {
+  font-size: 2.6rem;
+}
+
+.paySuccessTitle {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.paySummary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.paySummary > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.payTierIcon {
+  font-size: 1.8rem;
+}
+
+.payAmount {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.errorBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: var(--danger-soft, rgba(220, 38, 38, 0.08));
+  color: var(--danger, #dc2626);
+  font-size: 0.88rem;
+}
+
+.pixBox {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.pixQr {
+  flex: 0 0 auto;
+  width: 160px;
+  height: 160px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 8px;
+}
+
+.pixQr img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.pixQrPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 160px;
+  height: 160px;
+  border-radius: var(--r-md);
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.pixInfo {
+  flex: 1 1 220px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pixLead {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.pulse {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--feira-green, var(--success));
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
+  animation: fdrPulse 1.6s infinite;
+}
+
+@keyframes fdrPulse {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+  70% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+.pixHint {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.pixCode {
+  display: block;
+  padding: 8px 10px;
+  border-radius: var(--r-sm, 8px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 0.74rem;
+  word-break: break-all;
+  color: var(--text);
+  max-height: 70px;
+  overflow: auto;
+}
+
+.pixActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 720px) {
+  .historyRow {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 12px;
+    padding: 14px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    margin-bottom: 10px;
+  }
+  .historyRow:last-child {
+    margin-bottom: 0;
+  }
+  .historyHeadRow {
+    display: none;
+  }
+  .histCell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .histCell::before {
+    content: attr(data-label);
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+  .histCell[data-label='']::before {
+    display: none;
+  }
+  .histPayCell {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 640px) {
@@ -271,10 +659,12 @@
   .metrics {
     grid-template-columns: 1fr;
   }
-  .historyRow {
-    grid-template-columns: 1fr 1fr;
+  .dateGrid,
+  .resultsGrid {
+    grid-template-columns: 1fr;
   }
-  .historyHeadRow {
-    display: none;
+  .pixQr,
+  .pixQrPlaceholder {
+    width: 100%;
   }
 }
