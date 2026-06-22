@@ -14,6 +14,7 @@ import Icon from '@/components/atoms/Icon/Icon';
 import ImageUploader from '@/components/molecules/ImageUploader/ImageUploader';
 import ProductSpecifications from '@/components/molecules/ProductSpecifications/ProductSpecifications';
 import CategoryPicker from '@/components/organisms/CategoryPicker/CategoryPicker';
+import HighlightPurchase from '@/components/organisms/HighlightPurchase/HighlightPurchase';
 
 const EMPTY_FORM = {
   title: '',
@@ -43,12 +44,6 @@ const SHIPPING_METHODS = [
 ];
 
 const STEPS = 3;
-
-const HIGHLIGHT_TIERS = [
-  { tier: 'silver', name: 'Prata', icon: '🥈', desc: 'Mais cliques e posição de destaque na busca.' },
-  { tier: 'gold', name: 'Ouro', icon: '🥇', desc: 'Visibilidade premium + selo de destaque.' },
-  { tier: 'diamond', name: 'Diamante', icon: '💎', desc: 'Topo absoluto, máxima exposição na home.' },
-];
 
 export default function AdicionarProdutoPage() {
   const router = useRouter();
@@ -94,8 +89,7 @@ export default function AdicionarProdutoPage() {
 
   // Upsell de destaque pós-publicação.
   const [createdProduct, setCreatedProduct] = useState(null);
-  const [highlightTier, setHighlightTier] = useState(null);
-  const [highlightLoading, setHighlightLoading] = useState(false);
+  const [highlightPaid, setHighlightPaid] = useState(false);
 
   const set = (patch) => setForm((prev) => ({ ...prev, ...patch }));
 
@@ -136,42 +130,13 @@ export default function AdicionarProdutoPage() {
     router.push('/upgrade-conta');
   }
 
-  async function buyHighlight(tier) {
-    if (!createdProduct) return;
-    setHighlightTier(tier);
-    setHighlightLoading(true);
-    try {
-      const res = await productService.highlight(createdProduct.id, { tier });
-      const redirect = res && (res.init_point || res.redirect_url || res.checkout_url);
-      const pix = res && (res.pix_qr_code || res.qr_code || res.copy_paste);
-      if (redirect) {
-        toast({ title: 'Redirecionando para o pagamento...', variant: 'success', duration: 2500 });
-        window.location.href = redirect;
-        return;
-      }
-      if (pix) {
-        toast({
-          title: 'Pix gerado para o destaque!',
-          description: 'Use o código Pix retornado para concluir o pagamento.',
-          variant: 'success',
-          duration: 5000,
-        });
-      } else {
-        toast({ title: 'Destaque solicitado com sucesso!', variant: 'success' });
-      }
-      router.push('/minha-conta?tab=meus-produtos');
-    } catch (err) {
-      toast({
-        title: 'Erro ao contratar destaque',
-        description: err instanceof ApiError ? err.message : 'Tente novamente.',
-        variant: 'destructive',
-      });
-    } finally {
-      setHighlightLoading(false);
-    }
+  // Pagamento aprovado do destaque (callback do HighlightPurchase).
+  function onHighlightPaid() {
+    setHighlightPaid(true);
+    toast({ title: 'Destaque ativado!', description: 'Seu produto agora aparece em destaque.', variant: 'success', duration: 3500 });
   }
 
-  function skipHighlight() {
+  function goToMyProducts() {
     setCreatedProduct(null);
     router.push('/minha-conta?tab=meus-produtos');
   }
@@ -753,41 +718,30 @@ export default function AdicionarProdutoPage() {
         </div>
       )}
 
-      {/* Modal: upsell de destaque pós-publicação */}
+      {/* Modal: upsell de destaque pós-publicação (pagamento inline, sem navegar) */}
       {createdProduct && (
         <div className={styles.modalOverlay}>
           <div className={cx(styles.modal, styles.modalWide)} onClick={(e) => e.stopPropagation()}>
             <h3 className={styles.modalTitle}>Destaque seu produto 🚀</h3>
             <p className={styles.modalText}>
               "{createdProduct.title}" foi publicado! Quer aparecer no topo e vender mais rápido?
-              Escolha um destaque:
+              Escolha um destaque e pague com Pix aqui mesmo:
             </p>
-            <div className={styles.tierGrid}>
-              {HIGHLIGHT_TIERS.map((t) => (
-                <button
-                  key={t.tier}
-                  type="button"
-                  className={cx(
-                    styles.tierCard,
-                    highlightTier === t.tier && highlightLoading && styles.tierCardActive
-                  )}
-                  disabled={highlightLoading}
-                  onClick={() => buyHighlight(t.tier)}
-                >
-                  <span className={styles.tierIcon}>{t.icon}</span>
-                  <span className={styles.tierName}>{t.name}</span>
-                  <span className={styles.tierDesc}>{t.desc}</span>
-                  {highlightTier === t.tier && highlightLoading && (
-                    <span className={styles.tierLoading}>Processando...</span>
-                  )}
-                </button>
-              ))}
-            </div>
-            <div className={styles.modalActions}>
-              <Button variant="outline" onClick={skipHighlight} disabled={highlightLoading}>
-                Pular
-              </Button>
-            </div>
+
+            <HighlightPurchase
+              productId={createdProduct.id}
+              productName={createdProduct.title}
+              onPaid={onHighlightPaid}
+              onClose={goToMyProducts}
+            />
+
+            {!highlightPaid && (
+              <div className={styles.modalActions}>
+                <Button variant="outline" onClick={goToMyProducts}>
+                  Pular
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}

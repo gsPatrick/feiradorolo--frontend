@@ -1,0 +1,280 @@
+.page {
+  padding: 24px 0 64px;
+  background: var(--bg-1, var(--background));
+  min-height: 70vh;
+}
+
+.container {
+  width: min(960px, 100% - 32px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.loading,
+.loadingInline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.loading {
+  flex-direction: column;
+  padding: 64px 16px;
+}
+
+.loadingInline {
+  padding: 12px 0;
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.back {
+  align-self: flex-start;
+  margin-bottom: 4px;
+}
+
+.title {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--text);
+  margin: 0;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ------------------------------- Cards -------------------------------- */
+.card {
+  background: var(--card, var(--surface));
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+/* ------------------------------ Resumo -------------------------------- */
+.summary {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.media {
+  flex: 0 0 auto;
+  width: 120px;
+  height: 120px;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.summaryInfo {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.summaryTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.prodTitle {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0;
+}
+
+.price {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--feira-green, var(--success));
+  margin: 6px 0 10px;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.metaHighlight {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.summaryActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ------------------------------ Métricas ------------------------------ */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.metricCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--card, var(--surface));
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.metricCard > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.metricIcon {
+  color: var(--brand);
+}
+
+.metricValue {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.metricLabel {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+/* --------------------------- Destaque atual --------------------------- */
+.currentHighlight {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  background: var(--success-soft);
+}
+
+.currentHighlight > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.currentIcon {
+  font-size: 2rem;
+}
+
+/* ------------------------------ Histórico ----------------------------- */
+.historyTable {
+  display: flex;
+  flex-direction: column;
+}
+
+.historyRow {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1.6fr 0.9fr;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.historyRow:last-child {
+  border-bottom: none;
+}
+
+.historyHeadRow {
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+
+.histTier {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.histStatus {
+  display: flex;
+  justify-content: flex-start;
+}
+
+@media (max-width: 640px) {
+  .summary {
+    flex-direction: column;
+  }
+  .media {
+    width: 100%;
+    height: 180px;
+  }
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+  .historyRow {
+    grid-template-columns: 1fr 1fr;
+  }
+  .historyHeadRow {
+    display: none;
+  }
+}

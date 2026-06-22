@@ -1157,6 +1157,7 @@ function SellerProducts({ products = [], state = 'idle', onRetry, onAuth }) {
                 <div className={styles.prodActions}>
                   <Button variant="outline" size="sm" leftIcon="eye" href={`/produto/${p.id}`}>Ver</Button>
                   <Button variant="outline" size="sm" href={`/editar-produto/${p.id}`}>Editar</Button>
+                  <Button variant="primary" size="sm" leftIcon="bolt" href={`/produto/${p.id}/gerenciar`}>Gerenciar</Button>
                 </div>
               </div>
             </div>
