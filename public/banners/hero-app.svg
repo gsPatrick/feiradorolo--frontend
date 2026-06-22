@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6d28d9"/>
+      <stop offset="0.55" stop-color="#4f46e5"/>
+      <stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.8" cy="0.2" r="0.7">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="420" fill="url(#g)"/>
+  <rect width="1200" height="420" fill="url(#glow)"/>
+  <circle cx="980" cy="320" r="180" fill="#ffffff" opacity="0.06"/>
+  <circle cx="1080" cy="90" r="90" fill="#ffd700" opacity="0.18"/>
+  <!-- phone mockup -->
+  <g transform="translate(900,70)">
+    <rect x="0" y="0" width="150" height="290" rx="26" fill="#0f172a" stroke="#ffffff" stroke-width="3" opacity="0.95"/>
+    <rect x="12" y="40" width="126" height="210" rx="8" fill="#1e293b"/>
+    <rect x="55" y="16" width="40" height="8" rx="4" fill="#334155"/>
+    <rect x="24" y="56" width="102" height="46" rx="8" fill="#ffd700" opacity="0.9"/>
+    <rect x="24" y="116" width="48" height="48" rx="8" fill="#22c55e"/>
+    <rect x="78" y="116" width="48" height="48" rx="8" fill="#ef4444"/>
+    <rect x="24" y="176" width="102" height="14" rx="7" fill="#475569"/>
+    <rect x="24" y="200" width="70" height="14" rx="7" fill="#475569"/>
+  </g>
+  <text x="80" y="170" font-family="-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="58" font-weight="800" fill="#ffffff">Baixe nosso App</text>
+  <text x="82" y="220" font-family="-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="26" fill="#e0e7ff">Ofertas exclusivas na palma da sua mão</text>
+  <rect x="82" y="252" width="220" height="56" rx="28" fill="#ffd700"/>
+  <text x="192" y="288" text-anchor="middle" font-family="-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="24" font-weight="700" fill="#111827">Baixar Agora</text>
+</svg>

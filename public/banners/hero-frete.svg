@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#059669"/>
+      <stop offset="0.6" stop-color="#10b981"/>
+      <stop offset="1" stop-color="#14b8a6"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.85" cy="0.25" r="0.8">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="420" fill="url(#g)"/>
+  <rect width="1200" height="420" fill="url(#glow)"/>
+  <circle cx="1000" cy="100" r="70" fill="#ffffff" opacity="0.10"/>
+  <!-- delivery truck -->
+  <g transform="translate(880,150)">
+    <rect x="0" y="40" width="150" height="100" rx="10" fill="#ffffff" opacity="0.95"/>
+    <rect x="150" y="70" width="90" height="70" rx="8" fill="#f1f5f9"/>
+    <rect x="160" y="80" width="60" height="40" rx="4" fill="#cbd5e1"/>
+    <circle cx="45" cy="150" r="26" fill="#0f172a"/>
+    <circle cx="45" cy="150" r="11" fill="#94a3b8"/>
+    <circle cx="195" cy="150" r="26" fill="#0f172a"/>
+    <circle cx="195" cy="150" r="11" fill="#94a3b8"/>
+    <rect x="18" y="58" width="60" height="20" rx="4" fill="#ffd700"/>
+  </g>
+  <text x="80" y="160" font-family="-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="56" font-weight="800" fill="#ffffff">Frete grátis</text>
+  <text x="80" y="222" font-family="-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="40" font-weight="700" fill="#ecfdf5">a partir de R$ 79</text>
+  <text x="82" y="266" font-family="-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="24" fill="#d1fae5">Em milhares de produtos selecionados</text>
+  <rect x="82" y="296" width="200" height="54" rx="27" fill="#ffffff"/>
+  <text x="182" y="331" text-anchor="middle" font-family="-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="23" font-weight="700" fill="#059669">Ver ofertas</text>
+</svg>
