@@ -6,6 +6,7 @@ import styles from './ProductCard.module.css';
 import { cx } from '@/lib/cx';
 import Icon from '../../atoms/Icon/Icon';
 import Skeleton from '../../atoms/Skeleton/Skeleton';
+import HighlightBadge from '../../atoms/HighlightBadge/HighlightBadge';
 import { useCart } from '../../providers/CartProvider';
 import { useToast } from '../../providers/ToastProvider';
 import { useFavorites } from '../../providers/FavoritesProvider';
@@ -61,6 +62,7 @@ export default function ProductCard({ product, loading = false, className }) {
   return (
     <article className={cx(styles.card, className)}>
       <div className={styles.media}>
+        {product.highlightTier && <HighlightBadge tier={product.highlightTier} />}
         <Link href={href} className={styles.mediaLink} aria-label={title}>
           {image ? (
             <img src={image} alt={title} className={styles.image} loading="lazy" />
