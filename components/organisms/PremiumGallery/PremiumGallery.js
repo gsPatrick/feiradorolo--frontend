@@ -3,7 +3,24 @@
 import { useState, useEffect } from 'react';
 import styles from './PremiumGallery.module.css';
 import { productService, mapProduct } from '@/lib/api';
-import ProductCard from '../../molecules/ProductCard/ProductCard';
+import PremiumProductCard from '../../molecules/PremiumProductCard/PremiumProductCard';
+
+function Header() {
+  return (
+    <div className={styles.head}>
+      <div className={styles.heading}>
+        <span className={styles.seal} aria-hidden="true">💎</span>
+        <div className={styles.headingText}>
+          <h2 className={styles.title}>Galeria Premium</h2>
+          <p className={styles.subtitle}>
+            Anúncios em destaque máximo — vitrine selecionada de vendedores de elite
+          </p>
+        </div>
+      </div>
+      <span className={styles.accent} aria-hidden="true" />
+    </div>
+  );
+}
 
 export default function PremiumGallery() {
   const [products, setProducts] = useState([]);
@@ -21,18 +38,10 @@ export default function PremiumGallery() {
   if (loading) {
     return (
       <section className={styles.section} aria-busy="true">
-        <div className={styles.head}>
-          <div className={styles.heading}>
-            <span className={styles.seal} aria-hidden="true">💎</span>
-            <div>
-              <h2 className={styles.title}>Galeria Premium</h2>
-              <p className={styles.subtitle}>Anúncios em destaque máximo</p>
-            </div>
-          </div>
-        </div>
+        <Header />
         <div className={styles.grid}>
           {Array.from({ length: 4 }).map((_, i) => (
-            <ProductCard key={i} loading />
+            <PremiumProductCard key={i} loading />
           ))}
         </div>
       </section>
@@ -44,21 +53,10 @@ export default function PremiumGallery() {
 
   return (
     <section className={styles.section}>
-      <div className={styles.head}>
-        <div className={styles.heading}>
-          <span className={styles.seal} aria-hidden="true">💎</span>
-          <div>
-            <h2 className={styles.title}>Galeria Premium</h2>
-            <p className={styles.subtitle}>Anúncios em destaque máximo</p>
-          </div>
-        </div>
-      </div>
-
+      <Header />
       <div className={styles.grid}>
         {products.map((p) => (
-          <div key={p.id} className={styles.cardWrap}>
-            <ProductCard product={p} />
-          </div>
+          <PremiumProductCard key={p.id} product={p} />
         ))}
       </div>
     </section>
