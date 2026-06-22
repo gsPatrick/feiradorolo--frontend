@@ -33,6 +33,104 @@
   display: flex;
   gap: 10px;
   flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/* Cabeçalho de seção (Ações rápidas) */
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.sectionTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+/* ---------- Métricas ---------- */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.metric {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  text-align: left;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  min-height: 92px;
+}
+.metricClickable {
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+.metricClickable:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md, 0 6px 20px rgba(0, 0, 0, 0.08));
+  transform: translateY(-2px);
+}
+.metricAlert {
+  border-color: var(--feira-yellow, var(--border-strong));
+}
+.metricAlert .metricValue {
+  color: var(--primary);
+}
+.metricIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-md);
+  background: var(--feira-yellow-soft, var(--bg-1));
+  color: var(--primary);
+}
+.metricLabel {
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+  line-height: 1.3;
+}
+.metricValue {
+  font-size: 1.4rem;
+  font-weight: 750;
+  color: var(--foreground);
+  line-height: 1.15;
+}
+.metricHint {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--success, #2e9e5b);
+}
+.metricSkeleton {
+  justify-content: center;
+  gap: 10px;
+}
+.skelBar,
+.skelBarSm {
+  display: block;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--bg-1);
+  animation: fdrPulse 1.4s ease-in-out infinite;
+}
+.skelBar {
+  width: 70%;
+}
+.skelBarSm {
+  width: 45%;
+  height: 22px;
+}
+@keyframes fdrPulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
 }
 
 .ghostBtn,
@@ -64,6 +162,11 @@
 }
 .primaryBtn:hover {
   filter: brightness(0.96);
+}
+.ghostBtnOn {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--feira-yellow-soft, var(--bg-1));
 }
 
 .editHint {
@@ -174,6 +277,149 @@
   border-color: var(--primary);
 }
 
+/* Atalho personalizado */
+.cardCustom {
+  border-style: dashed;
+  border-color: var(--border-strong);
+}
+.cardCustom:hover {
+  border-color: var(--primary);
+  border-style: solid;
+}
+.customBadge {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--primary);
+  background: var(--feira-yellow-soft, var(--bg-1));
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+}
+.customActions {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+}
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.iconBtn:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: var(--bg-1);
+}
+
+/* ---------- Modal: formulário de atalho ---------- */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fieldLabel {
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--foreground);
+}
+.input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  font-size: 0.92rem;
+  color: var(--foreground);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+.iconPicker {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+}
+.iconChoice {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  min-height: 40px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.iconChoice:hover {
+  border-color: var(--border-strong);
+  color: var(--foreground);
+}
+.iconChoiceOn {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--feira-yellow-soft, var(--bg-1));
+}
+.kindToggle {
+  display: flex;
+  gap: 8px;
+}
+.kindBtn {
+  flex: 1;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--foreground);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+}
+.kindBtnOn {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--feira-yellow-soft, var(--bg-1));
+}
+.formError {
+  font-size: 0.82rem;
+  color: var(--danger, #d23b3b);
+}
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  width: 100%;
+}
+.emptyActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 /* Vazio */
 .empty {
   display: flex;
@@ -203,17 +449,34 @@
   .grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 @media (max-width: 560px) {
   .grid {
     grid-template-columns: 1fr;
   }
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+  .iconPicker {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .sectionHead,
   .headActions {
     width: 100%;
+  }
+  .headActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
   .ghostBtn,
   .primaryBtn {
     flex: 1;
     justify-content: center;
+  }
+  .kindToggle {
+    flex-direction: column;
   }
 }
