@@ -342,6 +342,92 @@
   }
 }
 
+/* ===== Tablet (~768px) ===== */
+@media (max-width: 768px) {
+  .mainInner {
+    padding: 12px 16px;
+    gap: 14px;
+  }
+  .topInner {
+    padding: 9px 16px;
+  }
+  .navInner {
+    padding: 0 16px;
+    gap: 18px;
+  }
+  .actions {
+    gap: 14px;
+  }
+}
+
+/* ===== Mobile (~390px) ===== */
+@media (max-width: 560px) {
+  .mainInner {
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    gap: 10px 12px;
+  }
+  .logo {
+    font-size: 1.3rem;
+    order: 1;
+  }
+  .actions {
+    order: 2;
+    gap: 16px;
+  }
+  /* Busca quebra para a linha de baixo, ocupando largura total e utilizável */
+  .search {
+    order: 3;
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+  /* Garante alvos de toque >= 44px nos ícones */
+  .iconBtn,
+  .login,
+  .avatarBtn {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+  }
+  .avatarBtn {
+    padding: 4px;
+  }
+  .nav .navInner {
+    padding: 0 14px;
+    gap: 14px;
+  }
+  .categories {
+    padding: 13px 0;
+    font-size: 0.9rem;
+  }
+  /* Painel de categorias quase tela cheia, ancorado à esquerda */
+  .catsPanel {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-width: none;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+  }
+  .catsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .topInner a {
+    flex-shrink: 0;
+    margin-left: 12px;
+  }
+}
+
+@media (max-width: 400px) {
+  .actions {
+    gap: 13px;
+  }
+  .catsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---- Menu do usuário (logado) ---- */
 .userWrap {
   position: relative;

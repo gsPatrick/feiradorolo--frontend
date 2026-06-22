@@ -1,3 +1,10 @@
+/* Palco: envolve o banner e ancora setas/dots (que não podem ficar
+   dentro do <a> quando o banner é clicável). */
+.stage {
+  position: relative;
+  width: 100%;
+}
+
 .banner {
   position: relative;
   overflow: hidden;
@@ -9,6 +16,38 @@
   color: #fff;
   box-shadow: var(--shadow-md);
   transition: background var(--t-slow) var(--ease);
+  text-decoration: none;
+}
+
+/* Banner inteiro clicável (vira <a>). */
+.clickable {
+  cursor: pointer;
+}
+.clickable:hover {
+  filter: brightness(1.03);
+}
+
+/* Somente imagem (show_text === false): garante que a arte preencha
+   o banner sem sobreposição de texto. */
+.imageOnly {
+  padding: 0;
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+.badge {
+  display: inline-block;
+  align-self: flex-start;
+  margin-bottom: 12px;
+  padding: 5px 14px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: var(--r-pill);
 }
 
 .g1 {
@@ -24,6 +63,9 @@
 .content {
   position: relative;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   max-width: 620px;
   animation: fade 0.5s var(--ease-out);
 }
@@ -177,14 +219,60 @@
   background: #fff;
 }
 
+/* ===== Responsividade ===== */
+@media (max-width: 980px) {
+  .banner {
+    min-height: 360px;
+    padding: 40px clamp(24px, 5vw, 56px);
+  }
+}
+
 @media (max-width: 760px) {
   .side {
     display: none;
   }
+  .banner {
+    min-height: 300px;
+    padding: 32px 22px;
+  }
+  .imageOnly {
+    /* sem texto: mantém proporção agradável no mobile */
+    min-height: 200px;
+  }
+  /* Setas continuam utilizáveis no touch, porém menores. */
+  .arrow {
+    width: 38px;
+    height: 38px;
+  }
+  .left {
+    left: 10px;
+  }
+  .right {
+    right: 10px;
+  }
+  .dots {
+    bottom: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .banner {
+    min-height: 240px;
+    padding: 26px 18px;
+    border-radius: 14px;
+  }
+  .imageOnly {
+    min-height: 160px;
+  }
+  .title {
+    gap: 10px;
+  }
+  .cta {
+    margin-top: 20px;
+    height: 44px;
+  }
+  /* Em telas muito pequenas as setas atrapalham; usa-se swipe/dots. */
   .arrow {
     display: none;
-  }
-  .banner {
-    min-height: 320px;
   }
 }

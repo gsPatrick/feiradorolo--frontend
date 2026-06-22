@@ -28,6 +28,10 @@ const SLIDES = [
 /** Converte um banner da API no formato de slide. */
 function toSlide(b) {
   const content = b.content || {};
+  // Defaults seguros: campos podem vir undefined (banner antigo / API em paralelo).
+  const showText = b.show_text !== false; // default: true
+  const showButton = b.show_button !== false; // default: true
+  const clickable = b.clickable === true; // default: false
   return {
     bg: b.background_gradient || b.background_color || null,
     image: b.background_type === 'image' && b.image_url ? b.image_url : null,
@@ -35,10 +39,16 @@ function toSlide(b) {
     title: b.title,
     titleIcon: b.icon,
     sub: b.subtitle,
+    badge: b.badge_text || null,
     cta: b.cta_text,
     ctaIcon: content.cta_icon || 'arrow-right',
+    // destino: prioriza link_url p/ banner clicável; cta_url p/ o botão.
     href: b.cta_url || b.link_url || '#',
+    linkHref: b.link_url || b.cta_url || '#',
     side: content.side || null,
+    showText,
+    showButton,
+    clickable,
   };
 }
 
@@ -64,56 +74,97 @@ export default function HeroBanner() {
 
   const slide = slides[index] || slides[0];
 
-  return (
-    <div
-      className={cx(styles.banner, slide.grad && styles[slide.grad])}
-      style={
-        slide.image
-          ? { backgroundImage: `url(${slide.image})`, backgroundSize: 'cover', backgroundPosition: 'center', color: slide.textColor || '#fff' }
-          : slide.bg
-          ? { background: slide.bg, color: slide.textColor || '#fff' }
-          : undefined
-      }
-    >
-      <button className={`${styles.arrow} ${styles.left}`} onClick={() => go(index - 1)} aria-label="Anterior">
-        <Icon name="chevron-left" size={22} />
-      </button>
+  // Flags com defaults seguros (fallback SLIDES não traz esses campos).
+  const showText = slide.showText !== false;
+  const showButton = slide.showButton !== false;
+  const clickable = slide.clickable === true;
+  const linkHref = slide.linkHref || slide.href || '#';
 
-      <div className={styles.content} key={index}>
-        <h2 className={styles.title}>
-          {slide.title} {slide.titleIcon && <Icon name={slide.titleIcon} size={38} className={styles.titleIcon} />}
-        </h2>
-        <p className={styles.sub}>{slide.sub}</p>
+  const bgStyle = slide.image
+    ? { backgroundImage: `url(${slide.image})`, backgroundSize: 'cover', backgroundPosition: 'center', color: slide.textColor || '#fff' }
+    : slide.bg
+    ? { background: slide.bg, color: slide.textColor || '#fff' }
+    : undefined;
+
+  // Conteúdo de texto (título/subtítulo/badge/botão) só quando show_text estiver ligado.
+  const textContent = showText ? (
+    <div className={styles.content} key={index}>
+      {slide.badge && <span className={styles.badge}>{slide.badge}</span>}
+      <h2 className={styles.title}>
+        {slide.title} {slide.titleIcon && <Icon name={slide.titleIcon} size={38} className={styles.titleIcon} />}
+      </h2>
+      {slide.sub && <p className={styles.sub}>{slide.sub}</p>}
+      {/* Botão: só com texto ligado, botão visível e banner NÃO clicável (evita <a> dentro de <a>). */}
+      {showButton && !clickable && slide.cta && (
         <a href={slide.href} className={styles.cta}>
           {slide.cta} {slide.ctaIcon && <Icon name={slide.ctaIcon} size={18} />}
         </a>
-      </div>
+      )}
+    </div>
+  ) : null;
 
-      {slide.side && (
+  const decoration = (
+    <>
+      {showText && slide.side && (
         <div className={styles.side} key={`side-${index}`}>
           <span className={`${styles.pill} ${styles.pillTop}`}>{slide.side.top}</span>
           <span className={styles.word}>{slide.side.word}</span>
           <span className={styles.pill}>{slide.side.bottom}</span>
         </div>
       )}
-
       <span className={`${styles.bubble} ${styles.b1}`} />
       <span className={`${styles.bubble} ${styles.b2}`} />
+    </>
+  );
 
-      <button className={`${styles.arrow} ${styles.right}`} onClick={next} aria-label="Próximo">
-        <Icon name="arrow-right" size={22} />
-      </button>
+  // Quando clicável, o banner INTEIRO é um link; senão, é uma div.
+  const innerProps = {
+    className: cx(
+      styles.banner,
+      slide.grad && styles[slide.grad],
+      !showText && styles.imageOnly,
+      clickable && styles.clickable
+    ),
+    style: bgStyle,
+  };
 
-      <div className={styles.dots}>
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            className={`${styles.dot} ${i === index ? styles.dotActive : ''}`}
-            onClick={() => go(i)}
-            aria-label={`Slide ${i + 1}`}
-          />
-        ))}
-      </div>
+  const inner = clickable ? (
+    <a {...innerProps} href={linkHref} aria-label={slide.title || 'Banner'}>
+      {textContent}
+      {decoration}
+    </a>
+  ) : (
+    <div {...innerProps}>
+      {textContent}
+      {decoration}
+    </div>
+  );
+
+  return (
+    <div className={styles.stage}>
+      {inner}
+
+      {count > 1 && (
+        <>
+          <button className={`${styles.arrow} ${styles.left}`} onClick={() => go(index - 1)} aria-label="Anterior">
+            <Icon name="chevron-left" size={22} />
+          </button>
+          <button className={`${styles.arrow} ${styles.right}`} onClick={next} aria-label="Próximo">
+            <Icon name="arrow-right" size={22} />
+          </button>
+
+          <div className={styles.dots}>
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                className={`${styles.dot} ${i === index ? styles.dotActive : ''}`}
+                onClick={() => go(i)}
+                aria-label={`Slide ${i + 1}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

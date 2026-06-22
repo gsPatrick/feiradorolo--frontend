@@ -682,6 +682,11 @@
   gap: 24px;
   align-items: start;
 }
+/* Resumo do pedido acompanha o scroll no desktop */
+.colSide {
+  position: sticky;
+  top: 24px;
+}
 .colMain {
   display: flex;
   flex-direction: column;
@@ -1099,11 +1104,40 @@
   .grid3 {
     grid-template-columns: 1fr;
   }
+  /* Empilhado: resumo deixa de ser fixo e o conteúdo flui em 1 coluna */
+  .colSide {
+    position: static;
+    top: auto;
+  }
 }
+
+/* ===== Tablet (~768px) ===== */
+@media (max-width: 768px) {
+  .container {
+    padding: 24px 16px 48px;
+  }
+  .stepH1 {
+    font-size: 1.4rem;
+  }
+}
+
+/* ===== Mobile (~390px-640px) ===== */
 @media (max-width: 640px) {
   .topbarInner {
     flex-wrap: wrap;
     justify-content: center;
+    gap: 10px 16px;
+    padding: 12px 14px;
+  }
+  /* Indicador de etapas não estoura: encolhe dots/barras */
+  .stepDot {
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
+  }
+  .stepBar {
+    width: 20px;
+    margin: 0 5px;
   }
   .grid2,
   .fieldRow {
@@ -1113,5 +1147,37 @@
   }
   .navBetween {
     flex-direction: column-reverse;
+  }
+  /* Botões de navegação ocupam largura total */
+  .navBetween > * {
+    width: 100%;
+  }
+  .container {
+    padding: 20px 14px 44px;
+  }
+  .stepH1 {
+    font-size: 1.3rem;
+  }
+  .panel,
+  .newAddress {
+    padding: 16px;
+  }
+  .summaryItemName {
+    max-width: 60vw;
+  }
+}
+
+@media (max-width: 420px) {
+  /* QR do Pix nunca maior que a tela */
+  .pixQr,
+  .pixQrImg {
+    width: min(192px, 70vw);
+    height: min(192px, 70vw);
+  }
+  .copyRow {
+    flex-direction: column;
+  }
+  .stepH1 {
+    font-size: 1.2rem;
   }
 }

@@ -18,6 +18,8 @@ const emptyForm = () => ({
   subtitle: '',
   cta_text: '',
   cta_url: '',
+  link_url: '',
+  badge_text: '',
   background_type: 'color',
   background_color: '#FACC15',
   background_gradient: '',
@@ -26,7 +28,44 @@ const emptyForm = () => ({
   ends_at: '',
   icon: '',
   is_active: true,
+  // Novos controles de exibição (defaults seguros):
+  show_text: true, // mostra título/subtítulo/botão sobre a imagem
+  show_button: true, // exibe o botão (CTA)
+  clickable: false, // banner inteiro vira link
 });
+
+/**
+ * Switch didático: rótulo + texto de ajuda + toggle acessível.
+ * Usa os tokens do design system (caixa pílula).
+ */
+function SwitchRow({ checked, onChange, label, help, disabled }) {
+  return (
+    <label className={`${styles.switchRow}${disabled ? ` ${styles.switchDisabled}` : ''}`}>
+      <span
+        role="switch"
+        aria-checked={checked}
+        aria-disabled={disabled || undefined}
+        className={`${styles.switch}${checked ? ` ${styles.switchOn}` : ''}`}
+        onClick={() => !disabled && onChange(!checked)}
+      >
+        <span className={styles.switchKnob} />
+      </span>
+      <span className={styles.switchText}>
+        <span className={styles.switchLabel}>{label}</span>
+        {help && <span className={styles.hint}>{help}</span>}
+      </span>
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.checked)}
+        style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }}
+        tabIndex={-1}
+        aria-hidden="true"
+      />
+    </label>
+  );
+}
 
 // ISO -> formato aceito por <input type="datetime-local"> (YYYY-MM-DDTHH:mm)
 function isoToLocalInput(value) {
@@ -80,6 +119,8 @@ export default function HomePanel() {
         subtitle: banner.subtitle || '',
         cta_text: banner.cta_text || '',
         cta_url: banner.cta_url || '',
+        link_url: banner.link_url || '',
+        badge_text: banner.badge_text || '',
         background_type: banner.background_type || 'color',
         background_color: banner.background_color || '#FACC15',
         background_gradient: banner.background_gradient || '',
@@ -88,6 +129,10 @@ export default function HomePanel() {
         ends_at: isoToLocalInput(banner.ends_at),
         icon: banner.icon || '',
         is_active: banner.is_active !== false,
+        // Defaults seguros caso o banner seja antigo (campos ausentes):
+        show_text: banner.show_text !== false,
+        show_button: banner.show_button !== false,
+        clickable: banner.clickable === true,
       },
     });
   }
@@ -231,40 +276,14 @@ export default function HomePanel() {
 
             {formOpen ? (
               <div className={styles.field} style={{ marginTop: 14, marginBottom: 0 }}>
-                <div className={styles.grid2}>
-                  <div className={styles.field}>
-                    <label className={styles.label}>Título</label>
-                    <input
-                      className={styles.input}
-                      value={editing.form.title}
-                      onChange={(e) => setField('title', e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.field}>
-                    <label className={styles.label}>Subtítulo</label>
-                    <input
-                      className={styles.input}
-                      value={editing.form.subtitle}
-                      onChange={(e) => setField('subtitle', e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.field}>
-                    <label className={styles.label}>Texto do botão</label>
-                    <input
-                      className={styles.input}
-                      value={editing.form.cta_text}
-                      onChange={(e) => setField('cta_text', e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.field}>
-                    <label className={styles.label}>Link do botão</label>
-                    <input
-                      className={styles.input}
-                      value={editing.form.cta_url}
-                      onChange={(e) => setField('cta_url', e.target.value)}
-                      placeholder="/categoria/eletronicos"
-                    />
-                  </div>
+                {/* ===== 1) Imagem / fundo do banner ===== */}
+                <div className={styles.section}>
+                  <div className={styles.sectionTitle}>1. Imagem do banner</div>
+                  <p className={styles.hint}>
+                    Escolha o fundo. Se já tiver uma arte pronta com texto, use uma imagem e
+                    desligue "Mostrar texto" mais abaixo.
+                  </p>
+
                   <div className={styles.field}>
                     <label className={styles.label}>Tipo de fundo</label>
                     <select
@@ -272,11 +291,39 @@ export default function HomePanel() {
                       value={editing.form.background_type || 'color'}
                       onChange={(e) => setField('background_type', e.target.value)}
                     >
+                      <option value="image">Imagem</option>
                       <option value="color">Cor sólida</option>
                       <option value="gradient">Gradiente</option>
-                      <option value="image">Imagem</option>
                     </select>
                   </div>
+
+                  {editing.form.background_type === 'image' && (
+                    <div className={styles.field}>
+                      <label className={styles.label}>Imagem (upload ou URL)</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className={styles.input}
+                        disabled={uploading}
+                        onChange={(e) => handleImageUpload(e.target.files && e.target.files[0])}
+                      />
+                      {uploading && <span className={styles.hint}>Enviando…</span>}
+                      <input
+                        className={styles.input}
+                        style={{ marginTop: 8 }}
+                        value={editing.form.image_url || ''}
+                        onChange={(e) => setField('image_url', e.target.value)}
+                        placeholder="https://… (ou faça upload acima)"
+                      />
+                      {editing.form.image_url && (
+                        <img
+                          src={editing.form.image_url}
+                          alt="Pré-visualização do banner"
+                          style={{ maxWidth: 220, borderRadius: 8, marginTop: 8 }}
+                        />
+                      )}
+                    </div>
+                  )}
 
                   {editing.form.background_type === 'color' && (
                     <div className={styles.field}>
@@ -301,59 +348,154 @@ export default function HomePanel() {
                       />
                     </div>
                   )}
+                </div>
 
-                  <div className={styles.field}>
-                    <label className={styles.label}>Cor do texto</label>
-                    <input
-                      type="color"
-                      className={styles.input}
-                      value={editing.form.text_color || '#000000'}
-                      onChange={(e) => setField('text_color', e.target.value)}
-                    />
-                    <span className={styles.hint}>Opcional. Cor do título e texto sobre o banner.</span>
-                  </div>
+                {/* ===== 2) Como o banner se comporta (switches) ===== */}
+                <div className={styles.section}>
+                  <div className={styles.sectionTitle}>2. Comportamento</div>
 
+                  <SwitchRow
+                    checked={editing.form.show_text !== false}
+                    onChange={(v) => setField('show_text', v)}
+                    label="Mostrar texto sobre a imagem"
+                    help="Desligue se a sua imagem já tem o texto/arte pronta. Quando ligado, exibe título, subtítulo e (opcionalmente) botão."
+                  />
+
+                  <SwitchRow
+                    checked={editing.form.clickable === true}
+                    onChange={(v) => setField('clickable', v)}
+                    label="Banner inteiro clicável"
+                    help="O banner todo vira um link — não precisa de botão. Usa o “Link de destino” abaixo."
+                  />
+
+                  <SwitchRow
+                    checked={editing.form.show_button !== false}
+                    onChange={(v) => setField('show_button', v)}
+                    label="Mostrar botão"
+                    help="Exibe um botão com texto e link. Só faz sentido com o texto ligado e o banner não-clicável."
+                    disabled={editing.form.show_text === false || editing.form.clickable === true}
+                  />
+
+                  {/* Resumo claro do efeito escolhido */}
+                  <p className={styles.effect}>
+                    {editing.form.clickable === true
+                      ? 'Efeito: o banner inteiro é um link. Clique em qualquer lugar leva ao destino abaixo.'
+                      : editing.form.show_text === false
+                      ? 'Efeito: mostra apenas a imagem, sem texto nem botão sobrepostos.'
+                      : editing.form.show_button !== false
+                      ? 'Efeito: mostra o texto sobre a imagem, com um botão clicável.'
+                      : 'Efeito: mostra o texto sobre a imagem, sem botão.'}
+                  </p>
+                </div>
+
+                {/* ===== 3) Destino do clique (sempre visível) ===== */}
+                <div className={styles.section}>
+                  <div className={styles.sectionTitle}>3. Link de destino</div>
                   <div className={styles.field}>
-                    <label className={styles.label}>Ícone</label>
+                    <label className={styles.label}>Para onde o usuário vai ao clicar</label>
                     <input
                       className={styles.input}
-                      value={editing.form.icon}
-                      onChange={(e) => setField('icon', e.target.value)}
-                      placeholder="grid, plus, eye…"
+                      value={editing.form.link_url}
+                      onChange={(e) => setField('link_url', e.target.value)}
+                      placeholder="/categoria/eletronicos ou https://…"
                     />
+                    <span className={styles.hint}>
+                      Usado quando o banner é clicável e como destino padrão do botão.
+                    </span>
                   </div>
                 </div>
 
-                {editing.form.background_type === 'image' && (
-                  <div className={styles.field}>
-                    <label className={styles.label}>Imagem de fundo</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className={styles.input}
-                      disabled={uploading}
-                      onChange={(e) => handleImageUpload(e.target.files && e.target.files[0])}
-                    />
-                    {uploading && <span className={styles.hint}>Enviando…</span>}
-                    <input
-                      className={styles.input}
-                      style={{ marginTop: 8 }}
-                      value={editing.form.image_url || ''}
-                      onChange={(e) => setField('image_url', e.target.value)}
-                      placeholder="https://… (ou faça upload acima)"
-                    />
-                    {editing.form.image_url && (
-                      <img
-                        src={editing.form.image_url}
-                        alt="Pré-visualização do banner"
-                        style={{ maxWidth: 180, borderRadius: 8, marginTop: 8 }}
-                      />
+                {/* ===== 4) Conteúdo do texto — só quando "Mostrar texto" está ligado ===== */}
+                {editing.form.show_text !== false ? (
+                  <div className={styles.section}>
+                    <div className={styles.sectionTitle}>4. Texto sobre a imagem</div>
+                    <div className={styles.grid2}>
+                      <div className={styles.field}>
+                        <label className={styles.label}>Título</label>
+                        <input
+                          className={styles.input}
+                          value={editing.form.title}
+                          onChange={(e) => setField('title', e.target.value)}
+                        />
+                      </div>
+                      <div className={styles.field}>
+                        <label className={styles.label}>Subtítulo</label>
+                        <input
+                          className={styles.input}
+                          value={editing.form.subtitle}
+                          onChange={(e) => setField('subtitle', e.target.value)}
+                        />
+                      </div>
+                      <div className={styles.field}>
+                        <label className={styles.label}>Selo / badge (opcional)</label>
+                        <input
+                          className={styles.input}
+                          value={editing.form.badge_text}
+                          onChange={(e) => setField('badge_text', e.target.value)}
+                          placeholder="NOVO, OFERTA…"
+                        />
+                      </div>
+                      <div className={styles.field}>
+                        <label className={styles.label}>Ícone (opcional)</label>
+                        <input
+                          className={styles.input}
+                          value={editing.form.icon}
+                          onChange={(e) => setField('icon', e.target.value)}
+                          placeholder="grid, plus, eye…"
+                        />
+                      </div>
+                      <div className={styles.field}>
+                        <label className={styles.label}>Cor do texto (opcional)</label>
+                        <input
+                          type="color"
+                          className={styles.input}
+                          value={editing.form.text_color || '#000000'}
+                          onChange={(e) => setField('text_color', e.target.value)}
+                        />
+                        <span className={styles.hint}>Cor do título e subtítulo sobre o banner.</span>
+                      </div>
+                    </div>
+
+                    {/* Botão — só quando mostrar botão estiver ligado e não-clicável */}
+                    {editing.form.show_button !== false && editing.form.clickable !== true ? (
+                      <div className={styles.grid2}>
+                        <div className={styles.field}>
+                          <label className={styles.label}>Texto do botão</label>
+                          <input
+                            className={styles.input}
+                            value={editing.form.cta_text}
+                            onChange={(e) => setField('cta_text', e.target.value)}
+                            placeholder="Ver ofertas"
+                          />
+                        </div>
+                        <div className={styles.field}>
+                          <label className={styles.label}>Link do botão (opcional)</label>
+                          <input
+                            className={styles.input}
+                            value={editing.form.cta_url}
+                            onChange={(e) => setField('cta_url', e.target.value)}
+                            placeholder="Vazio = usa o Link de destino"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <p className={styles.hint}>
+                        {editing.form.clickable === true
+                          ? 'O botão fica oculto porque o banner inteiro já é clicável.'
+                          : 'O botão está desligado em "Mostrar botão".'}
+                      </p>
                     )}
                   </div>
+                ) : (
+                  <p className={styles.effect}>
+                    O texto está desligado: apenas a imagem será exibida. Ligue "Mostrar texto sobre a
+                    imagem" para editar título, subtítulo e botão.
+                  </p>
                 )}
 
+                {/* ===== Cronômetro (Flash Sale) e estado ===== */}
                 <div className={styles.field}>
-                  <label className={styles.label}>Data/hora de término</label>
+                  <label className={styles.label}>Data/hora de término (opcional)</label>
                   <input
                     type="datetime-local"
                     className={styles.input}
@@ -370,7 +512,7 @@ export default function HomePanel() {
                       checked={editing.form.is_active}
                       onChange={(e) => setField('is_active', e.target.checked)}
                     />
-                    Ativo
+                    Banner ativo (visível no site)
                   </label>
                 </div>
 

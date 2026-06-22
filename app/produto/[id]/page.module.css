@@ -5,6 +5,12 @@
   max-width: var(--container);
   margin: 0 auto;
   padding: 22px 28px 64px;
+  min-width: 0;
+}
+@media (max-width: 640px) {
+  .container {
+    padding: 16px 14px 48px;
+  }
 }
 
 /* — Topo: breadcrumb + ações — */
@@ -216,6 +222,12 @@
   .heroGrid { grid-template-columns: 1fr; gap: 22px; }
   .knowList { grid-template-columns: 1fr; }
 }
+@media (max-width: 640px) {
+  .heroCard { padding: 18px 16px; }
+  .title { font-size: 1.25rem; }
+  .price { font-size: 1.9rem; }
+  .knowTitle { font-size: 1.02rem; }
+}
 
 /* — Cards de conteúdo (dentro da coluna esquerda, empilhados sob o heroCard) — */
 .fullStack {
@@ -256,10 +268,12 @@
   font-weight: 600;
   text-transform: capitalize;
 }
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .specsGrid {
     grid-template-columns: 1fr;
   }
+  .card { padding: 18px 16px; }
+  .cardTitle { font-size: 1.08rem; }
 }
 .description {
   font-size: 0.95rem;
@@ -886,10 +900,24 @@
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: 1fr;
+    gap: 22px;
   }
   .sidebar {
     position: static;
   }
+}
+@media (max-width: 640px) {
+  .buyBox { padding: 16px 16px 18px; }
+  .sideCard { padding: 16px; }
+  /* Alvos de toque >=44px no mobile */
+  .stepper button { width: 38px; height: 38px; }
+  .stepper { gap: 16px; }
+  .topAction { height: 40px; }
+  .reviewsActions { width: 100%; }
+  .reviewBtn { flex: 1; justify-content: center; padding: 11px 14px; }
+  /* Selo/perguntas: data + denúncia podem quebrar linha */
+  .reviewMeta { flex-wrap: wrap; }
+  .reportBtn { padding: 6px 8px; }
 }
 
 /* — Q&A inline + denúncia — */

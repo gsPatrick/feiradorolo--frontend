@@ -219,6 +219,85 @@
   color: var(--muted-foreground);
 }
 
+/* ===== Seções didáticas do editor de banner ===== */
+.section {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px;
+  margin-bottom: 14px;
+  background: var(--bg-1, var(--bg));
+}
+.sectionTitle {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 8px;
+}
+/* Resumo do efeito da combinação de switches */
+.effect {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--foreground);
+  background: var(--feira-yellow, #facc15);
+  border-radius: var(--r-md);
+  padding: 8px 12px;
+  margin-top: 10px;
+}
+
+/* ===== Switch didático ===== */
+.switchRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  cursor: pointer;
+  position: relative;
+}
+.switchRow + .switchRow {
+  border-top: 1px solid var(--border);
+}
+.switchDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.switch {
+  flex-shrink: 0;
+  width: 42px;
+  height: 24px;
+  border-radius: var(--r-pill);
+  background: var(--border-strong, #cbd5e1);
+  position: relative;
+  transition: background var(--t-fast) var(--ease);
+  margin-top: 1px;
+}
+.switchOn {
+  background: var(--primary, #2563eb);
+}
+.switchKnob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform var(--t-fast) var(--ease);
+}
+.switchOn .switchKnob {
+  transform: translateX(18px);
+}
+.switchText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.switchLabel {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
 @media (max-width: 700px) {
   .grid2 { grid-template-columns: 1fr; }
 }

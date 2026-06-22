@@ -278,9 +278,23 @@ export default function FreteEEntregaPage() {
                 <ul className={styles.calcList}>
                   {calcOptions.map((o) => (
                     <li key={o.service_code} className={styles.calcRow}>
-                      <span className={styles.calcSvc}>
-                        {o.company ? `${o.company} · ` : ''}{o.service_name}
-                        {o.delivery_time != null && <span className={styles.calcEta}> · {o.delivery_time} dias úteis</span>}
+                      <span className={styles.calcInfo}>
+                        {o.company_picture && (
+                          <img
+                            src={o.company_picture}
+                            alt={o.company || o.service_name}
+                            className={styles.calcLogo}
+                            loading="lazy"
+                          />
+                        )}
+                        <span className={styles.calcSvcWrap}>
+                          <span className={styles.calcSvc}>
+                            {o.company ? `${o.company} · ` : ''}{o.service_name}
+                          </span>
+                          {o.delivery_time != null && (
+                            <span className={styles.calcEta}>{o.delivery_time} dias úteis</span>
+                          )}
+                        </span>
                       </span>
                       <span className={styles.calcPrice}>
                         {o.free_shipping || Number(o.price) === 0 ? 'Grátis' : BRL.format(Number(o.price) || 0)}

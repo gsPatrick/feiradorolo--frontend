@@ -276,3 +276,42 @@
   font-size: 0.74rem;
   color: var(--muted-foreground);
 }
+
+/* ===== Mobile (~390px) ===== */
+@media (max-width: 480px) {
+  /* Quase tela cheia, deixando uma faixa do overlay para fechar */
+  .drawer {
+    width: min(440px, 92%);
+  }
+  .head {
+    padding: 16px;
+  }
+  .list {
+    padding: 14px 16px;
+  }
+  .footer {
+    padding: 16px 16px 20px;
+  }
+  .item {
+    padding: 10px;
+    gap: 10px;
+  }
+  .thumb {
+    width: 56px;
+    height: 56px;
+  }
+  /* Alvos de toque >= 44px no stepper e remover */
+  .stepper button {
+    width: 34px;
+    height: 34px;
+  }
+  .remove {
+    width: 40px;
+    height: 40px;
+  }
+  .benefits {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 4px;
+  }
+}
