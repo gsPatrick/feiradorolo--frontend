@@ -1,0 +1,416 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* — Card — */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.cardHead {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+.cardBody {
+  padding: 24px;
+}
+
+/* — Loading — */
+.loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--brand-strong);
+  border-radius: 50%;
+  display: inline-block;
+  animation: adminProductsSpin 0.7s linear infinite;
+}
+@keyframes adminProductsSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* — Contadores — */
+.counters {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+@media (min-width: 768px) {
+  .counters {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.counterBox {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--bg-1);
+}
+.counterLabel {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+.counterValue {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+/* — Retry — */
+.retryLink {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--brand-strong);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* — Filtros — */
+.filters {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+@media (min-width: 768px) {
+  .filters {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* — Tabela — */
+.tableWrap {
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.tableScroll {
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.table thead {
+  background: var(--bg-1);
+  border-bottom: 1px solid var(--border);
+}
+.table th {
+  text-align: left;
+  padding: 14px 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+.table td {
+  padding: 14px 16px;
+  vertical-align: middle;
+}
+.table tbody tr {
+  border-top: 1px solid var(--border);
+  transition: background var(--t-fast) var(--ease);
+}
+.row:hover {
+  background: var(--bg-1);
+}
+.empty {
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--muted-foreground);
+}
+
+/* — Célula Anúncio — */
+.productCell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 200px;
+}
+.cover {
+  flex-shrink: 0;
+  border-radius: var(--r-md);
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.coverImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.productInfo {
+  min-width: 0;
+}
+.productTitle {
+  font-weight: 600;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.productCat {
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+  margin-top: 2px;
+}
+.sellerName {
+  color: var(--foreground);
+  white-space: nowrap;
+}
+.price {
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+.stock {
+  font-weight: 600;
+  color: var(--foreground);
+}
+.stockOut {
+  color: var(--destructive);
+}
+.views {
+  color: var(--muted-foreground);
+}
+
+/* — Destaque — */
+.highlightCell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+.highlightExp {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+.noHighlight {
+  color: var(--text-dim);
+}
+
+/* — Ações — */
+.actionsCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rowActionBtns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.actionStack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.btnActivate {
+  color: var(--success);
+  border-color: rgba(34, 197, 94, 0.5);
+}
+.btnActivate:hover {
+  background: var(--success-soft);
+}
+.btnPause {
+  color: var(--feira-yellow-strong);
+  border-color: var(--feira-yellow-strong);
+}
+.btnBoost {
+  color: #7e22ce;
+  border-color: rgba(147, 51, 234, 0.5);
+}
+.btnBoost:hover {
+  background: rgba(147, 51, 234, 0.08);
+}
+.btnDelete {
+  color: var(--destructive);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+.btnDelete:hover {
+  background: var(--danger-soft);
+}
+.btnDeleteSolid {
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+}
+.btnDeleteSolid:hover {
+  background: #b91c1c;
+}
+
+/* — Carregar mais — */
+.loadMore {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* — Cards mobile — */
+.cardsMobile {
+  display: none;
+}
+.mobileCard {
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 16px;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.mobileTop {
+  display: flex;
+  gap: 12px;
+}
+.mobileInfo {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mobileMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.metaPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+/* — Modal: confirmação / boost — */
+.confirmBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.confirmLead {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--foreground);
+  margin: 0;
+}
+.confirmDanger {
+  color: var(--destructive);
+  font-weight: 600;
+}
+.confirmField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.confirmField > span {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+.confirmFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  width: 100%;
+}
+.currentBoost {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg-1);
+}
+.currentBoost > span {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+/* — Seletor de nível de destaque — */
+.tierGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.tierBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--foreground);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease);
+}
+.tierBtn:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-1);
+}
+.tierBtnOn {
+  border-color: var(--brand-strong);
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+}
+.tierBtnNone.tierBtnOn {
+  border-color: rgba(239, 68, 68, 0.6);
+  background: var(--danger-soft);
+  color: var(--destructive);
+}
+
+/* — Mobile: tabela vira cards — */
+@media (max-width: 860px) {
+  .tableWrap {
+    display: none;
+  }
+  .cardsMobile {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+}

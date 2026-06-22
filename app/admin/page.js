@@ -10,6 +10,7 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
 
 import AdminOrders from '@/components/organisms/admin/AdminOrders/AdminOrders';
+import AdminProducts from '@/components/organisms/admin/AdminProducts/AdminProducts';
 import AdminDisputes from '@/components/organisms/admin/AdminDisputes/AdminDisputes';
 import AdminUsers from '@/components/organisms/admin/AdminUsers/AdminUsers';
 import AdminChatModeration from '@/components/organisms/admin/AdminChatModeration/AdminChatModeration';
@@ -31,6 +32,7 @@ import AdminHome from '@/components/organisms/admin/AdminHome/AdminHome';
 const TABS = [
   { k: 'home', label: 'Início', icon: 'grid' },
   { k: 'orders', label: 'Pedidos', icon: 'package', Comp: AdminOrders },
+  { k: 'products', label: 'Produtos', icon: 'package', Comp: AdminProducts },
   { k: 'disputes', label: 'Disputas', icon: 'shield', Comp: AdminDisputes },
   { k: 'users', label: 'Usuários', icon: 'user', Comp: AdminUsers },
   { k: 'chat', label: 'Chat', icon: 'chat', Comp: AdminChatModeration },

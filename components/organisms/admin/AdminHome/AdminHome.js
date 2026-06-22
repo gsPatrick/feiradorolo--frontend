@@ -16,6 +16,7 @@ const SHORTCUTS_KEY = 'fdr.adminCustomShortcuts';
 // `k` deve casar com a chave da aba para que onNavigate(k) funcione.
 const ACTIONS = [
   { k: 'orders', label: 'Pedidos', icon: 'package', desc: 'Acompanhe e gerencie todos os pedidos.' },
+  { k: 'products', label: 'Produtos', icon: 'tag', desc: 'Controle total de qualquer anúncio.' },
   { k: 'disputes', label: 'Disputas', icon: 'shield', desc: 'Resolva conflitos entre compradores e vendedores.' },
   { k: 'customization', label: 'Personalização', icon: 'sparkle', desc: 'Páginas, banners e identidade visual.' },
   { k: 'specifications', label: 'Especificações', icon: 'grid', desc: 'Atributos e campos das categorias.' },

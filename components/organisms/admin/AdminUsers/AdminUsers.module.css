@@ -566,6 +566,69 @@
   color: var(--muted-foreground);
 }
 
+/* — Planos / assinaturas (modal de detalhe) — */
+.subsList {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.subItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg-1);
+  flex-wrap: wrap;
+}
+.subInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.subPlan {
+  font-weight: 600;
+  color: var(--foreground);
+}
+.subMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.subEnds {
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+}
+.grantRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.grantSelect {
+  flex: 1 1 200px;
+  min-width: 160px;
+}
+.grantDays {
+  flex: 0 1 150px;
+  min-width: 120px;
+}
+@media (max-width: 560px) {
+  .grantRow > * {
+    flex: 1 1 100%;
+  }
+  .subItem {
+    align-items: flex-start;
+  }
+}
+
 /* — Modal de confirmação / motivo — */
 .confirmBody {
   display: flex;

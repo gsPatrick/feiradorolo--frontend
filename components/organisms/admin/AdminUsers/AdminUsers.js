@@ -120,6 +120,19 @@ function formatDate(iso) {
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+/* — Status de assinatura → badge amigável — */
+const SUBSCRIPTION_BADGE = {
+  active: { variant: 'success', label: 'Ativo' },
+  expired: { variant: 'neutral', label: 'Expirado' },
+  pending: { variant: 'brand', label: 'Pendente' },
+  cancelled: { variant: 'danger', label: 'Cancelado' },
+  canceled: { variant: 'danger', label: 'Cancelado' },
+};
+
+function subscriptionBadge(status) {
+  return SUBSCRIPTION_BADGE[String(status || '').toLowerCase()] || { variant: 'neutral', label: status || '—' };
+}
+
 function errMessage(err, fallback) {
   if (err instanceof ApiError && err.message) return err.message;
   return fallback;
@@ -146,6 +159,116 @@ export default function AdminUsers() {
   const [confirm, setConfirm] = useState(null);
   const [reason, setReason] = useState('');
   const [confirmText, setConfirmText] = useState('');
+
+  /* — Planos do usuário (no modal de detalhe) — */
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [subsLoading, setSubsLoading] = useState(false);
+  const [subsError, setSubsError] = useState(false);
+  const [plans, setPlans] = useState([]);
+  const [grantPlanId, setGrantPlanId] = useState('');
+  const [grantDays, setGrantDays] = useState('');
+  const [granting, setGranting] = useState(false);
+  // Assinatura em revogação: id → true. Confirmação simples antes de revogar.
+  const [revokingId, setRevokingId] = useState(null);
+  const [confirmRevoke, setConfirmRevoke] = useState(null);
+
+  // Carrega as assinaturas do usuário selecionado.
+  const loadSubscriptions = async (userId) => {
+    if (!userId) return;
+    setSubsLoading(true);
+    setSubsError(false);
+    try {
+      const data = await adminService.userSubscriptions(userId);
+      const list = Array.isArray(data) ? data : (data?.data || data?.subscriptions || []);
+      setSubscriptions(Array.isArray(list) ? list : []);
+    } catch (err) {
+      setSubsError(true);
+      setSubscriptions([]);
+    } finally {
+      setSubsLoading(false);
+    }
+  };
+
+  // Ao abrir o detalhe do usuário: carrega assinaturas + (uma vez) o catálogo de planos.
+  useEffect(() => {
+    if (!selectedUser) return;
+    setGrantPlanId('');
+    setGrantDays('');
+    setConfirmRevoke(null);
+    loadSubscriptions(selectedUser.id);
+    if (plans.length === 0) {
+      adminService.plans()
+        .then((data) => {
+          const list = Array.isArray(data) ? data : (data?.data || []);
+          setPlans(Array.isArray(list) ? list : []);
+        })
+        .catch(() => setPlans([]));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedUser?.id]);
+
+  const planOptions = useMemo(() => ([
+    { value: '', label: 'Selecione um plano…' },
+    ...plans.map((p) => {
+      const price = p.price != null ? Number(p.price) : null;
+      const priceLabel = price != null && !Number.isNaN(price)
+        ? ` — R$ ${price.toFixed(2).replace('.', ',')}`
+        : '';
+      const dur = p.duration_days ? ` (${p.duration_days}d)` : '';
+      return { value: String(p.id), label: `${p.name || `Plano #${p.id}`}${priceLabel}${dur}` };
+    }),
+  ]), [plans]);
+
+  const handleGrantPlan = async () => {
+    if (!selectedUser || !grantPlanId || granting) return;
+    setGranting(true);
+    try {
+      const payload = { user_id: selectedUser.id, plan_id: grantPlanId };
+      const daysNum = parseInt(grantDays, 10);
+      if (grantDays !== '' && !Number.isNaN(daysNum) && daysNum > 0) payload.days = daysNum;
+      await adminService.grantPlan(payload);
+      const planName = plans.find((p) => String(p.id) === String(grantPlanId))?.name || 'Plano';
+      toast({
+        title: 'Plano ativado',
+        description: `${planName} concedido a ${selectedUser.name}.`,
+        variant: 'success',
+      });
+      setGrantPlanId('');
+      setGrantDays('');
+      await loadSubscriptions(selectedUser.id);
+    } catch (err) {
+      toast({
+        title: 'Não foi possível ativar o plano',
+        description: errMessage(err, 'Tente novamente em instantes.'),
+        variant: 'error',
+      });
+    } finally {
+      setGranting(false);
+    }
+  };
+
+  const handleRevokeSubscription = async (sub) => {
+    if (!sub || revokingId) return;
+    setRevokingId(sub.id);
+    try {
+      await adminService.revokeSubscription(sub.id);
+      toast({
+        title: 'Assinatura revogada',
+        description: 'O plano foi cancelado para este usuário.',
+        variant: 'success',
+      });
+      setConfirmRevoke(null);
+      if (selectedUser) await loadSubscriptions(selectedUser.id);
+    } catch (err) {
+      toast({
+        title: 'Não foi possível revogar',
+        description: errMessage(err, 'Tente novamente em instantes.'),
+        variant: 'error',
+      });
+    } finally {
+      setRevokingId(null);
+    }
+  };
 
   const loadUsers = async () => {
     setLoading(true);
@@ -635,6 +758,122 @@ export default function AdminUsers() {
                 <ActionButtons user={selectedUser} stacked />
               )}
             </div>
+
+            {/* — Planos: assinaturas + concessão manual — */}
+            <div className={styles.detailCard}>
+              <h3>Planos</h3>
+
+              {/* Lista de assinaturas */}
+              {subsLoading ? (
+                <p className={styles.loading}>
+                  <span className={styles.spinner} aria-hidden="true" /> Carregando assinaturas…
+                </p>
+              ) : subsError ? (
+                <p className={styles.selfNote}>
+                  Não foi possível carregar as assinaturas.{' '}
+                  <button type="button" className={styles.retryLink} onClick={() => loadSubscriptions(selectedUser.id)}>
+                    Tentar novamente
+                  </button>
+                </p>
+              ) : subscriptions.length === 0 ? (
+                <p className={styles.selfNote}>Nenhuma assinatura para este usuário.</p>
+              ) : (
+                <ul className={styles.subsList}>
+                  {subscriptions.map((sub) => {
+                    const badge = subscriptionBadge(sub.status);
+                    const planName = sub.plan?.name || sub.plan_name || (sub.plan_id ? `Plano #${sub.plan_id}` : 'Plano');
+                    const endsAt = sub.ends_at || sub.endsAt || sub.expires_at || null;
+                    const isActive = String(sub.status || '').toLowerCase() === 'active';
+                    return (
+                      <li key={sub.id} className={styles.subItem}>
+                        <div className={styles.subInfo}>
+                          <span className={styles.subPlan}>{planName}</span>
+                          <span className={styles.subMeta}>
+                            <Badge variant={badge.variant} size="sm">{badge.label}</Badge>
+                            <span className={styles.subEnds}>Vence em {formatDate(endsAt)}</span>
+                          </span>
+                        </div>
+                        {isActive && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className={styles.btnDelete}
+                            loading={revokingId === sub.id}
+                            disabled={!!revokingId}
+                            onClick={() => setConfirmRevoke(sub)}
+                          >
+                            Revogar
+                          </Button>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+
+              {/* Concessão manual de plano (grant sem pagamento) */}
+              <div className={styles.grantRow}>
+                <Select
+                  className={styles.grantSelect}
+                  value={grantPlanId}
+                  onChange={(e) => setGrantPlanId(e.target.value)}
+                  options={planOptions}
+                  disabled={granting || plans.length === 0}
+                />
+                <Input
+                  className={styles.grantDays}
+                  type="number"
+                  min="1"
+                  placeholder="Dias (opcional)"
+                  value={grantDays}
+                  onChange={(e) => setGrantDays(e.target.value)}
+                  disabled={granting}
+                />
+                <Button
+                  size="sm"
+                  className={styles.btnApprove}
+                  loading={granting}
+                  disabled={!grantPlanId || granting}
+                  onClick={handleGrantPlan}
+                  leftIcon="check"
+                >
+                  Ativar plano
+                </Button>
+              </div>
+              {plans.length === 0 && !granting && (
+                <p className={styles.subEnds}>Nenhum plano disponível no catálogo.</p>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal — Confirmação de revogação de assinatura */}
+      <Modal
+        open={!!confirmRevoke}
+        onClose={() => { if (!revokingId) setConfirmRevoke(null); }}
+        size="sm"
+        title="Revogar assinatura"
+        footer={confirmRevoke && (
+          <div className={styles.confirmFooter}>
+            <Button variant="outline" onClick={() => setConfirmRevoke(null)} disabled={!!revokingId}>Cancelar</Button>
+            <Button
+              className={styles.btnBan}
+              loading={revokingId === confirmRevoke.id}
+              disabled={!!revokingId}
+              onClick={() => handleRevokeSubscription(confirmRevoke)}
+            >
+              Revogar
+            </Button>
+          </div>
+        )}
+      >
+        {confirmRevoke && (
+          <div className={styles.confirmBody}>
+            <p className={styles.confirmLead}>
+              O plano <strong>{confirmRevoke.plan?.name || confirmRevoke.plan_name || 'selecionado'}</strong> será
+              cancelado para este usuário. Esta ação encerra o acesso imediatamente.
+            </p>
           </div>
         )}
       </Modal>
