@@ -37,6 +37,15 @@ function toSpecField(f) {
   };
 }
 
+/** Considera "vazio": ausente, string vazia/só-espaços, ou array vazio (multi-select). */
+function isFieldEmpty(field, values) {
+  const v = values ? values[field.name] : undefined;
+  if (v == null) return true;
+  if (Array.isArray(v)) return v.length === 0;
+  if (typeof v === 'string') return v.trim() === '';
+  return false; // boolean "Não", número 0, etc. contam como preenchidos
+}
+
 /** Lista de itens a exibir no combobox (busca client-side, igual ao antigo). */
 function computeItems(field, searchTerm) {
   let opts = field.options || [];
@@ -213,8 +222,10 @@ function Combobox({ field, multi, searchable, value, selected, onPick, onRemove,
   );
 }
 
-function SpecField({ field, values, onChange, onAddClick }) {
+function SpecField({ field, values, onChange, onAddClick, showErrors }) {
   const setValue = (v) => onChange({ ...values, [field.name]: v });
+
+  const invalid = !!(showErrors && field.required && isFieldEmpty(field, values));
 
   const label = (
     <label className={styles.label} title={field.tooltip || undefined}>
@@ -230,11 +241,14 @@ function SpecField({ field, values, onChange, onAddClick }) {
     </label>
   );
 
+  const errorMsg = invalid ? <p className={styles.errorMsg}>Campo obrigatório</p> : null;
+
   if (field.type === 'text') {
     return (
-      <div className={styles.field}>
+      <div className={cx(styles.field, invalid && styles.fieldInvalid)}>
         {label}
         <Input value={values[field.name] || ''} onChange={(e) => setValue(e.target.value)} placeholder="Insira" />
+        {errorMsg}
       </div>
     );
   }
@@ -244,7 +258,7 @@ function SpecField({ field, values, onChange, onAddClick }) {
     const units = field.units || (field.unit ? [field.unit] : []);
     const selectedUnit = values[unitName] || units[0] || '';
     return (
-      <div className={styles.field}>
+      <div className={cx(styles.field, invalid && styles.fieldInvalid)}>
         {label}
         <div className={styles.unitRow}>
           <Input
@@ -265,6 +279,7 @@ function SpecField({ field, values, onChange, onAddClick }) {
             ))}
           </select>
         </div>
+        {errorMsg}
       </div>
     );
   }
@@ -272,16 +287,17 @@ function SpecField({ field, values, onChange, onAddClick }) {
   if (field.type === 'boolean') {
     const boolField = { ...field, options: ['Sim', 'Não'], allowAdd: false };
     return (
-      <div className={styles.field}>
+      <div className={cx(styles.field, invalid && styles.fieldInvalid)}>
         {label}
         <Combobox field={boolField} multi={false} searchable={false} value={values[field.name] || ''} onPick={setValue} />
+        {errorMsg}
       </div>
     );
   }
 
   if (field.type === 'select' || field.type === 'autocomplete') {
     return (
-      <div className={styles.field}>
+      <div className={cx(styles.field, invalid && styles.fieldInvalid)}>
         {label}
         <Combobox
           field={field}
@@ -291,6 +307,7 @@ function SpecField({ field, values, onChange, onAddClick }) {
           onPick={setValue}
           onAddClick={onAddClick}
         />
+        {errorMsg}
       </div>
     );
   }
@@ -298,7 +315,7 @@ function SpecField({ field, values, onChange, onAddClick }) {
   if (field.type === 'multi-select') {
     const selected = values[field.name] || [];
     return (
-      <div className={styles.field}>
+      <div className={cx(styles.field, invalid && styles.fieldInvalid)}>
         {label}
         <Combobox
           field={field}
@@ -312,6 +329,7 @@ function SpecField({ field, values, onChange, onAddClick }) {
           onRemove={(item) => setValue(selected.filter((v) => v !== item))}
           onAddClick={onAddClick}
         />
+        {errorMsg}
       </div>
     );
   }
@@ -319,7 +337,13 @@ function SpecField({ field, values, onChange, onAddClick }) {
   return null;
 }
 
-export default function ProductSpecifications({ categoryId, values = {}, onChange }) {
+export default function ProductSpecifications({
+  categoryId,
+  values = {},
+  onChange,
+  onValidityChange,
+  showErrors = false,
+}) {
   const [fields, setFields] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -349,6 +373,21 @@ export default function ProductSpecifications({ categoryId, values = {}, onChang
       active = false;
     };
   }, [categoryId]);
+
+  // Computa os campos OBRIGATÓRIOS ainda vazios e emite ao pai sempre que
+  // os fields carregados ou os valores mudarem. Cada item: { name, label }.
+  const missing = useMemo(
+    () => fields.filter((f) => f.required && isFieldEmpty(f, values)).map((f) => ({ name: f.name, label: f.label })),
+    [fields, values]
+  );
+  const missingKey = missing.map((m) => m.name).join('|');
+  const onValidityRef = useRef(onValidityChange);
+  onValidityRef.current = onValidityChange;
+  useEffect(() => {
+    if (onValidityRef.current) onValidityRef.current(missing);
+    // missingKey resume a lista; evita re-emitir por nova referência de array.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [missingKey]);
 
   function confirmAdd() {
     const v = newValue.trim();
@@ -385,7 +424,14 @@ export default function ProductSpecifications({ categoryId, values = {}, onChang
   return (
     <div className={styles.grid}>
       {fields.map((field) => (
-        <SpecField key={field.name} field={field} values={values} onChange={onChange} onAddClick={setAddField} />
+        <SpecField
+          key={field.name}
+          field={field}
+          values={values}
+          onChange={onChange}
+          onAddClick={setAddField}
+          showErrors={showErrors}
+        />
       ))}
 
       <Modal

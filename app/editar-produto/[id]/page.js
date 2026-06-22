@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import styles from './page.module.css';
 import { cx } from '@/lib/cx';
@@ -88,6 +88,11 @@ export default function EditarProdutoPage() {
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  // Validação das especificações obrigatórias da categoria.
+  const [missingSpecs, setMissingSpecs] = useState([]);
+  const [showSpecErrors, setShowSpecErrors] = useState(false);
+  const specsRef = useRef(null);
+
   // Carregamento do produto real.
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
@@ -166,10 +171,19 @@ export default function EditarProdutoPage() {
   }
 
   function handleConfirmCategory(node, path) {
-    set({ categoryId: node.id });
+    set({ categoryId: node.id, specifications: {} });
     setCategoryPath(path);
     setShowCategoryModal(false);
+    setShowSpecErrors(false);
     toast({ title: `Categoria selecionada: ${node.name}`, variant: 'success', duration: 2500 });
+  }
+
+  // Monta a mensagem amigável listando até 5 campos obrigatórios faltantes.
+  function missingSpecsMessage() {
+    const labels = missingSpecs.map((m) => m.label);
+    const shown = labels.slice(0, 5);
+    const extra = labels.length - shown.length;
+    return shown.join(', ') + (extra > 0 ? ` e mais ${extra}` : '');
   }
 
   function next() {
@@ -190,6 +204,21 @@ export default function EditarProdutoPage() {
     }
     if (!form.categoryId) {
       toast({ title: 'Selecione uma categoria na Etapa 1.', variant: 'destructive' });
+      return;
+    }
+    // Especificações obrigatórias da categoria precisam estar preenchidas.
+    if (missingSpecs.length > 0) {
+      setShowSpecErrors(true);
+      toast({
+        title: 'Preencha os campos obrigatórios',
+        description: `Faltam: ${missingSpecsMessage()}.`,
+        variant: 'destructive',
+        duration: 6000,
+      });
+      setCurrentStep(2);
+      setTimeout(() => {
+        if (specsRef.current) specsRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 120);
       return;
     }
     if (!getToken()) {
@@ -423,12 +452,14 @@ export default function EditarProdutoPage() {
 
                 {/* Especificações dinâmicas */}
                 {form.categoryId && (
-                  <div className={styles.panel}>
+                  <div className={styles.panel} ref={specsRef}>
                     <h3 className={styles.panelTitle}>Especificações do Produto</h3>
                     <ProductSpecifications
                       categoryId={form.categoryId}
                       values={form.specifications}
                       onChange={(specs) => set({ specifications: specs })}
+                      onValidityChange={setMissingSpecs}
+                      showErrors={showSpecErrors}
                     />
                   </div>
                 )}

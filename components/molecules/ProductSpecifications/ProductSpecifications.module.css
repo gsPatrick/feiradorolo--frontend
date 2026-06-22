@@ -22,6 +22,19 @@
 .req {
   color: var(--destructive);
 }
+
+/* Destaque de campo obrigatório vazio (showErrors) */
+.fieldInvalid .trigger,
+.fieldInvalid .unitSelect,
+.fieldInvalid :global(input),
+.fieldInvalid :global(textarea) {
+  border-color: var(--destructive);
+}
+.errorMsg {
+  font-size: 0.74rem;
+  color: var(--destructive);
+  margin: 0;
+}
 .counter {
   font-size: 0.72rem;
   color: var(--text-dim);
