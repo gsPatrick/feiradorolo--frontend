@@ -266,6 +266,30 @@
   padding: 26px 28px 48px;
 }
 
+/* Bloco de confiança/segurança do vendedor */
+.trustSection {
+  margin-bottom: 22px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg, 14px);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+}
+.trustTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1.02rem;
+  color: var(--foreground);
+}
+.trustTitle svg { color: #16a34a; }
+.trustHint {
+  margin: 4px 0 14px;
+  font-size: 0.82rem;
+  color: var(--muted-foreground);
+}
+
 /* Toolbar: busca + ordenação */
 .toolbar {
   display: flex;

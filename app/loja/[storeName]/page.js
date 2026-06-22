@@ -6,6 +6,7 @@ import styles from './page.module.css';
 import Button from '@/components/atoms/Button/Button';
 import Icon from '@/components/atoms/Icon/Icon';
 import ProductCard from '@/components/molecules/ProductCard/ProductCard';
+import SellerTrust from '@/components/molecules/SellerTrust/SellerTrust';
 import { cx } from '@/lib/cx';
 import { productService, mapProduct, chatService } from '@/lib/api';
 import { useToast } from '@/components/providers/ToastProvider';
@@ -307,6 +308,19 @@ export default function LojaPage() {
       </header>
 
       <div className={styles.container}>
+        {/* Bloco de confiança/segurança do vendedor — checklist item a item */}
+        {!loading && seller && (
+          <section className={styles.trustSection} aria-label="Segurança do vendedor">
+            <h2 className={styles.trustTitle}>
+              <Shield size={17} /> Segurança e verificações
+            </h2>
+            <p className={styles.trustHint}>
+              Veja o que este vendedor já validou antes de comprar.
+            </p>
+            <SellerTrust seller={seller} />
+          </section>
+        )}
+
         {/* Barra de busca + ordenação */}
         <div className={styles.toolbar}>
           <div className={styles.searchBox}>

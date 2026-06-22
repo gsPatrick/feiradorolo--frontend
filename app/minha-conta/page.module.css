@@ -677,6 +677,79 @@
   color: var(--foreground);
   font-weight: 600;
 }
+/* — Pagamento do plano pendente (Pix inline) — */
+.planPay {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.planPayHint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+.planPaid {
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #15803d;
+}
+.planPixBox {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.planPixQr {
+  flex-shrink: 0;
+  width: 156px;
+  height: 156px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 8px;
+}
+.planPixQr img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.planPixInfo {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.planPixLead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--foreground);
+}
+.planPixCode {
+  display: block;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.76rem;
+  line-height: 1.5;
+  word-break: break-all;
+  padding: 11px 13px;
+  border-radius: var(--r-md);
+  background: var(--bg-2, var(--muted));
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  max-height: 104px;
+  overflow-y: auto;
+}
+
 .okMark {
   color: #16a34a;
   font-style: normal;

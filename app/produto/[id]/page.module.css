@@ -627,8 +627,29 @@
   font-size: 1rem;
   color: var(--foreground);
 }
+.sellerBadges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
 .sellerRating {
   margin-bottom: 12px;
+}
+.sellerNew {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  margin-bottom: 12px;
+}
+.sellerNew svg { color: var(--feira-yellow-strong, #e0a500); }
+.sellerTrust {
+  margin-bottom: 14px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 .sellerLoc {
   display: flex;

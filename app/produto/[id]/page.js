@@ -8,6 +8,7 @@ import ProductSection from '@/components/organisms/ProductSection/ProductSection
 import Breadcrumb from '@/components/molecules/Breadcrumb/Breadcrumb';
 import Gallery from '@/components/molecules/Gallery/Gallery';
 import Rating from '@/components/molecules/Rating/Rating';
+import SellerTrust from '@/components/molecules/SellerTrust/SellerTrust';
 import Badge from '@/components/atoms/Badge/Badge';
 import Icon from '@/components/atoms/Icon/Icon';
 import Skeleton from '@/components/atoms/Skeleton/Skeleton';
@@ -102,6 +103,9 @@ function buildProduct(raw) {
   const specsFromApi = Array.isArray(raw.specifications) ? raw.specifications : null;
   return {
     ...mapped,
+    // Preserva o objeto seller enriquecido (verificações, tier, reputação…)
+    // que o mapProduct achata para string. Fallback seguro p/ undefined.
+    sellerData: raw.seller && typeof raw.seller === 'object' ? raw.seller : null,
     images: images.length ? images : (mapped.image ? [mapped.image] : []),
     description: raw.description || '',
     stock: typeof raw.stock === 'number' ? raw.stock : 5,
@@ -925,28 +929,58 @@ export default function ProdutoPage() {
                 </ul>
               </div>
 
-              {/* Caixa do vendedor */}
-              <div className={styles.sideCard}>
-                <div className={styles.sellerHead}>
-                  <span className={styles.sellerAvatar} aria-hidden="true">
-                    {(product.seller || 'V').trim().charAt(0).toUpperCase()}
-                  </span>
-                  <div className={styles.sellerMeta}>
-                    <strong>{product.seller}</strong>
-                    <Badge variant="gold" size="sm"><Icon name="bolt" size={11} /> Vendedor Líder</Badge>
+              {/* Caixa do vendedor — dados reais do objeto seller enriquecido */}
+              {(() => {
+                const seller = product.sellerData || null;
+                const reputationLabel = seller && seller.reputation_label;
+                const sellerRating = Number(seller && seller.rating) || 0;
+                const sellerReviews = Number(seller && seller.reviews_count) || 0;
+                const sellerSales = Number(seller && seller.sales_count) || 0;
+                const isPremium = !!(seller && seller.seller_tier === 'premium');
+                return (
+                  <div className={styles.sideCard}>
+                    <div className={styles.sellerHead}>
+                      <span className={styles.sellerAvatar} aria-hidden="true">
+                        {(product.seller || 'V').trim().charAt(0).toUpperCase()}
+                      </span>
+                      <div className={styles.sellerMeta}>
+                        <strong>{product.seller}</strong>
+                        <span className={styles.sellerBadges}>
+                          {reputationLabel && (
+                            <Badge variant="gold" size="sm"><Icon name="bolt" size={11} /> {reputationLabel}</Badge>
+                          )}
+                          {isPremium && (
+                            <Badge variant="info" size="sm"><Icon name="gem" size={11} /> Premium</Badge>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                    {sellerReviews > 0 ? (
+                      <Rating value={sellerRating} sales={sellerSales} className={styles.sellerRating} />
+                    ) : (
+                      <div className={styles.sellerNew}>
+                        <Icon name="sparkle" size={14} /> Vendedor novo
+                        {sellerSales > 0 && <span> · {sellerSales} vendas</span>}
+                      </div>
+                    )}
+
+                    {/* Status de verificação/segurança do vendedor (compacto) */}
+                    {seller && (
+                      <SellerTrust seller={seller} compact className={styles.sellerTrust} />
+                    )}
+
+                    <div className={styles.sellerLoc}>
+                      <Icon name="map-pin" size={15} /> Brasil
+                    </div>
+                    <a href={`/loja/${product.sellerId || ''}`} className={styles.sellerPageBtn}>
+                      <Icon name="store" size={16} /> Ir para a página do vendedor
+                    </a>
+                    <button type="button" className={styles.chatSeller} onClick={startChat} disabled={chatLoading}>
+                      <Icon name="chat" size={16} /> {chatLoading ? 'Abrindo…' : 'Falar com o vendedor'}
+                    </button>
                   </div>
-                </div>
-                <Rating value={4.8} sales={product.sales} className={styles.sellerRating} />
-                <div className={styles.sellerLoc}>
-                  <Icon name="map-pin" size={15} /> Brasil
-                </div>
-                <a href={`/loja/${product.sellerId || ''}`} className={styles.sellerPageBtn}>
-                  <Icon name="store" size={16} /> Ir para a página do vendedor
-                </a>
-                <button type="button" className={styles.chatSeller} onClick={startChat} disabled={chatLoading}>
-                  <Icon name="chat" size={16} /> {chatLoading ? 'Abrindo…' : 'Falar com o vendedor'}
-                </button>
-              </div>
+                );
+              })()}
 
               {/* Meios de pagamento */}
               <div className={styles.sideCard} ref={paymentRef}>

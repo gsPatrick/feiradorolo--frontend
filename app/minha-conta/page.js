@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import styles from './page.module.css';
 import { cx } from '@/lib/cx';
@@ -612,6 +612,7 @@ export default function MinhaContaPage() {
                       fees={fees}
                       state={planState}
                       onRetry={() => setPlanState('idle')}
+                      onReload={() => setPlanState('idle')}
                       onAuth={() => openAuth('login')}
                     />
                   )}
@@ -836,12 +837,114 @@ function ReviewsTab({ reviews = [], state = 'idle', onRetry, onAuth }) {
   );
 }
 
+/* — Rótulos amigáveis dos status de assinatura. — */
+const PLAN_STATUS_META = {
+  active: { label: 'Ativo', cls: 'vOk' },
+  pending: { label: 'Aguardando pagamento', cls: 'vPend' },
+  expired: { label: 'Expirado', cls: 'vNone' },
+  cancelled: { label: 'Cancelado', cls: 'vNone' },
+  canceled: { label: 'Cancelado', cls: 'vNone' },
+};
+
 /* — Aba Planos e Taxas: plano atual + resumo de taxas — */
-function PlansTab({ plan, fees, state = 'idle', onRetry, onAuth }) {
+function PlansTab({ plan, fees, state = 'idle', onRetry, onReload, onAuth }) {
+  const { toast } = useToast();
   const subPlan = plan && plan.plan ? plan.plan : null;
   const planName = subPlan ? subPlan.name : (plan && plan.name) || null;
   const planStatus = plan && plan.status;
   const planPrice = subPlan ? subPlan.price : (plan && plan.price);
+  const isPending = planStatus === 'pending';
+  const isActive = planStatus === 'active';
+  const statusMeta = (planStatus && PLAN_STATUS_META[planStatus]) || { label: planStatus, cls: 'vNone' };
+
+  // — Pagamento PIX da assinatura pendente —
+  const [payState, setPayState] = useState('idle'); // idle | loading | ready | paid
+  const [pix, setPix] = useState(null); // { qr_code, qr_code_base64 }
+  const [copied, setCopied] = useState(false);
+  const pollRef = useRef(null);
+
+  // Pix já pode vir embutido no /plans/mine.
+  const initialPix = plan && plan.pix && (plan.pix.qr_code || plan.pix.qr_code_base64) ? plan.pix : null;
+  const initialPaymentId = plan && plan.payment_id;
+
+  function stopPolling() {
+    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+  }
+
+  // Para o polling ao desmontar ou ao trocar de assinatura/estado.
+  useEffect(() => stopPolling, []);
+  useEffect(() => {
+    // Ao recarregar o plano (nova prop), zera o fluxo local de pagamento.
+    stopPolling();
+    setPayState('idle');
+    setPix(null);
+    setCopied(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plan && plan.id]);
+
+  function startPolling(paymentId) {
+    if (!paymentId) return;
+    stopPolling();
+    pollRef.current = setInterval(async () => {
+      try {
+        const p = await paymentService.getById(paymentId);
+        const s = p && p.status;
+        if (s === 'paid' || s === 'approved') {
+          stopPolling();
+          setPayState('paid');
+          setPix(null);
+          toast({ title: 'Pagamento confirmado!', description: 'Seu plano está ativo.', variant: 'success', duration: 3000 });
+          if (onReload) onReload();
+        } else if (s === 'rejected' || s === 'cancelled') {
+          stopPolling();
+          setPayState('idle');
+          toast({ title: 'Pagamento não aprovado', description: 'Tente gerar um novo PIX.', variant: 'danger', duration: 3500 });
+        }
+      } catch {
+        /* erro transitório no polling — segue tentando */
+      }
+    }, 4000);
+  }
+
+  async function payNow() {
+    // Se o Pix já veio no /plans/mine, exibe direto e inicia o polling.
+    if (initialPix && initialPaymentId) {
+      setPix(initialPix);
+      setPayState('ready');
+      startPolling(initialPaymentId);
+      return;
+    }
+    setPayState('loading');
+    try {
+      const res = await planService.paySubscription(plan.id);
+      const pixData = (res && res.pix) || null;
+      const paymentId = (res && res.payment && res.payment.id) || (res && res.payment_id) || null;
+      if (!pixData || !(pixData.qr_code || pixData.qr_code_base64)) {
+        throw new ApiError('PIX indisponível', 502, 'PIX_UNAVAILABLE');
+      }
+      setPix(pixData);
+      setPayState('ready');
+      startPolling(paymentId);
+    } catch (e) {
+      setPayState('idle');
+      const code = e instanceof ApiError ? e.code : null;
+      const description = code === 'PAYMENT_NOT_CONFIGURED'
+        ? 'O pagamento ainda não está configurado. Tente novamente mais tarde.'
+        : 'Não foi possível gerar o PIX agora. Tente novamente.';
+      toast({ title: 'Falha ao gerar pagamento', description, variant: 'danger', duration: 4000 });
+    }
+  }
+
+  async function copyPixCode() {
+    if (!pix || !pix.qr_code) return;
+    try {
+      await navigator.clipboard.writeText(pix.qr_code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: 'Não foi possível copiar', variant: 'danger', duration: 2500 });
+    }
+  }
 
   return (
     <>
@@ -875,14 +978,74 @@ function PlansTab({ plan, fees, state = 'idle', onRetry, onAuth }) {
                   <div className={styles.infoRow}><span>Plano</span><strong>{planName}</strong></div>
                   {planStatus && (
                     <div className={styles.infoRow}><span>Status</span>
-                      <strong><span className={`${styles.vBadge} ${planStatus === 'active' ? styles.vOk : styles.vNone}`}>{planStatus === 'active' ? 'Ativo' : planStatus}</span></strong>
+                      <strong><span className={`${styles.vBadge} ${styles[statusMeta.cls] || styles.vNone}`}>
+                        {payState === 'paid' ? 'Ativo' : statusMeta.label}
+                      </span></strong>
                     </div>
                   )}
                   {(planPrice != null && Number(planPrice) > 0) && (
-                    <div className={styles.infoRow}><span>Mensalidade</span><strong>{BRL.format(Number(planPrice))}</strong></div>
+                    <div className={styles.infoRow}><span>{isActive ? 'Mensalidade' : 'Valor'}</span><strong>{BRL.format(Number(planPrice))}</strong></div>
                   )}
                   {plan && plan.ends_at && (
-                    <div className={styles.infoRow}><span>Válido até</span><strong>{formatOrderDate(plan.ends_at)}</strong></div>
+                    <div className={styles.infoRow}><span>{isActive ? 'Vence em' : 'Válido até'}</span><strong>{formatOrderDate(plan.ends_at)}</strong></div>
+                  )}
+
+                  {/* Plano ativo (ou recém-aprovado): confirmação visual. */}
+                  {(isActive || payState === 'paid') && (
+                    <div className={styles.planPaid}>
+                      <Icon name="check" size={16} /> Plano ativo
+                    </div>
+                  )}
+
+                  {/* Plano pendente: botão de pagar + Pix inline com polling. */}
+                  {isPending && payState !== 'paid' && (
+                    <div className={styles.planPay}>
+                      {payState !== 'ready' ? (
+                        <>
+                          <p className={styles.planPayHint}>
+                            Sua assinatura está aguardando o pagamento. Gere o PIX para ativar o plano.
+                          </p>
+                          <Button
+                            variant="primary"
+                            leftIcon="pix"
+                            onClick={payNow}
+                            loading={payState === 'loading'}
+                            disabled={payState === 'loading'}
+                          >
+                            {payState === 'loading' ? 'Gerando PIX…' : 'Pagar agora / Gerar QR Code'}
+                          </Button>
+                        </>
+                      ) : (
+                        pix && (
+                          <div className={styles.planPixBox}>
+                            {pix.qr_code_base64 && (
+                              <div className={styles.planPixQr}>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={`data:image/png;base64,${pix.qr_code_base64}`} alt="QR Code PIX" />
+                              </div>
+                            )}
+                            <div className={styles.planPixInfo}>
+                              <p className={styles.planPixLead}>
+                                <Icon name="bell" size={16} /> Aguardando pagamento — escaneie o QR Code ou use o código copia-e-cola.
+                              </p>
+                              {pix.qr_code && (
+                                <>
+                                  <code className={styles.planPixCode}>{pix.qr_code}</code>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    leftIcon={copied ? 'check' : undefined}
+                                    onClick={copyPixCode}
+                                  >
+                                    {copied ? 'Copiado!' : 'Copiar código'}
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
                   )}
                 </>
               ) : (
