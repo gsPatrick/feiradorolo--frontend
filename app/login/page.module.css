@@ -48,3 +48,18 @@
 .backHome:hover {
   text-decoration: underline;
 }
+
+@media (max-width: 480px) {
+  .page {
+    padding: 20px 14px;
+  }
+  .cardHead {
+    padding: 22px 18px;
+  }
+  .cardBody {
+    padding: 22px 18px;
+  }
+  .brand {
+    font-size: 1.35rem;
+  }
+}

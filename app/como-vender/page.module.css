@@ -365,6 +365,12 @@
   .title {
     font-size: 1.875rem;
   }
+  .subtitle {
+    font-size: 1.125rem;
+  }
+  .header {
+    margin-bottom: 32px;
+  }
 }
 @media (max-width: 560px) {
   .stepsGrid {
@@ -373,5 +379,32 @@
   .alertBody {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+@media (max-width: 480px) {
+  .container {
+    padding: 0 16px;
+  }
+  .title {
+    font-size: 1.625rem;
+  }
+  .block {
+    margin-bottom: 32px;
+  }
+  .alert {
+    margin-bottom: 32px;
+  }
+  .alertBtn {
+    width: 100%;
+    min-height: 44px;
+  }
+  .ctaCard {
+    padding: 24px 16px;
+  }
+  .ctaTitle {
+    font-size: 1.25rem;
+  }
+  .ctaBtn {
+    min-height: 44px;
   }
 }

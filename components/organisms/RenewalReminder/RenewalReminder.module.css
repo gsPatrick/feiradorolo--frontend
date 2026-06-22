@@ -114,4 +114,8 @@
     width: 100%;
     justify-content: flex-end;
   }
+  .actions :global(button),
+  .actions :global(a) {
+    min-height: 40px;
+  }
 }

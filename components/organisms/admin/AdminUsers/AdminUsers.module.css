@@ -524,3 +524,14 @@
 .chatText {
   color: var(--foreground);
 }
+
+/* — Mobile: alvos de toque maiores na tabela de ações — */
+@media (max-width: 720px) {
+  .iconBtn {
+    width: 40px;
+    height: 40px;
+  }
+  .actions {
+    gap: 8px;
+  }
+}

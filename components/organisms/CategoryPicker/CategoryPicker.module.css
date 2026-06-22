@@ -15,8 +15,7 @@
 }
 .dialog {
   position: relative;
-  width: 100%;
-  max-width: 1024px;
+  width: min(1024px, 92vw);
   height: 80vh;
   max-height: 720px;
   background: var(--bg);
@@ -185,5 +184,37 @@
   }
   .dialog {
     height: 88vh;
+    max-height: none;
+  }
+  .root {
+    padding: 12px;
+  }
+}
+
+/* Telas estreitas: 1 coluna que rola, footer empilha e ações full-width */
+@media (max-width: 480px) {
+  .columns {
+    grid-template-columns: 1fr;
+  }
+  .head,
+  .searchRow,
+  .foot {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .columns {
+    margin: 0 16px;
+  }
+  .foot {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .actions {
+    width: 100%;
+  }
+  .actions > * {
+    flex: 1;
+    min-height: 44px;
   }
 }

@@ -39,3 +39,14 @@
     flex-direction: column;
   }
 }
+@media (max-width: 480px) {
+  .page {
+    padding: 24px 16px 56px;
+  }
+  .grid {
+    gap: 12px;
+  }
+  .title {
+    font-size: 1.4rem;
+  }
+}

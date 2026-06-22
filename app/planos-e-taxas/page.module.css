@@ -45,13 +45,13 @@
   padding: 56px 0 36px;
 }
 .header h1 {
-  font-size: 2.6rem;
+  font-size: clamp(1.9rem, 5vw, 2.6rem);
   font-weight: 800;
   color: var(--foreground);
   margin-bottom: 14px;
 }
 .header p {
-  font-size: 1.15rem;
+  font-size: clamp(1rem, 2.5vw, 1.15rem);
   color: var(--muted-foreground);
   line-height: 1.6;
 }
@@ -535,17 +535,73 @@
     grid-template-columns: 1fr;
   }
 }
+@media (max-width: 768px) {
+  .container {
+    padding: 0 18px;
+  }
+  .header {
+    padding: 40px 0 28px;
+  }
+  .highlightGrid,
+  .commissionGrid,
+  .planGrid,
+  .bottomGrid {
+    gap: 18px;
+    margin-bottom: 40px;
+  }
+  .sectionTitle {
+    font-size: 1.5rem;
+  }
+  /* As células da tabela ficam mais compactas no scroll horizontal. */
+  .table th,
+  .table td {
+    padding: 12px 18px;
+  }
+  .tableHead {
+    padding: 20px 18px 14px;
+  }
+}
 @media (max-width: 640px) {
   .commissionGrid,
   .planGrid {
     grid-template-columns: 1fr;
     max-width: 460px;
   }
-  .header h1 {
-    font-size: 2rem;
+  .card {
+    padding: 24px 18px;
+  }
+  .price {
+    font-size: 1.9rem;
+  }
+  .ctaCard {
+    padding: 32px 20px;
+  }
+  .ctaCard h2 {
+    font-size: 1.45rem;
   }
   .ctaActions {
     flex-direction: column;
+  }
+  .ctaActions > * {
+    width: 100%;
+  }
+  .pixBox,
+  .infoCard {
+    padding: 20px;
+  }
+}
+@media (max-width: 420px) {
+  .container {
+    padding: 0 12px;
+  }
+  .header {
+    padding: 32px 0 24px;
+  }
+  .planInfo {
+    gap: 10px;
+  }
+  .methodOption {
+    padding: 12px;
   }
 }
 

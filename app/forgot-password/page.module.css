@@ -71,3 +71,12 @@
 .back:hover {
   color: var(--foreground);
 }
+
+@media (max-width: 480px) {
+  .page {
+    padding: 32px 14px;
+  }
+  .card {
+    padding: 28px 20px;
+  }
+}

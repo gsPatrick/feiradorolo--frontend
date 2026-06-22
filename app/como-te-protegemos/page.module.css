@@ -119,3 +119,34 @@
   transition: background 0.15s;
 }
 .btn:hover { background: var(--feira-yellow-strong, #eab308); }
+
+@media (max-width: 768px) {
+  .wrap {
+    padding: 36px 20px 64px;
+  }
+  .hero {
+    margin-bottom: 32px;
+  }
+  .pillars {
+    margin-bottom: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .wrap {
+    padding: 28px 16px 56px;
+  }
+  .pillar {
+    padding: 16px;
+    gap: 12px;
+  }
+  .note {
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px;
+  }
+  .btn {
+    min-height: 44px;
+    align-items: center;
+  }
+}

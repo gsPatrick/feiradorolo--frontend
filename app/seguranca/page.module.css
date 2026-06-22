@@ -407,7 +407,62 @@ section.panel {
   .certGrid {
     grid-template-columns: 1fr;
   }
+  .content {
+    padding-top: 24px;
+    padding-bottom: 32px;
+  }
+  .header {
+    margin-bottom: 32px;
+  }
   .title {
     font-size: 1.875rem;
+  }
+  .subtitle {
+    font-size: 1.0625rem;
+  }
+  .alert,
+  .block,
+  section.panel,
+  .twoCols {
+    margin-bottom: 32px;
+  }
+  .contactWrap {
+    margin-top: 32px;
+  }
+  .controlBtn,
+  .reportBtn {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 16px;
+  }
+  .content {
+    padding-top: 20px;
+    padding-bottom: 24px;
+  }
+  .title {
+    font-size: 1.625rem;
+  }
+  .subtitle {
+    font-size: 1rem;
+  }
+  .card,
+  .panel,
+  .contactCard {
+    padding: 16px;
+  }
+  .measureHead {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .blockTitle {
+    font-size: 1.25rem;
+    margin-bottom: 16px;
+  }
+  .contactActions {
+    flex-wrap: wrap;
   }
 }

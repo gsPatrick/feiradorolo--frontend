@@ -25,7 +25,7 @@
   flex-shrink: 0;
 }
 .headTitle h1 {
-  font-size: 1.85rem;
+  font-size: clamp(1.5rem, 4.5vw, 1.85rem);
   font-weight: 700;
   color: var(--foreground);
 }
@@ -203,8 +203,24 @@
   color: #1d4ed8;
 }
 
+@media (max-width: 768px) {
+  .container { padding: 24px 18px; }
+  .head { margin-bottom: 24px; }
+}
 @media (max-width: 560px) {
   .coupon { flex-direction: column; }
-  .left { min-width: 0; flex-direction: row; gap: 8px; padding: 14px; }
+  .left { min-width: 0; flex-direction: row; align-items: baseline; gap: 8px; padding: 16px; }
+  .desc { font-size: 1.3rem; }
+  .body { padding: 18px; }
   .applyRow { flex-direction: column; }
+  .applyBtn { width: 100%; }
+  .codeRow { gap: 8px; }
+  .code,
+  .copyBtn { min-height: 44px; }
+  .copyBtn { flex: 1; justify-content: center; }
+}
+@media (max-width: 400px) {
+  .container { padding: 20px 12px; }
+  .applyCard,
+  .tips { padding: 18px; }
 }

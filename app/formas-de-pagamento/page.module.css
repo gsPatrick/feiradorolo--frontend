@@ -363,9 +363,71 @@
   .title {
     font-size: 1.875rem;
   }
+  .subtitle {
+    font-size: 1.125rem;
+  }
+  .content {
+    padding-top: 24px;
+    padding-bottom: 32px;
+  }
+  .header {
+    margin-bottom: 32px;
+  }
+  .alert,
+  .block {
+    margin-bottom: 32px;
+  }
+  .blockTitle {
+    font-size: 1.25rem;
+  }
 }
 @media (max-width: 560px) {
   .methodsGrid {
     grid-template-columns: 1fr;
+  }
+  .cardsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .twoCols {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 480px) {
+  .container {
+    padding: 0 16px;
+  }
+  .title {
+    font-size: 1.5rem;
+  }
+  .subtitle {
+    font-size: 1rem;
+  }
+  .blockTitle {
+    font-size: 1.125rem;
+  }
+  .cardsGrid {
+    grid-template-columns: 1fr;
+  }
+  .infoGrid {
+    margin-top: 24px;
+  }
+  /* Installment rows can crowd at narrow widths — allow wrapping */
+  .installRow {
+    flex-wrap: wrap;
+  }
+  .installFee {
+    flex-basis: 100%;
+    order: 3;
+  }
+  /* Tap targets */
+  .crumbLink,
+  .brandCard {
+    min-height: 44px;
+  }
+  .brandCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 }

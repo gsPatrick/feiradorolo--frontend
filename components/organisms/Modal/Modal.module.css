@@ -18,14 +18,17 @@
   max-height: 90vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   background: var(--bg);
   border-radius: var(--r-xl);
   box-shadow: var(--shadow-lg);
   animation: pop 0.26s var(--ease-out);
 }
-.sm { max-width: 420px; }
-.md { max-width: 560px; }
-.lg { max-width: 720px; }
+/* Largura responsiva: nunca estoura a tela no mobile (92vw),
+   mantém o teto de cada tamanho no desktop. */
+.sm { width: min(420px, 92vw); }
+.md { width: min(560px, 92vw); }
+.lg { width: min(720px, 92vw); }
 
 @keyframes fade {
   from { opacity: 0; }
@@ -64,8 +67,15 @@
   color: var(--foreground);
 }
 .body {
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 22px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.head,
+.footer {
+  flex-shrink: 0;
 }
 .footer {
   display: flex;
@@ -73,4 +83,32 @@
   gap: 10px;
   padding: 16px 22px;
   border-top: 1px solid var(--border);
+}
+
+/* Mobile: header/footer fixos, corpo rola; CTAs full-width e ≥44px. */
+@media (max-width: 560px) {
+  .root {
+    padding: 12px;
+  }
+  .dialog {
+    max-height: 92vh;
+  }
+  .head {
+    padding: 16px 18px;
+  }
+  .head h3 {
+    font-size: 1.05rem;
+  }
+  .body {
+    padding: 18px;
+  }
+  .footer {
+    flex-direction: column-reverse;
+    gap: 8px;
+    padding: 14px 18px;
+  }
+  .footer > * {
+    width: 100%;
+    min-height: 44px;
+  }
 }

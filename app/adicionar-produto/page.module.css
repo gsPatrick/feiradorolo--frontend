@@ -681,6 +681,13 @@ img.shipIcon {
   margin-left: auto;
 }
 
+@media (max-width: 768px) {
+  /* No modal largo (upsell), 3 tiers viram 1 coluna antes de espremer */
+  .modalWide .tierGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 640px) {
   .dimsGrid,
   .shipGrid,
@@ -693,5 +700,48 @@ img.shipIcon {
   .cardHead {
     padding-left: 18px;
     padding-right: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 16px 10px;
+  }
+  .cardBody,
+  .cardHead {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .cardTitle {
+    font-size: 1.2rem;
+  }
+  .stepTitle {
+    font-size: 1.05rem;
+  }
+  /* Steps: barras menores para caber a esteira na largura */
+  .stepBar {
+    width: 28px;
+  }
+  .stepDot {
+    width: 28px;
+    height: 28px;
+    font-size: 0.78rem;
+  }
+  /* Navegação: botões full-width empilhados, ainda com Voltar/Avançar visíveis */
+  .nav {
+    gap: 10px;
+  }
+  .nav > * {
+    flex: 1 1 0;
+  }
+  .feeBox,
+  .earnBox {
+    padding: 16px;
+  }
+  .modalActions {
+    flex-direction: column-reverse;
+  }
+  .modalActions > * {
+    width: 100%;
   }
 }

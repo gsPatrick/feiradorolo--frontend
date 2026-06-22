@@ -315,11 +315,25 @@
   font-size: 0.85rem;
 }
 
+/* ---------- Tablet ---------- */
+@media (max-width: 980px) {
+  .layout {
+    grid-template-columns: 280px 1fr;
+  }
+}
+
 /* ---------- Mobile ---------- */
 @media (max-width: 768px) {
+  .page {
+    padding: 12px 0 16px;
+  }
+  .container {
+    padding: 0 12px;
+  }
   .layout {
     grid-template-columns: 1fr;
-    height: calc(100vh - 160px);
+    height: calc(100dvh - 132px);
+    min-height: 420px;
   }
   .window {
     display: none;
@@ -332,6 +346,61 @@
   }
   .back {
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    margin-left: -4px;
+  }
+  /* Header da conversa: sem overflow; selo de confiança quebra para baixo */
+  .winHead {
+    padding: 12px 14px;
+    gap: 8px 10px;
+  }
+  .winInfo {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .winInfo strong,
+  .winInfo span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    max-width: 100%;
+  }
+  .winTrust {
+    flex-basis: 100%;
+    max-width: 100%;
+    margin-left: 0;
+  }
+  .msgs {
+    padding: 14px;
+  }
+  .bubble {
+    max-width: 85%;
+  }
+  .composer {
+    padding: 10px 12px 8px;
+  }
+  .productBar {
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .listHead {
+    padding: 14px 14px 10px;
+  }
+  .listHead h1 {
+    font-size: 1.15rem;
+  }
+  .winInfo strong {
+    font-size: 0.9rem;
+  }
+  .bubble {
+    max-width: 88%;
   }
 }
 

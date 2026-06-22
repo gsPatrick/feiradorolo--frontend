@@ -116,6 +116,13 @@
   gap: 8px;
   padding: 16px 4px;
 }
+
+/* Mobile estreito: validade/CVV em 1 coluna */
+@media (max-width: 400px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
 .successIcon {
   color: var(--success, #1f9d55);
 }

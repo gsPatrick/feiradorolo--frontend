@@ -368,7 +368,61 @@
   }
 }
 @media (max-width: 768px) {
+  .container {
+    padding: 0 20px;
+  }
+  .content {
+    padding-top: 24px;
+    padding-bottom: 32px;
+  }
+  .header {
+    margin-bottom: 32px;
+  }
   .title {
     font-size: 1.875rem;
+  }
+  .subtitle {
+    font-size: 1.125rem;
+  }
+  .ctaWrap {
+    margin-top: 32px;
+  }
+}
+
+@media (max-width: 560px) {
+  .tableWrap {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table {
+    min-width: 540px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 16px;
+  }
+  .title {
+    font-size: 1.625rem;
+  }
+  .subtitle {
+    font-size: 1rem;
+  }
+  .card,
+  .panel,
+  .ctaCard {
+    padding: 20px 16px;
+  }
+  .twoCols {
+    gap: 24px;
+  }
+  .panelTitleIcon {
+    flex-wrap: wrap;
+  }
+  .ctaPrimary,
+  .ctaSecondary {
+    min-height: 44px;
   }
 }

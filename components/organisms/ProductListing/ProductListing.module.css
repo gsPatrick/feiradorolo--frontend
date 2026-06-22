@@ -163,6 +163,9 @@
   }
 }
 @media (max-width: 880px) {
+  .container {
+    padding: 20px 18px 56px;
+  }
   .layout {
     grid-template-columns: 1fr;
   }
@@ -185,13 +188,51 @@
   }
   .filterBtn {
     display: inline-flex;
+    height: 44px;
+  }
+  .sort {
+    height: 44px;
+  }
+  .viewToggle button {
+    width: 44px;
+    height: 44px;
   }
   .grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
   }
 }
-@media (max-width: 480px) {
+@media (max-width: 600px) {
+  .container {
+    padding: 18px 14px 52px;
+  }
+  .toolbar {
+    gap: 10px;
+  }
   .grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  /* O alternador grade/lista pesa pouco no mobile; some para liberar espaço. */
+  .viewToggle {
+    display: none;
+  }
+  .listView {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 420px) {
+  .container {
+    padding: 16px 10px 48px;
+  }
+  .grid {
+    gap: 8px;
+  }
+  .sort {
+    flex: 1;
+    min-width: 0;
+  }
+  .toolbarRight {
+    width: 100%;
   }
 }

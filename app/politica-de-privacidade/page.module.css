@@ -174,7 +174,33 @@
   gap: 8px;
 }
 
+@media (max-width: 768px) {
+  .page { padding: 24px 0; }
+  .card { padding: 20px; }
+  .grid3 { grid-template-columns: repeat(2, 1fr); }
+  .head h1 { font-size: 1.625rem; }
+}
+
 @media (max-width: 640px) {
   .grid2, .grid3 { grid-template-columns: 1fr; }
   .head h1 { font-size: 1.5rem; }
+}
+
+@media (max-width: 480px) {
+  .page { padding: 20px 0; }
+  .card { padding: 16px; }
+  .card h2 { font-size: 1.125rem; }
+  .head { margin-bottom: 24px; }
+  .head h1 { font-size: 1.375rem; }
+  .stack { gap: 16px; }
+  .footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .footer .footBtn {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
 }

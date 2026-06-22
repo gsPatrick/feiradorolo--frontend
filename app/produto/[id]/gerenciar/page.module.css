@@ -667,4 +667,41 @@
   .pixQrPlaceholder {
     width: 100%;
   }
+  .pixBox {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.4rem;
+  }
+  .card {
+    padding: 16px;
+  }
+  .summaryActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .summaryActions > * {
+    width: 100%;
+  }
+  .prodTitle {
+    font-size: 1.1rem;
+  }
+  .price {
+    font-size: 1.25rem;
+  }
+  .metricValue {
+    font-size: 1.3rem;
+  }
+  /* Histórico em cards: pagamento full-width e legível */
+  .pixActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .pixActions > * {
+    width: 100%;
+  }
 }

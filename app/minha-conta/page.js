@@ -484,6 +484,9 @@ export default function MinhaContaPage() {
                 <button className={styles.changePhoto} onClick={() => setModal('photo')}>
                   <Icon name="camera" size={16} /> Alterar Foto
                 </button>
+                <Link href="/pagamentos" className={styles.changePhoto} style={{ textDecoration: 'none' }}>
+                  <Icon name="dollar" size={16} /> Meus Pagamentos
+                </Link>
                 <span className={styles.emailPill}>✓ Email</span>
               </>
             ) : (

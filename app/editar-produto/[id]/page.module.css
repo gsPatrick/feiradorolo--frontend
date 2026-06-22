@@ -571,6 +571,50 @@ img.shipIcon {
   }
 }
 
+@media (max-width: 480px) {
+  .page {
+    padding: 16px 10px;
+  }
+  .cardBody,
+  .cardHead {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  /* Título + botão excluir empilham para o botão não comprimir o título */
+  .cardHead {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .deleteBtn {
+    align-self: flex-start;
+  }
+  .cardTitle {
+    font-size: 1.2rem;
+  }
+  .stepTitle {
+    font-size: 1.05rem;
+  }
+  .stepBar {
+    width: 28px;
+  }
+  .stepDot {
+    width: 28px;
+    height: 28px;
+    font-size: 0.78rem;
+  }
+  .nav {
+    gap: 10px;
+  }
+  .nav > * {
+    flex: 1 1 0;
+  }
+  .feeBox,
+  .earnBox {
+    padding: 16px;
+  }
+}
+
 /* Estados de carregamento / erro (carregando produto real da API) */
 .stateBox {
   display: flex;

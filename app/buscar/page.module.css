@@ -308,12 +308,59 @@
   }
 }
 
+@media (max-width: 768px) {
+  .container {
+    padding: 20px 18px 60px;
+  }
+  /* Botão de filtros com alvo de toque confortável. */
+  .filterToggle {
+    height: 44px;
+    flex: none;
+  }
+  /* No mobile a ordenação rola horizontalmente sem encostar nas bordas. */
+  .sortBar {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .sortBar::-webkit-scrollbar {
+    display: none;
+  }
+  .sortBtn {
+    height: 40px;
+  }
+}
+
 @media (max-width: 640px) {
   .container {
     padding: 18px 14px 56px;
   }
+  .toolbar {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
   .grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
+  }
+  .pagination {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .pageInfo {
+    order: -1;
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .container {
+    padding: 16px 10px 52px;
+  }
+  .grid {
+    gap: 8px;
+  }
+  .state {
+    padding: 48px 16px;
   }
 }

@@ -153,3 +153,32 @@
 .cta:hover {
   background: var(--feira-yellow-strong, #eab308);
 }
+
+@media (max-width: 768px) {
+  .wrap {
+    padding: 44px 20px 64px;
+  }
+  .subtitle {
+    margin-bottom: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .wrap {
+    padding: 32px 16px 56px;
+  }
+  .feature {
+    padding: 14px 14px;
+  }
+  .badges {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .badge {
+    justify-content: center;
+  }
+  .cta {
+    width: 100%;
+    min-height: 48px;
+  }
+}

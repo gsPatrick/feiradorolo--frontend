@@ -357,9 +357,29 @@
   .heroSubtitle { font-size: 1.05rem; }
   .contactGrid { grid-template-columns: 1fr; }
   .statsGrid { grid-template-columns: repeat(2, 1fr); }
+  .hero { padding: 32px 0; }
+  .content { padding-top: 32px; padding-bottom: 32px; }
+  .block { margin-bottom: 40px; }
+  .accTrigger { padding: 14px 16px; }
+  .accAnswer { padding: 0 16px 14px; }
+  .contactTitleRow { flex-wrap: wrap; }
 }
 @media (max-width: 560px) {
   .searchWrap { flex-direction: column; }
   .searchBtn { width: 100%; }
   .quickGrid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .container { padding: 0 16px; }
+  .hero { padding: 24px 0; }
+  .heroTitle { font-size: 1.75rem; }
+  .heroSubtitle { font-size: 1rem; }
+  .content { padding-top: 24px; padding-bottom: 24px; }
+  .block { margin-bottom: 32px; }
+  .blockTitle { font-size: 1.5rem; margin-bottom: 24px; }
+  .tip { margin-bottom: 32px; }
+  .searchField, .searchBtn { height: 48px; }
+  .searchBtn { min-height: 44px; }
+  .quickBtn, .contactBtn { min-height: 44px; }
+  .tab { min-height: 44px; }
 }
