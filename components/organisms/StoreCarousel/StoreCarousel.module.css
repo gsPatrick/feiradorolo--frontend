@@ -255,6 +255,8 @@
   min-height: 52px;
   font-weight: 800;
   font-size: 1rem;
+  font-family: inherit;
+  cursor: pointer;
   border-radius: var(--r-pill);
   transition: transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease),
     background var(--t-fast) var(--ease);

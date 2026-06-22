@@ -2,9 +2,12 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import styles from './StoreCarousel.module.css';
 import Icon from '../../atoms/Icon/Icon';
 import VerifiedSeal from '../../atoms/VerifiedSeal/VerifiedSeal';
+import { useFavorites } from '../../providers/FavoritesProvider';
+import { useToast } from '../../providers/ToastProvider';
 import { productService, mapProduct } from '@/lib/api';
 
 const fmtPrice = (v) =>
@@ -18,6 +21,9 @@ const discountPct = (price, oldPrice) => {
 };
 
 export default function StoreCarousel() {
+  const router = useRouter();
+  const { isFavorite, toggle } = useFavorites();
+  const { toast } = useToast();
   const [slides, setSlides] = useState([]);
   const [loading, setLoading] = useState(true);
   const [index, setIndex] = useState(0);
@@ -68,6 +74,21 @@ export default function StoreCarousel() {
   const safeIndex = index % count;
   const slide = slides[safeIndex];
   const pct = discountPct(slide.price, slide.oldPrice);
+  const fav = isFavorite(slide.id);
+
+  // Favoritar de verdade (sem navegar). Para o clique não abrir o produto.
+  const handleFav = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const nowFav = toggle(slide);
+    toast({
+      title: nowFav ? '♥ Adicionado aos favoritos' : 'Removido dos favoritos',
+      variant: nowFav ? 'success' : 'default',
+      duration: 1200,
+    });
+  };
+  // Banner inteiro abre o produto.
+  const openProduct = () => router.push(`/produto/${slide.id}`);
 
   return (
     <div className={styles.banner}>
@@ -83,7 +104,15 @@ export default function StoreCarousel() {
         </button>
       ) : null}
 
-      <article className={styles.slide} key={slide.id}>
+      <article
+        className={styles.slide}
+        key={slide.id}
+        onClick={openProduct}
+        role="link"
+        tabIndex={0}
+        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && openProduct()}
+        style={{ cursor: 'pointer' }}
+      >
         <div className={styles.media}>
           <span className={styles.badge}>
             <Icon name="star" size={14} /> Destaque
@@ -133,13 +162,24 @@ export default function StoreCarousel() {
           </div>
 
           <div className={styles.actions}>
-            <Link href={`/produto/${slide.id}`} className={styles.primary}>
+            <Link
+              href={`/produto/${slide.id}`}
+              className={styles.primary}
+              onClick={(e) => e.stopPropagation()}
+            >
               Ver produto <Icon name="arrow-right" size={18} />
             </Link>
-            <Link href="/favoritos" className={styles.secondary} aria-label="Favoritar">
-              <Icon name="heart" size={19} />
-              <span className={styles.secondaryLabel}>Favoritar</span>
-            </Link>
+            <button
+              type="button"
+              className={styles.secondary}
+              aria-label={fav ? 'Remover dos favoritos' : 'Favoritar'}
+              aria-pressed={fav}
+              onClick={handleFav}
+              style={fav ? { color: 'var(--destructive, #dc2626)' } : undefined}
+            >
+              <Icon name="heart" size={19} fill={fav ? 'currentColor' : 'none'} />
+              <span className={styles.secondaryLabel}>{fav ? 'Favoritado' : 'Favoritar'}</span>
+            </button>
           </div>
         </div>
       </article>
