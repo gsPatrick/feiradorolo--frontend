@@ -43,6 +43,7 @@ const EMPTY_FORM = {
   specifications: {},
   customOrder: false,
   customOrderDays: '3',
+  allowPickup: false,
 };
 
 /** Mapeia o produto retornado pela API para o estado do formulário desta página. */
@@ -66,6 +67,7 @@ function productToForm(p) {
     specifications: p.specifications || {},
     customOrder: !!meta.custom_order,
     customOrderDays: meta.custom_order_days != null ? String(meta.custom_order_days) : '3',
+    allowPickup: !!meta.allow_pickup,
   };
 }
 
@@ -218,6 +220,7 @@ export default function EditarProdutoPage() {
         save_shipping_as_default: saveAsDefault,
         custom_order: form.customOrder,
         custom_order_days: form.customOrder ? Number(form.customOrderDays) : null,
+        allow_pickup: form.allowPickup,
       },
     };
 
@@ -552,6 +555,29 @@ export default function EditarProdutoPage() {
                       </div>
                     </>
                   )}
+                </div>
+
+                {/* Retirada presencial */}
+                <div className={styles.panel}>
+                  <h3 className={styles.panelTitleSm}>Retirada presencial</h3>
+                  <div className={styles.defaultBox}>
+                    <input
+                      id="allowPickup"
+                      type="checkbox"
+                      checked={form.allowPickup}
+                      onChange={(e) => set({ allowPickup: e.target.checked })}
+                      className={styles.defaultCheck}
+                    />
+                    <div>
+                      <label htmlFor="allowPickup" className={styles.defaultLabel}>
+                        Aceitar retirada presencial (entrega em mãos)
+                      </label>
+                      <p className={styles.defaultText}>
+                        O comprador pode combinar a retirada com você; um código de 6 dígitos
+                        protege a entrega.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Sob encomenda */}

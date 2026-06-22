@@ -17,6 +17,7 @@ import EmptyState from '@/components/molecules/EmptyState/EmptyState';
 import ReviewForm from '@/components/organisms/ReviewForm/ReviewForm';
 import ProductQA from '@/components/organisms/ProductQA/ProductQA';
 import Modal from '@/components/organisms/Modal/Modal';
+import PaymentMethodsModal from '@/components/organisms/PaymentMethodsModal/PaymentMethodsModal';
 import { useCart } from '@/components/providers/CartProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
@@ -289,6 +290,8 @@ export default function ProdutoPage() {
   const [reviewFormOpen, setReviewFormOpen] = useState(false);
   const [questions, setQuestions] = useState(null);
   const [qaOpen, setQaOpen] = useState(false);
+  // Modal de meios de pagamento (estilo Mercado Livre).
+  const [payOpen, setPayOpen] = useState(false);
   // Denúncia de pergunta: { id } | null + formulário
   const [reportTarget, setReportTarget] = useState(null);
   const [reportReason, setReportReason] = useState('spam');
@@ -648,7 +651,7 @@ export default function ProdutoPage() {
                       </div>
                       <div className={styles.price}>{BRL.format(product.price)}</div>
                       <span className={styles.installments}>em até {product.installments}x sem juros</span>
-                      <button type="button" className={styles.payLink} onClick={() => scrollToRef(paymentRef)}>
+                      <button type="button" className={styles.payLink} onClick={() => setPayOpen(true)}>
                         Ver os meios de pagamento
                       </button>
                     </div>
@@ -1075,6 +1078,8 @@ export default function ProdutoPage() {
         questions={mappedQuestions}
         onSubmit={handleQuestionSubmit}
       />
+
+      <PaymentMethodsModal open={payOpen} onClose={() => setPayOpen(false)} />
 
       <Modal
         open={reportTarget != null}
