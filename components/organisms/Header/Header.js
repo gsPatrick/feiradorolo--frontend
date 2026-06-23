@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from './Header.module.css';
 import { cx } from '@/lib/cx';
+import { searchRoute } from '@/lib/searchRoute';
 import Icon from '../../atoms/Icon/Icon';
 import SearchBar from '../../molecules/SearchBar/SearchBar';
 import AddressSelectionModal from '../AddressSelectionModal/AddressSelectionModal';
@@ -259,7 +260,7 @@ export default function Header({ favCount = 0 }) {
           </button>
 
           <div className={styles.search}>
-            <SearchBar onSubmit={(q) => router.push(`/buscar?q=${encodeURIComponent(q || '')}`)} />
+            <SearchBar onSubmit={(q) => router.push(searchRoute(q))} />
           </div>
 
           <div className={styles.actions}>
