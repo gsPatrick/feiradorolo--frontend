@@ -8,7 +8,7 @@ import Button from '@/components/atoms/Button/Button';
 import Icon from '@/components/atoms/Icon/Icon';
 import Breadcrumb from '@/components/molecules/Breadcrumb/Breadcrumb';
 import ProductCard from '@/components/molecules/ProductCard/ProductCard';
-import EmptyState from '@/components/molecules/EmptyState/EmptyState';
+import TireSearchBoxes from '../TireSearchBoxes';
 import { productService, mapProduct } from '@/lib/api';
 import {
   CATEGORY_SLUG, LARGURAS, PERFIS, AROS, MARCAS,
@@ -173,12 +173,40 @@ function PneusListaInner() {
       <div className={styles.container}>
         <Breadcrumb items={[{ label: 'Início', href: '/' }, { label: 'Pneus', href: '/pneus' }, { label: 'Resultados' }]} />
 
-        <header className={styles.head}>
-          <div>
+        {/* CABEÇALHO TEMÁTICO — vertical de pneus */}
+        <section className={styles.hero}>
+          <div className={styles.heroText}>
+            <span className={styles.heroBadge}>
+              <Icon name="search" size={13} /> Feira do Rolo • Pneus
+            </span>
             <h1 className={styles.title}>Pneus</h1>
             <p className={styles.count}>
               {loading ? 'Carregando…' : `${sorted.length} ${sorted.length === 1 ? 'resultado' : 'resultados'} encontrados`}
             </p>
+          </div>
+          {/* Banner temático (full-width abaixo do título no mobile) */}
+          <div className={styles.heroBanner} aria-hidden="true">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/pneus/banner-pneus-1.svg" alt="" className={styles.heroBannerImg} />
+          </div>
+        </section>
+
+        {/* CAIXAS DE BUSCA RÁPIDA — reaproveitadas da landing */}
+        <section className={styles.searchBand}>
+          <TireSearchBoxes
+            key={`${filters.spec_largura || ''}-${filters.spec_perfil || ''}-${filters.spec_aro || ''}`}
+            variant="compact"
+            initial={{
+              spec_largura: filters.spec_largura,
+              spec_perfil: filters.spec_perfil,
+              spec_aro: filters.spec_aro,
+            }}
+          />
+        </section>
+
+        <header className={styles.head}>
+          <div>
+            <h2 className={styles.resultsTitle}>Resultados</h2>
           </div>
           <div className={styles.headControls}>
             <Button
@@ -250,12 +278,14 @@ function PneusListaInner() {
                 ))}
               </div>
             ) : (
-              <EmptyState
-                icon="search"
-                title="Nenhum pneu encontrado com esses filtros"
-                description="Tente remover algum filtro ou ajustar a medida."
-                action={<Button variant="secondary" onClick={clearAll}>Limpar filtros</Button>}
-              />
+              <div className={styles.empty}>
+                <span className={styles.emptyTire} aria-hidden="true">
+                  <span className={styles.emptyTireRim} />
+                </span>
+                <h3 className={styles.emptyTitle}>Nenhum pneu encontrado com esses filtros</h3>
+                <p className={styles.emptyDesc}>Tente remover algum filtro ou ajustar a medida.</p>
+                <Button variant="secondary" onClick={clearAll}>Limpar filtros</Button>
+              </div>
             )}
           </section>
         </div>

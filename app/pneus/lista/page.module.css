@@ -9,20 +9,118 @@
   padding: 0 16px;
 }
 
-/* Cabeçalho */
+/* ===== CABEÇALHO TEMÁTICO (vertical de pneus) ===== */
+.hero {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 10px 0 18px;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  background: linear-gradient(120deg, #0b1b3a 0%, #0f2350 55%, #070f24 100%);
+  box-shadow: var(--shadow-md);
+}
+
+.heroText {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 22px 24px;
+  min-width: 0;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 4px 10px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #0b1b3a;
+  background: var(--feira-yellow);
+  border-radius: var(--r-pill);
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0;
+  color: #fff;
+}
+
+.count {
+  font-size: 13px;
+  color: #c7d0e0;
+  margin: 0;
+}
+
+/* Banner temático à direita */
+.heroBanner {
+  position: relative;
+  flex: 0 0 38%;
+  max-width: 420px;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.heroBannerImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right center;
+  display: block;
+}
+
+@media (max-width: 720px) {
+  .hero {
+    flex-direction: column;
+  }
+  .heroBanner {
+    flex: none;
+    max-width: none;
+    width: 100%;
+    min-height: 90px;
+    aspect-ratio: 1600 / 300;
+  }
+  .title { font-size: 24px; }
+}
+
+/* ===== FAIXA DE BUSCAS ===== */
+.searchBand {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 18px;
+  margin-bottom: 22px;
+}
+
+/* Cabeçalho de resultados */
 .head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   margin: 8px 0 14px;
   flex-wrap: wrap;
 }
 
-.title {
-  font-size: 24px;
+.resultsTitle {
+  font-size: 18px;
   font-weight: 800;
-  margin: 0 0 2px;
+  margin: 0;
 }
 
 .count {
@@ -219,6 +317,48 @@
   .grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Estado vazio temático */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 48px 16px;
+}
+
+.emptyTire {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 8px;
+  border-radius: var(--r-pill);
+  background: radial-gradient(circle at 35% 30%, #3a3f49, #15181f 70%);
+  box-shadow: inset 0 0 0 6px #0c0e14, 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.emptyTireRim {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-pill);
+  background: var(--feira-yellow);
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.6);
+}
+
+.emptyTitle {
+  font-size: 17px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.emptyDesc {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0 0 8px;
 }
 
 /* Drawer mobile */

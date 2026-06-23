@@ -1,0 +1,92 @@
+/* Caixas de busca compartilhadas (landing + listagem) — estilo PneuFree. */
+
+.searchGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+/* Variante compacta (listagem): 3 caixas lado a lado no desktop. */
+.searchGridCompact {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.box {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.boxTitle {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--feira-gray);
+  margin: 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--feira-yellow);
+}
+
+.boxFields {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  align-items: end;
+}
+
+.boxSmart .boxFields {
+  grid-template-columns: 1fr;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.field > span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.smartHint {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Botão pesquisar — ocupa a linha toda abaixo dos campos. */
+.searchBtn {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+}
+
+/* Tablet: a grade compacta vira 1 coluna mais cedo (3 caixas largas). */
+@media (max-width: 1024px) {
+  .searchGridCompact {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 880px) {
+  .searchGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .boxFields {
+    grid-template-columns: 1fr;
+  }
+}

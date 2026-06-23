@@ -1,19 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import styles from './page.module.css';
-import Select from '@/components/atoms/Select/Select';
-import Input from '@/components/atoms/Input/Input';
-import Button from '@/components/atoms/Button/Button';
 import Icon from '@/components/atoms/Icon/Icon';
 import Breadcrumb from '@/components/molecules/Breadcrumb/Breadcrumb';
 import ProductCard from '@/components/molecules/ProductCard/ProductCard';
+import TireSearchBoxes from './TireSearchBoxes';
 import { productService, mapProduct } from '@/lib/api';
-import {
-  CATEGORY_SLUG, LARGURAS, PERFIS, AROS, MARCAS,
-  VEICULO_MARCAS, VEICULO_MODELOS, ANOS, toOpts,
-} from './tireOptions';
+import { CATEGORY_SLUG, MARCAS } from './tireOptions';
 
 // Slides do carrossel do hero (SVGs em /public/pneus).
 const BANNERS = [
@@ -91,26 +85,6 @@ function HeroCarousel() {
 }
 
 export default function PneusLanding() {
-  const router = useRouter();
-
-  // Busca por MEDIDA
-  const [mLargura, setMLargura] = useState('');
-  const [mPerfil, setMPerfil] = useState('');
-  const [mAro, setMAro] = useState('');
-
-  // Busca por VEÍCULO
-  const [vMarca, setVMarca] = useState('');
-  const [vModelo, setVModelo] = useState('');
-  const [vAno, setVAno] = useState('');
-
-  // Busca por ARO
-  const [aAro, setAAro] = useState('');
-  const [aLargura, setALargura] = useState('');
-  const [aPerfil, setAPerfil] = useState('');
-
-  // Busca inteligente (texto livre)
-  const [q, setQ] = useState('');
-
   // Promoções
   const [promos, setPromos] = useState([]);
   const [loadingPromos, setLoadingPromos] = useState(true);
@@ -138,48 +112,6 @@ export default function PneusLanding() {
     };
   }, []);
 
-  const modelosDoVeiculo = useMemo(
-    () => (vMarca && VEICULO_MODELOS[vMarca]) || [],
-    [vMarca]
-  );
-
-  function go(params) {
-    const qs = new URLSearchParams();
-    Object.entries(params).forEach(([k, v]) => {
-      if (v != null && String(v).trim() !== '') qs.set(k, String(v).trim());
-    });
-    router.push(`/pneus/lista${qs.toString() ? `?${qs}` : ''}`);
-  }
-
-  const submitMedida = (e) => {
-    e.preventDefault();
-    go({ spec_largura: mLargura, spec_perfil: mPerfil, spec_aro: mAro });
-  };
-
-  const submitVeiculo = (e) => {
-    e.preventDefault();
-    const partes = [vMarca, vModelo, vAno].filter(Boolean).join(' ');
-    go({ q: `${partes} pneu`.trim() });
-  };
-
-  const submitAro = (e) => {
-    e.preventDefault();
-    go({ spec_aro: aAro, spec_largura: aLargura, spec_perfil: aPerfil });
-  };
-
-  const submitSmart = (e) => {
-    e.preventDefault();
-    if (!q.trim()) return;
-    go({ q });
-  };
-
-  const larguraOpts = toOpts(LARGURAS);
-  const perfilOpts = toOpts(PERFIS);
-  const aroOpts = toOpts(AROS, '"');
-  const marcaVeicOpts = toOpts(VEICULO_MARCAS);
-  const modeloOpts = toOpts(modelosDoVeiculo);
-  const anoOpts = toOpts(ANOS);
-
   return (
     <main className={styles.page}>
       <div className={styles.container}>
@@ -196,99 +128,7 @@ export default function PneusLanding() {
       {/* FAIXA DE BUSCAS — estilo PneuFree (2x2) */}
       <section className={styles.searchBand}>
         <div className={styles.container}>
-          <div className={styles.searchGrid}>
-            {/* Por MEDIDA */}
-            <form className={styles.box} onSubmit={submitMedida}>
-              <h2 className={styles.boxTitle}>Pesquise pneus pela medida</h2>
-              <div className={styles.boxFields}>
-                <label className={styles.field}>
-                  <span>Largura</span>
-                  <Select placeholder="Largura" options={larguraOpts}
-                    value={mLargura} onChange={(e) => setMLargura(e.target.value)} />
-                </label>
-                <label className={styles.field}>
-                  <span>Altura</span>
-                  <Select placeholder="Altura" options={perfilOpts}
-                    value={mPerfil} onChange={(e) => setMPerfil(e.target.value)} />
-                </label>
-                <label className={styles.field}>
-                  <span>Aro</span>
-                  <Select placeholder="Aro" options={aroOpts}
-                    value={mAro} onChange={(e) => setMAro(e.target.value)} />
-                </label>
-                <Button className={styles.searchBtn} type="submit" leftIcon="search">Pesquisar</Button>
-              </div>
-            </form>
-
-            {/* Por VEÍCULO */}
-            <form className={styles.box} onSubmit={submitVeiculo}>
-              <h2 className={styles.boxTitle}>Pesquise pneus pelo seu veículo</h2>
-              <div className={styles.boxFields}>
-                <label className={styles.field}>
-                  <span>Marca</span>
-                  <Select placeholder="Marca" options={marcaVeicOpts}
-                    value={vMarca}
-                    onChange={(e) => { setVMarca(e.target.value); setVModelo(''); }} />
-                </label>
-                <label className={styles.field}>
-                  <span>Modelo</span>
-                  <Select placeholder="Modelo" options={modeloOpts}
-                    disabled={!vMarca}
-                    value={vModelo} onChange={(e) => setVModelo(e.target.value)} />
-                </label>
-                <label className={styles.field}>
-                  <span>Ano</span>
-                  <Select placeholder="Ano" options={anoOpts}
-                    value={vAno} onChange={(e) => setVAno(e.target.value)} />
-                </label>
-                <Button className={styles.searchBtn} type="submit" leftIcon="search">Pesquisar</Button>
-              </div>
-            </form>
-
-            {/* Por ARO */}
-            <form className={styles.box} onSubmit={submitAro}>
-              <h2 className={styles.boxTitle}>Pesquise pneus pelo aro</h2>
-              <div className={styles.boxFields}>
-                <label className={styles.field}>
-                  <span>Aro</span>
-                  <Select placeholder="Aro" options={aroOpts}
-                    value={aAro} onChange={(e) => setAAro(e.target.value)} />
-                </label>
-                <label className={styles.field}>
-                  <span>Largura</span>
-                  <Select placeholder="Opcional" options={larguraOpts}
-                    value={aLargura} onChange={(e) => setALargura(e.target.value)} />
-                </label>
-                <label className={styles.field}>
-                  <span>Altura</span>
-                  <Select placeholder="Opcional" options={perfilOpts}
-                    value={aPerfil} onChange={(e) => setAPerfil(e.target.value)} />
-                </label>
-                <Button className={styles.searchBtn} type="submit" leftIcon="search">Pesquisar</Button>
-              </div>
-            </form>
-
-            {/* Busca INTELIGENTE */}
-            <form className={`${styles.box} ${styles.boxSmart}`} onSubmit={submitSmart}>
-              <h2 className={styles.boxTitle}>Busca inteligente de pneus</h2>
-              <div className={styles.boxFields}>
-                <label className={styles.field}>
-                  <span>O que você procura?</span>
-                  <Input
-                    leftIcon="search"
-                    placeholder="Ex.: 205 55 R16 Michelin"
-                    aria-label="Busca inteligente de pneus"
-                    value={q}
-                    onChange={(e) => setQ(e.target.value)}
-                  />
-                </label>
-                <p className={styles.smartHint}>
-                  Digite medida, aro, veículo ou marca — nós encontramos pra você.
-                </p>
-                <Button className={styles.searchBtn} type="submit" leftIcon="bulb">Pesquisar</Button>
-              </div>
-            </form>
-          </div>
+          <TireSearchBoxes variant="full" />
         </div>
       </section>
 
