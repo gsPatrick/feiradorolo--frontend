@@ -160,6 +160,15 @@ export default function AdminUsers() {
   const [reason, setReason] = useState('');
   const [confirmText, setConfirmText] = useState('');
 
+  /* — Seleção em massa — */
+  // IDs marcados (Set). Nunca inclui a própria conta do admin (checkbox desabilitado).
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
+  // Ação em massa pendente: { action, count } com action ∈ approve|suspend|ban|unban|delete.
+  const [bulkConfirm, setBulkConfirm] = useState(null);
+  const [bulkReason, setBulkReason] = useState('');
+  const [bulkConfirmText, setBulkConfirmText] = useState('');
+  const [bulkBusy, setBulkBusy] = useState(false);
+
   /* — Planos do usuário (no modal de detalhe) — */
   const [subscriptions, setSubscriptions] = useState([]);
   const [subsLoading, setSubsLoading] = useState(false);
@@ -315,6 +324,128 @@ export default function AdminUsers() {
   /* — Helpers de ação — */
   const isSelf = (user) => currentUserId != null && user.id === currentUserId;
   const isBusy = (userId, action) => busy === `${userId}:${action}`;
+
+  /* — Seleção em massa — */
+  // Usuários filtrados elegíveis a ações em massa (exclui a própria conta do admin).
+  const selectableUsers = useMemo(
+    () => filteredUsers.filter((u) => !isSelf(u)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filteredUsers, currentUserId],
+  );
+
+  // Mantém a seleção coerente quando a lista/filtros mudam: remove IDs que saíram da visão.
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      if (prev.size === 0) return prev;
+      const visible = new Set(selectableUsers.map((u) => u.id));
+      const next = new Set();
+      prev.forEach((id) => { if (visible.has(id)) next.add(id); });
+      return next.size === prev.size ? prev : next;
+    });
+  }, [selectableUsers]);
+
+  const selectedCount = selectedIds.size;
+  const allSelected = selectableUsers.length > 0 && selectedCount === selectableUsers.length;
+  const someSelected = selectedCount > 0 && !allSelected;
+
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedIds((prev) => (prev.size === selectableUsers.length && selectableUsers.length > 0
+      ? new Set()
+      : new Set(selectableUsers.map((u) => u.id))));
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  /* — Configuração das ações em massa — */
+  const BULK_COPY = {
+    approve: { title: 'Aprovar contas', tone: 'success', cta: 'Aprovar', askReason: false, requireType: false,
+      lead: (n) => `${n} conta(s) selecionada(s) serão aprovadas e ficarão ativas.` },
+    suspend: { title: 'Suspender contas', tone: 'warn', cta: 'Suspender', askReason: true, requireType: false,
+      lead: (n) => `${n} conta(s) selecionada(s) serão suspensas até reativação.` },
+    ban: { title: 'Banir usuários', tone: 'danger', cta: 'Banir', askReason: true, requireType: false,
+      lead: (n) => `${n} usuário(s) selecionado(s) serão banidos e perderão o acesso.` },
+    unban: { title: 'Desbanir usuários', tone: 'success', cta: 'Desbanir', askReason: false, requireType: false,
+      lead: (n) => `${n} usuário(s) selecionado(s) terão o banimento removido.` },
+    delete: { title: 'Excluir contas', tone: 'danger', cta: 'Excluir permanentemente', askReason: false, requireType: true,
+      lead: (n) => `Esta ação é PERMANENTE e não pode ser desfeita. ${n} conta(s) e seus dados serão removidos.` },
+  };
+
+  const openBulkConfirm = (action) => {
+    if (selectedCount === 0) return;
+    setBulkReason('');
+    setBulkConfirmText('');
+    setBulkConfirm({ action, count: selectedCount });
+  };
+  const closeBulkConfirm = () => {
+    if (bulkBusy) return;
+    setBulkConfirm(null);
+    setBulkReason('');
+    setBulkConfirmText('');
+  };
+
+  const submitBulk = async () => {
+    if (!bulkConfirm || bulkBusy) return;
+    const { action } = bulkConfirm;
+    // Garante que a própria conta do admin nunca entra no lote.
+    const ids = Array.from(selectedIds).filter((id) => id !== currentUserId);
+    if (ids.length === 0) { closeBulkConfirm(); return; }
+
+    setBulkBusy(true);
+    try {
+      const payload = {};
+      if ((action === 'suspend' || action === 'ban') && bulkReason.trim()) {
+        payload.reason = bulkReason.trim();
+      }
+      const data = { ids, action };
+      if (Object.keys(payload).length) data.payload = payload;
+
+      const res = await adminService.bulkUsers(data);
+      const failed = Array.isArray(res?.failed) ? res.failed : [];
+      const applied = ids.length - failed.length;
+
+      if (failed.length === 0) {
+        toast({
+          title: 'Ação concluída',
+          description: `${applied} usuário(s) atualizado(s) com sucesso.`,
+          variant: 'success',
+        });
+      } else if (applied === 0) {
+        toast({
+          title: 'Não foi possível aplicar',
+          description: `Nenhum dos ${ids.length} usuários pôde ser atualizado.`,
+          variant: 'error',
+        });
+      } else {
+        toast({
+          title: 'Ação parcialmente concluída',
+          description: `${applied} aplicado(s), ${failed.length} falhou(aram).`,
+          variant: 'error',
+        });
+      }
+
+      clearSelection();
+      setBulkConfirm(null);
+      setBulkReason('');
+      setBulkConfirmText('');
+      await loadUsers();
+    } catch (err) {
+      toast({
+        title: 'Não foi possível aplicar a ação',
+        description: errMessage(err, 'Tente novamente em instantes.'),
+        variant: 'error',
+      });
+    } finally {
+      setBulkBusy(false);
+    }
+  };
 
   // Atualiza um usuário in-place a partir do payload retornado pela API (sem refetch global).
   const applyUpdated = (id, apiUser) => {
@@ -575,6 +706,10 @@ export default function AdminUsers() {
     || confirmText.trim().toUpperCase() === 'EXCLUIR';
   const confirmBusy = confirm ? isBusy(confirm.user.id, confirm.action) : false;
 
+  const bulkCfg = bulkConfirm ? BULK_COPY[bulkConfirm.action] : null;
+  const bulkReady = !bulkCfg?.requireType
+    || bulkConfirmText.trim().toUpperCase() === 'EXCLUIR';
+
   return (
     <div className={styles.root}>
       <div className={styles.card}>
@@ -615,12 +750,54 @@ export default function AdminUsers() {
             <Select value={documentFilter} onChange={(e) => setDocumentFilter(e.target.value)} options={DOCUMENT_OPTIONS} />
           </div>
 
+          {/* Barra de ações em massa */}
+          {selectedCount > 0 && (
+            <div className={styles.bulkBar} role="region" aria-label="Ações em massa">
+              <div className={styles.bulkCount}>
+                <Icon name="check" size={16} />
+                <strong>{selectedCount}</strong> selecionado{selectedCount > 1 ? 's' : ''}
+              </div>
+              <div className={styles.bulkActions}>
+                <Button size="sm" className={styles.btnApprove} disabled={bulkBusy} onClick={() => openBulkConfirm('approve')} leftIcon="check">
+                  Aprovar
+                </Button>
+                <Button size="sm" variant="outline" className={styles.btnSuspend} disabled={bulkBusy} onClick={() => openBulkConfirm('suspend')} leftIcon="lock">
+                  Suspender
+                </Button>
+                <Button size="sm" className={styles.btnBan} disabled={bulkBusy} onClick={() => openBulkConfirm('ban')} leftIcon="shield">
+                  Banir
+                </Button>
+                <Button size="sm" variant="outline" className={styles.btnApproveOutline} disabled={bulkBusy} onClick={() => openBulkConfirm('unban')} leftIcon="shield">
+                  Desbanir
+                </Button>
+                <Button size="sm" variant="outline" className={styles.btnDelete} disabled={bulkBusy} onClick={() => openBulkConfirm('delete')} leftIcon="trash">
+                  Excluir
+                </Button>
+              </div>
+              <button type="button" className={styles.bulkClear} onClick={clearSelection} disabled={bulkBusy}>
+                Limpar seleção
+              </button>
+            </div>
+          )}
+
           {/* Tabela */}
           <div className={styles.tableWrap}>
             <div className={styles.tableScroll}>
               <table className={styles.table}>
                 <thead>
                   <tr>
+                    <th className={styles.checkCol}>
+                      <input
+                        type="checkbox"
+                        className={styles.checkbox}
+                        checked={allSelected}
+                        ref={(el) => { if (el) el.indeterminate = someSelected; }}
+                        onChange={toggleSelectAll}
+                        disabled={selectableUsers.length === 0}
+                        aria-label="Selecionar todos os usuários visíveis"
+                        title="Selecionar todos os usuários visíveis"
+                      />
+                    </th>
                     <th>Usuário</th>
                     <th>Documento</th>
                     <th>Papel</th>
@@ -632,26 +809,39 @@ export default function AdminUsers() {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={6} className={styles.empty}>
+                      <td colSpan={7} className={styles.empty}>
                         <span className={styles.loading}><span className={styles.spinner} aria-hidden="true" /> Carregando…</span>
                       </td>
                     </tr>
                   ) : error ? (
                     <tr>
-                      <td colSpan={6} className={styles.empty}>
+                      <td colSpan={7} className={styles.empty}>
                         Não foi possível carregar os usuários.{' '}
                         <button type="button" className={styles.retryLink} onClick={loadUsers}>Tentar novamente</button>
                       </td>
                     </tr>
                   ) : filteredUsers.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className={styles.empty}>
+                      <td colSpan={7} className={styles.empty}>
                         {users.length === 0 ? 'Sem dados' : 'Nenhum usuário corresponde aos filtros'}
                       </td>
                     </tr>
                   ) : (
-                    filteredUsers.map((user) => (
-                      <tr key={user.id} className={styles.row}>
+                    filteredUsers.map((user) => {
+                      const self = isSelf(user);
+                      return (
+                      <tr key={user.id} className={cx(styles.row, selectedIds.has(user.id) && styles.rowSelected)}>
+                        <td className={styles.checkCol}>
+                          <input
+                            type="checkbox"
+                            className={styles.checkbox}
+                            checked={selectedIds.has(user.id)}
+                            disabled={self}
+                            onChange={() => toggleSelect(user.id)}
+                            aria-label={self ? 'Sua conta não pode ser selecionada' : `Selecionar ${user.name}`}
+                            title={self ? 'Você não pode selecionar a própria conta' : `Selecionar ${user.name}`}
+                          />
+                        </td>
                         <td>
                           <div className={styles.userCell}>
                             <span className={styles.avatar}>
@@ -702,7 +892,8 @@ export default function AdminUsers() {
                           </div>
                         </td>
                       </tr>
-                    ))
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -927,6 +1118,62 @@ export default function AdminUsers() {
                   onChange={(e) => setConfirmText(e.target.value)}
                   placeholder="EXCLUIR"
                   disabled={confirmBusy}
+                />
+              </label>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal — Confirmação de ação em massa */}
+      <Modal
+        open={!!bulkConfirm}
+        onClose={closeBulkConfirm}
+        size="sm"
+        title={bulkCfg ? bulkCfg.title : ''}
+        footer={bulkConfirm && (
+          <div className={styles.confirmFooter}>
+            <Button variant="outline" onClick={closeBulkConfirm} disabled={bulkBusy}>Cancelar</Button>
+            <Button
+              className={bulkCfg.tone === 'danger' ? styles.btnBan : styles.btnSuspend}
+              variant={bulkCfg.tone === 'danger' ? 'primary' : 'outline'}
+              loading={bulkBusy}
+              disabled={bulkBusy || !bulkReady}
+              onClick={submitBulk}
+            >
+              {bulkCfg.cta}
+            </Button>
+          </div>
+        )}
+      >
+        {bulkConfirm && (
+          <div className={styles.confirmBody}>
+            <p className={cx(styles.confirmLead, bulkCfg.tone === 'danger' && styles.confirmDanger)}>
+              {bulkCfg.lead(bulkConfirm.count)}
+            </p>
+
+            {bulkCfg.askReason && (
+              <label className={styles.confirmField}>
+                <span>Motivo (opcional)</span>
+                <textarea
+                  className={styles.confirmTextarea}
+                  rows={3}
+                  value={bulkReason}
+                  onChange={(e) => setBulkReason(e.target.value)}
+                  placeholder="Descreva o motivo desta ação para registro interno…"
+                  disabled={bulkBusy}
+                />
+              </label>
+            )}
+
+            {bulkCfg.requireType && (
+              <label className={styles.confirmField}>
+                <span>Para confirmar, digite <strong>EXCLUIR</strong></span>
+                <Input
+                  value={bulkConfirmText}
+                  onChange={(e) => setBulkConfirmText(e.target.value)}
+                  placeholder="EXCLUIR"
+                  disabled={bulkBusy}
                 />
               </label>
             )}

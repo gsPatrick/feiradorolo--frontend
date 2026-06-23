@@ -150,6 +150,14 @@ export default function AdminProducts() {
   const [boostTier, setBoostTier] = useState('gold');
   const [boostDays, setBoostDays] = useState(7);
 
+  // Seleção em massa.
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
+  const [bulkRunning, setBulkRunning] = useState(false);
+  const [bulkConfirm, setBulkConfirm] = useState(null); // 'delete' | 'boost'
+  const [bulkDeleteText, setBulkDeleteText] = useState('');
+  const [bulkBoostTier, setBulkBoostTier] = useState('gold');
+  const [bulkBoostDays, setBulkBoostDays] = useState(7);
+
   const loadProducts = async () => {
     setLoading(true);
     setError(false);
@@ -324,6 +332,127 @@ export default function AdminProducts() {
     }
   };
 
+  /* — Seleção em massa — */
+  // Limpa da seleção ids que saíram da lista (excluídos, etc).
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      if (prev.size === 0) return prev;
+      const live = new Set(products.map((p) => p.id));
+      let changed = false;
+      const next = new Set();
+      prev.forEach((id) => {
+        if (live.has(id)) next.add(id);
+        else changed = true;
+      });
+      return changed ? next : prev;
+    });
+  }, [products]);
+
+  const isSelected = (id) => selectedIds.has(id);
+  const toggleOne = (id) => {
+    if (bulkRunning) return;
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const clearSelection = () => {
+    if (bulkRunning) return;
+    setSelectedIds(new Set());
+  };
+
+  // "Selecionar todos" age sobre os itens atualmente visíveis/filtrados.
+  const visibleIds = useMemo(() => visible.map((p) => p.id), [visible]);
+  const selectedVisibleCount = useMemo(
+    () => visibleIds.reduce((acc, id) => (selectedIds.has(id) ? acc + 1 : acc), 0),
+    [visibleIds, selectedIds],
+  );
+  const allVisibleSelected = visibleIds.length > 0 && selectedVisibleCount === visibleIds.length;
+  const someVisibleSelected = selectedVisibleCount > 0 && !allVisibleSelected;
+
+  const toggleAllVisible = () => {
+    if (bulkRunning) return;
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) visibleIds.forEach((id) => next.delete(id));
+      else visibleIds.forEach((id) => next.add(id));
+      return next;
+    });
+  };
+
+  const selectedCount = selectedIds.size;
+
+  const BULK_VERB = {
+    activate: { ok: 'ativado', okPlural: 'ativados', title: 'Ativação concluída' },
+    deactivate: { ok: 'desativado', okPlural: 'desativados', title: 'Desativação concluída' },
+    delete: { ok: 'excluído', okPlural: 'excluídos', title: 'Exclusão concluída' },
+    boost: { ok: 'destacado', okPlural: 'destacados', title: 'Destaque aplicado' },
+  };
+
+  const runBulk = async (action, payload) => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0 || bulkRunning) return;
+    setBulkRunning(true);
+    try {
+      const res = await adminService.bulkProducts({ ids, action, payload });
+      const failed = Array.isArray(res?.failed) ? res.failed : [];
+      const failedCount = failed.length;
+      const okCount = ids.length - failedCount;
+      const verb = BULK_VERB[action] || { ok: 'processado', okPlural: 'processados', title: 'Ação concluída' };
+      const parts = [];
+      if (okCount > 0) parts.push(`${okCount} ${okCount === 1 ? verb.ok : verb.okPlural}`);
+      if (failedCount > 0) parts.push(`${failedCount} ${failedCount === 1 ? 'falhou' : 'falharam'}`);
+
+      toast({
+        title: failedCount === 0 ? verb.title : 'Ação concluída com avisos',
+        description: parts.join(', ') || 'Nenhum item processado.',
+        variant: failedCount === 0 ? 'success' : 'error',
+      });
+
+      setSelectedIds(new Set());
+      await loadProducts();
+    } catch (err) {
+      toast({
+        title: 'Não foi possível concluir a ação em massa',
+        description: errMessage(err, 'Tente novamente em instantes.'),
+        variant: 'error',
+      });
+    } finally {
+      setBulkRunning(false);
+    }
+  };
+
+  const openBulkDelete = () => {
+    if (selectedCount === 0 || bulkRunning) return;
+    setBulkDeleteText('');
+    setBulkConfirm('delete');
+  };
+  const openBulkBoost = () => {
+    if (selectedCount === 0 || bulkRunning) return;
+    setBulkBoostTier('gold');
+    setBulkBoostDays(7);
+    setBulkConfirm('boost');
+  };
+  const closeBulkConfirm = () => {
+    if (bulkRunning) return;
+    setBulkConfirm(null);
+    setBulkDeleteText('');
+  };
+  const submitBulkDelete = async () => {
+    await runBulk('delete');
+    if (!bulkRunning) setBulkConfirm(null);
+    setBulkDeleteText('');
+  };
+  const submitBulkBoost = async () => {
+    const days = Math.max(1, Number(bulkBoostDays) || 1);
+    await runBulk('boost', { tier: bulkBoostTier, days });
+    if (!bulkRunning) setBulkConfirm(null);
+  };
+
+  const bulkDeleteReady = bulkDeleteText.trim().toUpperCase() === 'EXCLUIR';
+
   /* — Ações de uma linha/card (reutilizadas na tabela e no mobile) — */
   const RowActions = ({ product, stacked = false }) => {
     const isActive = product.status === 'active';
@@ -457,12 +586,85 @@ export default function AdminProducts() {
             <Select value={highlightFilter} onChange={(e) => setHighlightFilter(e.target.value)} options={HIGHLIGHT_OPTIONS} />
           </div>
 
+          {/* Barra de ações em massa */}
+          {selectedCount > 0 && (
+            <div className={styles.bulkBar} role="region" aria-label="Ações em massa">
+              <div className={styles.bulkInfo}>
+                <Icon name="check" size={16} />
+                <strong>{num(selectedCount)}</strong>
+                <span>{selectedCount === 1 ? 'selecionado' : 'selecionados'}</span>
+              </div>
+              <div className={styles.bulkActions}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className={styles.btnActivate}
+                  leftIcon="check"
+                  disabled={bulkRunning}
+                  loading={bulkRunning}
+                  onClick={() => runBulk('activate')}
+                >
+                  Ativar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className={styles.btnPause}
+                  leftIcon="lock"
+                  disabled={bulkRunning}
+                  onClick={() => runBulk('deactivate')}
+                >
+                  Desativar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className={styles.btnBoost}
+                  leftIcon="star"
+                  disabled={bulkRunning}
+                  onClick={openBulkBoost}
+                >
+                  Destacar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className={styles.btnDelete}
+                  leftIcon="trash"
+                  disabled={bulkRunning}
+                  onClick={openBulkDelete}
+                >
+                  Excluir
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={bulkRunning}
+                  onClick={clearSelection}
+                >
+                  Limpar seleção
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Tabela (desktop) */}
           <div className={styles.tableWrap}>
             <div className={styles.tableScroll}>
               <table className={styles.table}>
                 <thead>
                   <tr>
+                    <th className={styles.checkCol}>
+                      <input
+                        type="checkbox"
+                        className={styles.checkbox}
+                        checked={allVisibleSelected}
+                        ref={(el) => { if (el) el.indeterminate = someVisibleSelected; }}
+                        onChange={toggleAllVisible}
+                        disabled={bulkRunning || visibleIds.length === 0}
+                        aria-label="Selecionar todos os anúncios visíveis"
+                      />
+                    </th>
                     <th>Anúncio</th>
                     <th>Vendedor</th>
                     <th>Preço</th>
@@ -476,26 +678,36 @@ export default function AdminProducts() {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={8} className={styles.empty}>
+                      <td colSpan={9} className={styles.empty}>
                         <span className={styles.loading}><span className={styles.spinner} aria-hidden="true" /> Carregando…</span>
                       </td>
                     </tr>
                   ) : error ? (
                     <tr>
-                      <td colSpan={8} className={styles.empty}>
+                      <td colSpan={9} className={styles.empty}>
                         Não foi possível carregar os anúncios.{' '}
                         <button type="button" className={styles.retryLink} onClick={loadProducts}>Tentar novamente</button>
                       </td>
                     </tr>
                   ) : visible.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className={styles.empty}>
+                      <td colSpan={9} className={styles.empty}>
                         {products.length === 0 ? 'Nenhum anúncio cadastrado' : 'Nenhum anúncio corresponde aos filtros'}
                       </td>
                     </tr>
                   ) : (
                     visible.map((product) => (
-                      <tr key={product.id} className={styles.row}>
+                      <tr key={product.id} className={cx(styles.row, isSelected(product.id) && styles.rowSelected)}>
+                        <td className={styles.checkCol}>
+                          <input
+                            type="checkbox"
+                            className={styles.checkbox}
+                            checked={isSelected(product.id)}
+                            onChange={() => toggleOne(product.id)}
+                            disabled={bulkRunning}
+                            aria-label={`Selecionar ${product.title}`}
+                          />
+                        </td>
                         <td>
                           <div className={styles.productCell}>
                             <Cover product={product} />
@@ -534,12 +746,36 @@ export default function AdminProducts() {
             </div>
           </div>
 
+          {/* Selecionar todos (mobile) */}
+          {!loading && !error && visible.length > 0 && (
+            <label className={styles.selectAllMobile}>
+              <input
+                type="checkbox"
+                className={styles.checkbox}
+                checked={allVisibleSelected}
+                ref={(el) => { if (el) el.indeterminate = someVisibleSelected; }}
+                onChange={toggleAllVisible}
+                disabled={bulkRunning}
+                aria-label="Selecionar todos os anúncios visíveis"
+              />
+              <span>{allVisibleSelected ? 'Desmarcar todos' : 'Selecionar todos'}</span>
+            </label>
+          )}
+
           {/* Cards (mobile) */}
           {!loading && !error && visible.length > 0 && (
             <div className={styles.cardsMobile}>
               {visible.map((product) => (
-                <div key={product.id} className={styles.mobileCard}>
+                <div key={product.id} className={cx(styles.mobileCard, isSelected(product.id) && styles.mobileCardSelected)}>
                   <div className={styles.mobileTop}>
+                    <input
+                      type="checkbox"
+                      className={styles.checkbox}
+                      checked={isSelected(product.id)}
+                      onChange={() => toggleOne(product.id)}
+                      disabled={bulkRunning}
+                      aria-label={`Selecionar ${product.title}`}
+                    />
                     <Cover product={product} size={56} />
                     <div className={styles.mobileInfo}>
                       <div className={styles.productTitle}>{product.title}</div>
@@ -678,6 +914,102 @@ export default function AdminProducts() {
             )}
           </div>
         )}
+      </Modal>
+
+      {/* Modal — Exclusão em massa (confirmação forte) */}
+      <Modal
+        open={bulkConfirm === 'delete'}
+        onClose={closeBulkConfirm}
+        size="sm"
+        title="Excluir anúncios em massa"
+        footer={(
+          <div className={styles.confirmFooter}>
+            <Button variant="outline" onClick={closeBulkConfirm} disabled={bulkRunning}>Cancelar</Button>
+            <Button
+              className={styles.btnDeleteSolid}
+              loading={bulkRunning}
+              disabled={bulkRunning || !bulkDeleteReady}
+              onClick={submitBulkDelete}
+            >
+              Excluir {num(selectedCount)} {selectedCount === 1 ? 'anúncio' : 'anúncios'}
+            </Button>
+          </div>
+        )}
+      >
+        <div className={styles.confirmBody}>
+          <p className={cx(styles.confirmLead, styles.confirmDanger)}>
+            Esta ação é PERMANENTE e não pode ser desfeita. {selectedCount === 1
+              ? '1 anúncio selecionado será removido'
+              : `${num(selectedCount)} anúncios selecionados serão removidos`}.
+          </p>
+          <label className={styles.confirmField}>
+            <span>Para confirmar, digite <strong>EXCLUIR</strong></span>
+            <Input
+              value={bulkDeleteText}
+              onChange={(e) => setBulkDeleteText(e.target.value)}
+              placeholder="EXCLUIR"
+              disabled={bulkRunning}
+            />
+          </label>
+        </div>
+      </Modal>
+
+      {/* Modal — Destaque em massa */}
+      <Modal
+        open={bulkConfirm === 'boost'}
+        onClose={closeBulkConfirm}
+        size="sm"
+        title="Destacar anúncios em massa"
+        footer={(
+          <div className={styles.confirmFooter}>
+            <Button variant="outline" onClick={closeBulkConfirm} disabled={bulkRunning}>Cancelar</Button>
+            <Button
+              variant="primary"
+              loading={bulkRunning}
+              disabled={bulkRunning}
+              onClick={submitBulkBoost}
+            >
+              Aplicar a {num(selectedCount)} {selectedCount === 1 ? 'anúncio' : 'anúncios'}
+            </Button>
+          </div>
+        )}
+      >
+        <div className={styles.confirmBody}>
+          <p className={styles.confirmLead}>
+            Aplique um destaque, sem cobrança, para {selectedCount === 1
+              ? 'o anúncio selecionado'
+              : `os ${num(selectedCount)} anúncios selecionados`}.
+          </p>
+          <div className={styles.confirmField}>
+            <span>Nível do destaque</span>
+            <div className={styles.tierGrid}>
+              {BOOST_TIERS.filter((t) => t.value !== 'none').map((t) => (
+                <button
+                  key={t.value}
+                  type="button"
+                  className={cx(styles.tierBtn, bulkBoostTier === t.value && styles.tierBtnOn)}
+                  onClick={() => setBulkBoostTier(t.value)}
+                  aria-pressed={bulkBoostTier === t.value}
+                  disabled={bulkRunning}
+                >
+                  <Icon name={t.icon} size={18} />
+                  <span>{t.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <label className={styles.confirmField}>
+            <span>Duração (dias)</span>
+            <Input
+              type="number"
+              min={1}
+              max={365}
+              value={bulkBoostDays}
+              onChange={(e) => setBulkBoostDays(e.target.value)}
+              disabled={bulkRunning}
+            />
+          </label>
+        </div>
       </Modal>
     </div>
   );

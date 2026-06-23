@@ -108,6 +108,103 @@
   }
 }
 
+/* — Seleção em massa — */
+.checkbox {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--brand-strong);
+  border-radius: var(--r-sm);
+}
+.checkbox:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.checkCol {
+  width: 44px;
+  text-align: center;
+  padding-left: 16px;
+  padding-right: 8px;
+}
+.checkCol .checkbox {
+  vertical-align: middle;
+}
+.rowSelected {
+  background: var(--brand-soft);
+}
+.rowSelected:hover {
+  background: var(--brand-soft);
+}
+
+/* — Barra de ações em massa (sticky) — */
+.bulkBar {
+  position: sticky;
+  top: 12px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--brand-strong);
+  border-radius: var(--r-lg);
+  background: var(--brand-soft);
+  box-shadow: var(--shadow-md);
+}
+.bulkInfo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: var(--brand-strong);
+}
+.bulkInfo strong {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.bulkActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+@media (max-width: 640px) {
+  .bulkBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .bulkActions {
+    justify-content: stretch;
+  }
+  .bulkActions > * {
+    flex: 1 1 auto;
+  }
+}
+
+/* — Selecionar todos (mobile) — */
+.selectAllMobile {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--bg-1);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  cursor: pointer;
+}
+.mobileCardSelected {
+  border-color: var(--brand-strong);
+  background: var(--brand-soft);
+}
+
 /* — Tabela — */
 .tableWrap {
   border: 1px solid var(--border);
@@ -412,5 +509,8 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
+  }
+  .selectAllMobile {
+    display: flex;
   }
 }
