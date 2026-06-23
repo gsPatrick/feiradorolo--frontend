@@ -1,4 +1,5 @@
 .bar {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -67,6 +68,57 @@
 .go:hover {
   color: var(--foreground);
   background: var(--muted);
+}
+
+/* ── Autocomplete (sugestões) ──────────────────────────── */
+.suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 80;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--bg, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: var(--r-lg, 14px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
+  max-height: 360px;
+  overflow-y: auto;
+  animation: sugIn 0.14s ease;
+}
+@keyframes sugIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.sugItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--foreground, #0f172a);
+  border-radius: var(--r-md, 10px);
+  cursor: pointer;
+}
+.sugActive,
+.sugItem:hover {
+  background: var(--muted, #f1f5f9);
+}
+.sugIcon {
+  flex-shrink: 0;
+  color: var(--text-dim, #94a3b8);
+}
+.sugText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── Busca por voz ─────────────────────────────────────── */

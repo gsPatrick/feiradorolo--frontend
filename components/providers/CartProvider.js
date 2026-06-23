@@ -60,9 +60,25 @@ export function CartProvider({ children }) {
     );
   }, []);
 
-  const clear = useCallback(() => setItems([]), []);
+  const clear = useCallback(() => {
+    setItems([]);
+    // Garante que o carrinho persistido também seja removido (ex.: no logout,
+    // que faz um reload completo e re-hidrataria o estado a partir do storage).
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {}
+  }, []);
   const openCart = useCallback(() => setIsOpen(true), []);
   const closeCart = useCallback(() => setIsOpen(false), []);
+
+  // Carrinho é por usuário: ao deslogar, esvazia (estado + localStorage).
+  useEffect(() => {
+    function onLogout() {
+      clear();
+    }
+    window.addEventListener('fdr:logout', onLogout);
+    return () => window.removeEventListener('fdr:logout', onLogout);
+  }, [clear]);
 
   const value = useMemo(() => {
     const totalItems = items.reduce((s, p) => s + p.qty, 0);

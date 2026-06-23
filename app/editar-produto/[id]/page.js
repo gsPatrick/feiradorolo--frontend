@@ -633,10 +633,12 @@ export default function EditarProdutoPage() {
                       <span>Eu preciso de</span>
                       <Input
                         type="number"
-                        min="3"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        min={1}
                         max="15"
                         value={form.customOrderDays}
-                        onChange={(e) => set({ customOrderDays: e.target.value })}
+                        onChange={(e) => set({ customOrderDays: e.target.value.replace(/\D/g, '') })}
                         onBlur={(e) => {
                           const v = parseInt(e.target.value, 10);
                           if (e.target.value === '' || isNaN(v) || v < 3) set({ customOrderDays: '3' });

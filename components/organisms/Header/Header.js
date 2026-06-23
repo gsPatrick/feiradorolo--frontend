@@ -19,7 +19,7 @@ const NAV = [
   { label: 'Cupons', href: '/cupons' },
   { label: 'Casa & Jardim', href: '/categoria/casa-e-decoracao' },
   { label: 'Moda', href: '/categoria/roupas-femininas' },
-  { label: 'Baixe nosso app', href: '/app' },
+  { label: 'Baixe nosso app', href: '/aplicativo' },
 ];
 
 const ILogout = (p) => (
@@ -75,6 +75,7 @@ export default function Header({ favCount = 0 }) {
   // Categorias
   const [catsOpen, setCatsOpen] = useState(false);
   const [cats, setCats] = useState([]);
+  const [expandedCat, setExpandedCat] = useState(null);
   const catsRef = useRef(null);
 
   // Menu do usuário (logado)
@@ -110,7 +111,10 @@ export default function Header({ favCount = 0 }) {
 
   useEffect(() => {
     function onDoc(e) {
-      if (catsRef.current && !catsRef.current.contains(e.target)) setCatsOpen(false);
+      if (catsRef.current && !catsRef.current.contains(e.target)) {
+        setCatsOpen(false);
+        setExpandedCat(null);
+      }
       if (userRef.current && !userRef.current.contains(e.target)) setUserOpen(false);
       if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
     }
@@ -184,6 +188,15 @@ export default function Header({ favCount = 0 }) {
         setCats(Array.isArray(tree) ? tree.slice(0, 18) : []);
       } catch {}
     }
+  }
+
+  function closeCategories() {
+    setCatsOpen(false);
+    setExpandedCat(null);
+  }
+
+  function toggleCat(id) {
+    setExpandedCat((cur) => (cur === id ? null : id));
   }
 
   function handleLogout() {
@@ -348,20 +361,63 @@ export default function Header({ favCount = 0 }) {
               <Icon name="chevron-down" size={16} className={styles.catCaret} />
             </button>
             {catsOpen && (
-              <div className={styles.catsPanel}>
+              <div className={styles.catsPanel} role="menu">
                 {cats.length === 0 ? (
                   <div className={styles.catsEmpty}>Carregando...</div>
                 ) : (
                   <>
-                    <div className={styles.catsGrid}>
-                      {cats.map((c) => (
-                        <Link key={c.id} href={`/categoria/${c.slug}`} className={styles.catItem} onClick={() => setCatsOpen(false)}>
-                          <span className={styles.catEmoji}>{c.icon}</span>
-                          <span>{c.name}</span>
-                        </Link>
-                      ))}
-                    </div>
-                    <Link href="/categorias" className={styles.catsAll} onClick={() => setCatsOpen(false)}>
+                    <ul className={styles.catsList}>
+                      {cats.map((c) => {
+                        const children = Array.isArray(c.children) ? c.children : [];
+                        const hasChildren = children.length > 0;
+                        const isExpanded = expandedCat === c.id;
+                        return (
+                          <li key={c.id} className={styles.catRow}>
+                            <div className={cx(styles.catHead, isExpanded && styles.catHeadOpen)}>
+                              <Link
+                                href={`/categoria/${c.slug}`}
+                                className={styles.catLink}
+                                onClick={closeCategories}
+                              >
+                                <span className={styles.catEmoji}>{c.icon}</span>
+                                <span className={styles.catName}>{c.name}</span>
+                              </Link>
+                              {hasChildren && (
+                                <button
+                                  type="button"
+                                  className={styles.catToggle}
+                                  aria-label={isExpanded ? `Recolher ${c.name}` : `Expandir ${c.name}`}
+                                  aria-expanded={isExpanded}
+                                  onClick={() => toggleCat(c.id)}
+                                >
+                                  <Icon
+                                    name="chevron-down"
+                                    size={16}
+                                    className={cx(styles.catChevron, isExpanded && styles.catChevronOpen)}
+                                  />
+                                </button>
+                              )}
+                            </div>
+                            {hasChildren && isExpanded && (
+                              <ul className={styles.subList}>
+                                {children.map((sub) => (
+                                  <li key={sub.id}>
+                                    <Link
+                                      href={`/categoria/${sub.slug}`}
+                                      className={styles.subItem}
+                                      onClick={closeCategories}
+                                    >
+                                      {sub.name}
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    <Link href="/categorias" className={styles.catsAll} onClick={closeCategories}>
                       Ver todas as categorias <Icon name="arrow-right" size={15} />
                     </Link>
                   </>

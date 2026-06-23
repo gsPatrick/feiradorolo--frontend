@@ -57,6 +57,70 @@ function statusLabel(status) {
   return (STATUS_LABELS[status] && STATUS_LABELS[status].label) || status || '—';
 }
 
+/* — Rastreio / status logístico (Shipment) — */
+const SHIPMENT_STATUS_LABELS = {
+  pending: 'Aguardando postagem',
+  purchased: 'Etiqueta gerada',
+  posted: 'Postado',
+  in_transit: 'Em trânsito',
+  out_for_delivery: 'Saiu para entrega',
+  delivered: 'Entregue',
+  cancelled: 'Cancelado',
+  returned: 'Devolvido',
+};
+
+// Pega o envio "mais relevante" do pedido (a API traz um array `shipments`).
+function orderShipment(o) {
+  const list = Array.isArray(o && o.shipments) ? o.shipments : (o && o.shipment ? [o.shipment] : []);
+  if (!list.length) return null;
+  // Prioriza o que tem código de rastreio; senão, o primeiro.
+  return list.find((s) => s && s.tracking_code) || list[0];
+}
+
+function shipmentStatusLabel(status) {
+  return SHIPMENT_STATUS_LABELS[status] || null;
+}
+
+// URL pública de rastreamento (Correios, usado pelo Melhor Envio p/ o código).
+function trackingUrl(code) {
+  if (!code) return null;
+  return `https://rastreamento.correios.com.br/app/index.php?objeto=${encodeURIComponent(code)}`;
+}
+
+/* — Abas de status estilo Shopee.
+   Mapeia o status real do pedido (+ envio) para uma das abas horizontais. */
+const STATUS_TABS = [
+  { k: 'all', l: 'Tudo' },
+  { k: 'to_pay', l: 'A Pagar' },
+  { k: 'paid', l: 'Pago' },
+  { k: 'preparing', l: 'Preparando' },
+  { k: 'shipping', l: 'A Caminho' },
+  { k: 'done', l: 'Finalizado' },
+  { k: 'cancelled', l: 'Cancelado' },
+  { k: 'refund', l: 'Devolução' },
+];
+
+// Classifica o pedido em uma das abas Shopee.
+function orderTab(o) {
+  const s = o && o.status;
+  if (s === 'awaiting_payment' || s === 'pending' || s === 'failed') return 'to_pay';
+  if (s === 'cancelled') return 'cancelled';
+  if (s === 'refunded' || s === 'disputed') return 'refund';
+  if (s === 'delivered' || s === 'completed') return 'done';
+  if (s === 'shipped') return 'shipping';
+  // pago / processando: distingue "Preparando" x "A Caminho" pelo envio.
+  if (s === 'paid' || s === 'processing') {
+    const ship = orderShipment(o);
+    const shipped = ship && ['posted', 'in_transit', 'out_for_delivery'].includes(ship.status);
+    if (shipped) return 'shipping';
+    // Postagem registrada via shipping_status também conta como "A Caminho".
+    if (o && (o.shipping_status === 'in_transit' || o.shipping_status === 'shipped')) return 'shipping';
+    if (s === 'paid') return 'paid';
+    return 'preparing';
+  }
+  return 'paid';
+}
+
 // Imagem real de um item do pedido (1ª imagem do produto, capa, ou placeholder).
 function itemImage(item) {
   return (item && (item.product?.images?.[0] || item.product?.cover_image_url)) || ORDER_PLACEHOLDER;
@@ -76,12 +140,6 @@ const SELLER_TABS = [
   { k: 'relatorios', l: 'Relatórios' },
   { k: 'config', l: 'Configurações' },
 ];
-const ORDER_FILTERS = [
-  { k: 'all', l: 'Todos' }, { k: 'pending', l: 'Aguard.' }, { k: 'paid', l: 'Pagos' },
-  { k: 'shipped', l: 'Enviados' }, { k: 'delivered', l: 'Entregues' },
-  { k: 'cancelled', l: 'Cancelados' }, { k: 'refunded', l: 'Devoluções/Reembolso' },
-];
-
 export default function MinhaContaPage() {
   const { toast } = useToast();
   const { openAuth, user, setUser, authReady } = useAuth();
@@ -275,7 +333,21 @@ export default function MinhaContaPage() {
       });
   }, [isVendas, sellerTab, sellerProdState, user]);
 
-  const orders = orderFilter === 'all' ? allOrders : allOrders.filter((o) => o.status === orderFilter);
+  // Cada pedido recebe sua aba Shopee uma única vez (evita reclassificar no filtro/contagem).
+  const ordersWithTab = useMemo(
+    () => allOrders.map((o) => ({ o, t: orderTab(o) })),
+    [allOrders]
+  );
+  const orders =
+    orderFilter === 'all'
+      ? allOrders
+      : ordersWithTab.filter((x) => x.t === orderFilter).map((x) => x.o);
+  // Contagem por aba (badge).
+  const tabCounts = useMemo(() => {
+    const c = { all: allOrders.length };
+    for (const { t } of ordersWithTab) c[t] = (c[t] || 0) + 1;
+    return c;
+  }, [ordersWithTab, allOrders.length]);
 
   // Número amigável sequencial (#01, #02…): ordena por data crescente e mapeia id -> nº.
   const orderNumbers = useMemo(() => {
@@ -525,11 +597,23 @@ export default function MinhaContaPage() {
                 <div className={cx(styles.tabContent, styles.fade)} key={tab}>
                   {tab === 'pedidos' && (
                     <>
-                      <div className={styles.sectionHead}><h2>Meus Pedidos</h2><span className={styles.muted}>{ordersState === 'ready' ? `${orders.length} pedidos` : ''}</span></div>
-                      <div className={styles.orderFilters}>
-                        {ORDER_FILTERS.map((of) => (
-                          <button key={of.k} className={cx(styles.ofPill, orderFilter === of.k && styles.ofActive)} onClick={() => setOrderFilter(of.k)}>{of.l}</button>
-                        ))}
+                      <div className={styles.sectionHead}><h2>Minhas Compras</h2><span className={styles.muted}>{ordersState === 'ready' ? `${orders.length} pedidos` : ''}</span></div>
+                      <div className={styles.statusTabs} role="tablist" aria-label="Status das compras">
+                        {STATUS_TABS.map((st) => {
+                          const n = tabCounts[st.k] || 0;
+                          return (
+                            <button
+                              key={st.k}
+                              role="tab"
+                              aria-selected={orderFilter === st.k}
+                              className={cx(styles.statusTab, orderFilter === st.k && styles.statusTabActive)}
+                              onClick={() => setOrderFilter(st.k)}
+                            >
+                              {st.l}
+                              {ordersState === 'ready' && n > 0 && <span className={styles.statusTabCount}>{n}</span>}
+                            </button>
+                          );
+                        })}
                       </div>
                       {ordersState === 'unauth' ? (
                         <div className={styles.emptyCard}>
@@ -573,6 +657,10 @@ export default function MinhaContaPage() {
                               : (first && first.title_snapshot) || 'Pedido';
                             const num = orderNumbers[o.id] || '--';
                             const date = formatOrderDate(o.placed_at || o.createdAt);
+                            const ship = orderShipment(o);
+                            const shipStatus = ship && shipmentStatusLabel(ship.status);
+                            const trackCode = ship && ship.tracking_code;
+                            const trackHref = trackingUrl(trackCode);
                             return (
                               <Link
                                 key={o.id}
@@ -586,6 +674,32 @@ export default function MinhaContaPage() {
                                     <span className={styles.orderNum}>Pedido #{num}</span>
                                     <strong className={styles.orderItemName}>{title}</strong>
                                     <span className={styles.orderDate}>{date}</span>
+                                    {(trackCode || shipStatus) && (
+                                      <span className={styles.trackRow}>
+                                        <Icon name="package" size={13} className={styles.trackIcon} />
+                                        {trackCode ? (
+                                          <span className={styles.trackCode}>
+                                            Rastreio: <strong>{trackCode}</strong>
+                                          </span>
+                                        ) : null}
+                                        {shipStatus && (
+                                          <span className={styles.trackStatus}>
+                                            {trackCode ? '· ' : ''}{ship.service_name ? `${ship.service_name} · ` : ''}{shipStatus}
+                                          </span>
+                                        )}
+                                        {trackHref && (
+                                          <span
+                                            role="button"
+                                            tabIndex={0}
+                                            className={styles.trackLink}
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open(trackHref, '_blank', 'noopener'); }}
+                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); window.open(trackHref, '_blank', 'noopener'); } }}
+                                          >
+                                            Rastrear
+                                          </span>
+                                        )}
+                                      </span>
+                                    )}
                                   </div>
                                   <div className={styles.orderRight}>
                                     <span className={`${styles.vBadge} ${styles[`b_${o.status}`] || styles.vNone}`}>{statusLabel(o.status)}</span>

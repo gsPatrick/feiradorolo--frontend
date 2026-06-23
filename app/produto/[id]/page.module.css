@@ -54,7 +54,7 @@
 
 .layout {
   display: grid;
-  grid-template-columns: 1fr 360px;
+  grid-template-columns: 1fr 340px;
   gap: 26px;
   align-items: start;
 }
@@ -76,7 +76,7 @@
 }
 .heroGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   gap: 34px;
 }
 .galleryCol {
@@ -296,9 +296,9 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* — Bloco de frete (estilo Kabum, cores Feira) — */
+/* — Bloco de frete (estilo Kabum, cores Feira) — abaixo dos botões (OLX/ML) */
 .freightCard {
-  margin: 0 0 16px;
+  margin: 16px 0 0;
   padding: 16px;
   background: var(--bg);
   border: 1px solid var(--border);
@@ -669,10 +669,20 @@
 .sellerLoc {
   display: flex;
   align-items: center;
-  gap: 6px;
+  flex-wrap: wrap;
+  gap: 6px 14px;
   font-size: 0.85rem;
   color: var(--muted-foreground);
   margin-bottom: 14px;
+}
+.sellerLocItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.sellerLocItem svg {
+  flex-shrink: 0;
+  color: var(--feira-gray, #6b7280);
 }
 .sellerPageBtn {
   display: inline-flex;
@@ -1050,3 +1060,104 @@
   font-size: 0.74rem;
   color: var(--muted-foreground, #64748b);
 }
+
+/* — Denunciar anúncio (top bar) — */
+.topReport {
+  color: var(--muted-foreground, #6b7280);
+}
+.topReport:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+/* — Selos informativos clicáveis (abrem PolicyModal) — */
+.sealBtn {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+.sealBtn:hover strong {
+  text-decoration: underline;
+}
+
+/* — Bloqueio de autocompra (este é o seu anúncio) — */
+.ownListing {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--r-md);
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+}
+.ownListing > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #ea580c;
+}
+.ownListing > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.ownListing strong {
+  font-size: 0.92rem;
+  color: #9a3412;
+}
+.ownListing span {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: #b45309;
+}
+.ownManage {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ea580c;
+}
+.ownManage:hover { text-decoration: underline; }
+
+/* — Modal de autocompra — */
+.ownModal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.ownModal p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+.ownModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.ownModalManage {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: var(--r-md);
+  background: #ea580c;
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.ownModalManage:hover { background: #c2410c; }

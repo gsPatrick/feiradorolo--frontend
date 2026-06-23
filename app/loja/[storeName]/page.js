@@ -9,7 +9,7 @@ import ProductCard from '@/components/molecules/ProductCard/ProductCard';
 import SellerTrust from '@/components/molecules/SellerTrust/SellerTrust';
 import VerifiedSeal from '@/components/atoms/VerifiedSeal/VerifiedSeal';
 import { cx } from '@/lib/cx';
-import { productService, mapProduct, chatService } from '@/lib/api';
+import { productService, mapProduct, chatService, userService } from '@/lib/api';
 import { useToast } from '@/components/providers/ToastProvider';
 
 const AVATAR_KEYS = ['blue', 'green', 'amber', 'red', 'violet', 'pink'];
@@ -82,6 +82,7 @@ export default function LojaPage() {
   const [products, setProducts] = useState([]); // mapeados p/ ProductCard
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [profile, setProfile] = useState(null); // seller-profile (stats agregadas)
 
   // UI state
   const [query, setQuery] = useState('');
@@ -126,6 +127,34 @@ export default function LojaPage() {
 
   const colorKey = AVATAR_KEYS[(name.length || 0) % AVATAR_KEYS.length];
   const initials = name.trim().slice(0, 2).toUpperCase();
+
+  // Perfil agregado do vendedor (inclui tempo médio de postagem). Sem quebrar se falhar.
+  useEffect(() => {
+    if (!sellerId) {
+      setProfile(null);
+      return;
+    }
+    let alive = true;
+    userService
+      .sellerProfile(sellerId)
+      .then((p) => alive && setProfile(p || null))
+      .catch(() => alive && setProfile(null));
+    return () => {
+      alive = false;
+    };
+  }, [sellerId]);
+
+  // Tempo médio de postagem após a compra (do perfil agregado). null → oculta.
+  const avgShipDays = profile && profile.avg_ship_days != null ? Number(profile.avg_ship_days) : null;
+  const avgShipHours = profile && profile.avg_ship_hours != null ? Number(profile.avg_ship_hours) : null;
+  const shipLabel =
+    avgShipDays == null
+      ? null
+      : avgShipDays >= 1
+      ? `${avgShipDays.toFixed(1).replace(/[.,]0$/, '').replace('.', ',')} ${avgShipDays >= 2 ? 'dias' : 'dia'}`
+      : avgShipHours != null
+      ? `${Math.max(1, Math.round(avgShipHours))} h`
+      : '< 1 dia';
 
   // Métricas reais do vendedor (vindas da API) com fallbacks seguros
   const sellerRating = Number(seller && seller.rating) || 0;
@@ -303,6 +332,18 @@ export default function LojaPage() {
             <strong className={styles.metricValue}>{salesCount}</strong>
             <span className={styles.metricLabel}>Vendas</span>
           </div>
+          {shipLabel && (
+            <>
+              <span className={styles.metricSep} aria-hidden="true" />
+              <div className={styles.metric} title="Tempo médio entre o pagamento e a postagem">
+                <strong className={cx(styles.metricValue, styles.metricShip)}>
+                  <Icon name="truck" size={16} className={styles.starIcon} />
+                  {shipLabel}
+                </strong>
+                <span className={styles.metricLabel}>Posta em média</span>
+              </div>
+            </>
+          )}
           <span className={styles.metricSep} aria-hidden="true" />
           <div className={styles.metric}>
             <strong className={styles.metricValue}>{minPrice > 0 ? BRL.format(minPrice) : '—'}</strong>

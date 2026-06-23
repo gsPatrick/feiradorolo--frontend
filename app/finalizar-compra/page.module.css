@@ -718,6 +718,51 @@
   font-size: 0.9rem;
 }
 
+/* ===== Resumo compacto no topo (estilo ML) ===== */
+.orderHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.orderHeaderTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.orderHeaderTop .panelTitlePlain {
+  margin-bottom: 0;
+}
+.orderHeaderTotal {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+
+/* ===== CTA de pagamento em destaque (alto na página) ===== */
+.payCta {
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: var(--r-lg);
+  background: var(--feira-yellow-soft, var(--bg-1));
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.payCtaTotal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  color: var(--foreground);
+}
+.payCtaTotal strong {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
 /* ===== Pagamento ===== */
 .secureRow {
   display: flex;

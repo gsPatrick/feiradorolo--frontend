@@ -258,6 +258,13 @@
 .starIcon {
   color: var(--feira-yellow-strong);
 }
+.metricShip {
+  color: var(--success, var(--feira-green, #16a34a));
+  white-space: nowrap;
+}
+.metricShip .starIcon {
+  color: inherit;
+}
 
 /* ===== Container ===== */
 .container {

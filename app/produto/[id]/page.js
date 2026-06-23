@@ -18,11 +18,12 @@ import ReviewForm from '@/components/organisms/ReviewForm/ReviewForm';
 import ProductQA from '@/components/organisms/ProductQA/ProductQA';
 import Modal from '@/components/organisms/Modal/Modal';
 import PaymentMethodsModal from '@/components/organisms/PaymentMethodsModal/PaymentMethodsModal';
+import PolicyModal from '@/components/organisms/PolicyModal/PolicyModal';
 import { useCart } from '@/components/providers/CartProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { productService, reviewService, questionService, chatService, reportService, shipmentService, mapProduct, ApiError } from '@/lib/api';
-import { maskCEP } from '@/lib/masks';
+import { maskCEP, onlyDigits } from '@/lib/masks';
 import { recordView } from '@/lib/history';
 
 /* Motivos de denúncia aceitos pela API + rótulos pt-BR. */
@@ -63,6 +64,17 @@ function AlertIcon({ size = 14 }) {
   );
 }
 
+/* Ícone "calendário" inline (lucide) — não existe no Icon.js. */
+function CalendarIcon({ size = 15 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M16 2v4M8 2v4M3 10h18" />
+    </svg>
+  );
+}
+
 /* Ícone "presente" inline (lucide) — não existe no Icon.js. */
 function GiftIcon({ size = 18 }) {
   return (
@@ -81,6 +93,15 @@ const REPORT_REASONS = [
   { value: 'inappropriate', label: 'Inapropriado' },
   { value: 'fraud', label: 'Fraude' },
   { value: 'external_contact', label: 'Contato externo' },
+  { value: 'other', label: 'Outro' },
+];
+
+/* Motivos para denúncia de ANÚNCIO (produto). */
+const PRODUCT_REPORT_REASONS = [
+  { value: 'fraud', label: 'Fraude / golpe' },
+  { value: 'inappropriate', label: 'Pirataria / produto falsificado' },
+  { value: 'offensive', label: 'Produto proibido' },
+  { value: 'spam', label: 'Spam' },
   { value: 'other', label: 'Outro' },
 ];
 
@@ -201,7 +222,8 @@ export default function ProdutoPage() {
   }
 
   async function calcShipping() {
-    const digits = cep.replace(/\D/g, '');
+    // CEP tolerante: aceita "18700200", "18.700-210", "18-700210" etc.
+    const digits = onlyDigits(cep).slice(0, 8);
     if (digits.length < 8) {
       toast({ title: 'Digite um CEP válido', duration: 1500 });
       return;
@@ -292,15 +314,19 @@ export default function ProdutoPage() {
   const [qaOpen, setQaOpen] = useState(false);
   // Modal de meios de pagamento (estilo Mercado Livre).
   const [payOpen, setPayOpen] = useState(false);
-  // Denúncia de pergunta: { id } | null + formulário
+  // Modal de política informativa: 'protected' | 'returns' | null
+  const [policyKind, setPolicyKind] = useState(null);
+  // Modal amigável de "este é o seu anúncio" / autocompra bloqueada
+  const [ownNotice, setOwnNotice] = useState(false);
+  // Denúncia: { type: 'question'|'product', id } | null + formulário
   const [reportTarget, setReportTarget] = useState(null);
   const [reportReason, setReportReason] = useState('spam');
   const [reportDescription, setReportDescription] = useState('');
   const [reportSubmitting, setReportSubmitting] = useState(false);
 
-  function openReport(questionId) {
-    setReportTarget(questionId);
-    setReportReason('spam');
+  function openReport(type, targetId) {
+    setReportTarget({ type, id: targetId });
+    setReportReason(type === 'product' ? 'fraud' : 'spam');
     setReportDescription('');
   }
 
@@ -310,8 +336,8 @@ export default function ProdutoPage() {
     setReportSubmitting(true);
     try {
       await reportService.create({
-        target_type: 'question',
-        target_id: reportTarget,
+        target_type: reportTarget.type,
+        target_id: reportTarget.id,
         reason: reportReason,
         description: reportDescription.trim() || undefined,
       });
@@ -580,14 +606,131 @@ export default function ProdutoPage() {
     answerCreatedAt: q.answered_at ? formatDate(q.answered_at) : '',
   }));
 
+  // Bloqueio de autocompra: o usuário logado é o dono deste anúncio?
+  const sellerOwnerId = product.sellerId || product.sellerData?.id || null;
+  const isOwner = !!(user && sellerOwnerId && String(user.id) === String(sellerOwnerId));
+
   function add() {
-    addItem({ id: product.id, title: product.title, price: product.price, image: product.image, sellerId: product.sellerId || product.sellerData?.id || null, allowPickup: product.allowPickup }, qty);
+    if (isOwner) { setOwnNotice(true); return; }
+    addItem({ id: product.id, title: product.title, price: product.price, image: product.image, sellerId: sellerOwnerId, allowPickup: product.allowPickup }, qty);
     toast({ title: '✓ Adicionado!', variant: 'success', duration: 1000 });
   }
   function buyNow() {
+    if (isOwner) { setOwnNotice(true); return; }
     add();
     openCart();
   }
+
+  // Bloco de frete / CEP (renderizado abaixo dos botões de compra).
+  const freightCard = (
+    <div className={styles.freightCard}>
+      <div className={styles.freightHead}>
+        <Icon name="truck" size={18} />
+        <span className={styles.freightTitle}>CONSULTE FRETE</span>
+      </div>
+
+      {/* Estado inicial: sem resultado, sem loading, sem erro */}
+      {!shipOptions && !shipLoading && !shipError && (
+        <div className={styles.freightForm}>
+          <div className={styles.cep}>
+            <div className={styles.cepField}>
+              <input
+                placeholder="Digite seu CEP"
+                className={styles.cepInput}
+                value={cep}
+                maxLength={10}
+                inputMode="numeric"
+                onChange={(e) => setCep(maskCEP(e.target.value))}
+                onKeyDown={(e) => { if (e.key === 'Enter') calcShipping(); }}
+              />
+              <span className={styles.cepSearchIcon} aria-hidden="true">
+                <Icon name="search" size={16} />
+              </span>
+            </div>
+            <button type="button" className={styles.cepBtn} onClick={calcShipping}>OK</button>
+          </div>
+          <button type="button" className={styles.cepGeo} onClick={locateMe}>
+            Não lembro meu CEP
+          </button>
+        </div>
+      )}
+
+      {shipLoading && (
+        <p className={styles.shipStatus}>Calculando frete…</p>
+      )}
+
+      {!shipLoading && shipError === 'config' && (
+        <p className={styles.shipStatus}>Cálculo de frete indisponível no momento.</p>
+      )}
+      {!shipLoading && shipError === 'origin' && (
+        <p className={styles.shipStatus}>Frete indisponível: vendedor sem CEP de origem.</p>
+      )}
+      {!shipLoading && shipError === 'generic' && (
+        <p className={styles.shipStatus}>Não foi possível calcular o frete. Tente novamente.</p>
+      )}
+
+      {!shipLoading && !shipError && shipOptions && shipOptions.length === 0 && (
+        <p className={styles.shipStatus}>Nenhuma opção de frete para este CEP.</p>
+      )}
+
+      {/* Estado com resultado */}
+      {!shipLoading && !shipError && shipOptions && shipOptions.length > 0 && (
+        <div className={styles.freightResult}>
+          {address && (
+            <p className={styles.freightAddress}>
+              <Icon name="map-pin" size={14} /> {address}
+            </p>
+          )}
+          <div className={styles.freightCepRow}>
+            <span>CEP: {cep}</span>
+            <button type="button" className={styles.cepGeo} onClick={() => setShipOptions(null)}>
+              Verificar outro CEP
+            </button>
+          </div>
+
+          <ul className={styles.shipList} role="radiogroup" aria-label="Opções de frete">
+            {shipOptions.map((opt, i) => {
+              const selected = (opt.service_code || String(i)) === shipSelected;
+              return (
+                <li key={opt.service_code || i}>
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    className={cx(styles.shipOption, selected && styles.shipOptionSel)}
+                    onClick={() => setShipSelected(opt.service_code || String(i))}
+                  >
+                    <span className={cx(styles.shipRadio, selected && styles.shipRadioSel)} aria-hidden="true" />
+                    <div className={styles.shipInfo}>
+                      <span className={styles.shipName}>{opt.company} · {opt.service_name}</span>
+                    </div>
+                    <div className={styles.shipRight}>
+                      <span className={styles.shipPrice}>
+                        {opt.free_shipping ? 'Grátis' : BRL.format(Number(opt.price) || 0)}
+                      </span>
+                      {opt.delivery_time != null && (
+                        <span className={styles.shipEta}>
+                          {opt.delivery_time} {opt.delivery_time === 1 ? 'dia útil' : 'dias úteis'}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          {shipOptions.length > 3 && (
+            <span className={styles.shipCount}>{shipOptions.length} opções · role para ver todas</span>
+          )}
+
+          <p className={styles.freightNote}>
+            <AlertIcon size={14} /> Os prazos de entrega começam a contar a partir da
+            confirmação de pagamento.
+          </p>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <main>
@@ -608,6 +751,13 @@ export default function ProdutoPage() {
             <div className={styles.topActions}>
               <button type="button" className={styles.topAction} onClick={shareProduct}>
                 <ShareIcon size={15} /> Compartilhar
+              </button>
+              <button
+                type="button"
+                className={cx(styles.topAction, styles.topReport)}
+                onClick={() => openReport('product', id)}
+              >
+                <FlagIcon size={14} /> Denunciar anúncio
               </button>
             </div>
           </div>
@@ -778,7 +928,7 @@ export default function ProdutoPage() {
                             <button
                               type="button"
                               className={styles.reportBtn}
-                              onClick={() => openReport(qa.id)}
+                              onClick={() => openReport('question', qa.id)}
                               title="Denunciar esta pergunta"
                               aria-label="Denunciar esta pergunta"
                             >
@@ -802,114 +952,6 @@ export default function ProdutoPage() {
             {/* ───────── Coluna direita (sticky) ───────── */}
             <aside className={styles.sidebar}>
               <div className={styles.buyBox}>
-                <div className={styles.freightCard}>
-                  <div className={styles.freightHead}>
-                    <Icon name="truck" size={18} />
-                    <span className={styles.freightTitle}>CONSULTE FRETE</span>
-                  </div>
-
-                  {/* Estado inicial: sem resultado, sem loading, sem erro */}
-                  {!shipOptions && !shipLoading && !shipError && (
-                    <div className={styles.freightForm}>
-                      <div className={styles.cep}>
-                        <div className={styles.cepField}>
-                          <input
-                            placeholder="Digite seu CEP"
-                            className={styles.cepInput}
-                            value={cep}
-                            maxLength={10}
-                            inputMode="numeric"
-                            onChange={(e) => setCep(maskCEP(e.target.value))}
-                            onKeyDown={(e) => { if (e.key === 'Enter') calcShipping(); }}
-                          />
-                          <span className={styles.cepSearchIcon} aria-hidden="true">
-                            <Icon name="search" size={16} />
-                          </span>
-                        </div>
-                        <button type="button" className={styles.cepBtn} onClick={calcShipping}>OK</button>
-                      </div>
-                      <button type="button" className={styles.cepGeo} onClick={locateMe}>
-                        Não lembro meu CEP
-                      </button>
-                    </div>
-                  )}
-
-                  {shipLoading && (
-                    <p className={styles.shipStatus}>Calculando frete…</p>
-                  )}
-
-                  {!shipLoading && shipError === 'config' && (
-                    <p className={styles.shipStatus}>Cálculo de frete indisponível no momento.</p>
-                  )}
-                  {!shipLoading && shipError === 'origin' && (
-                    <p className={styles.shipStatus}>Frete indisponível: vendedor sem CEP de origem.</p>
-                  )}
-                  {!shipLoading && shipError === 'generic' && (
-                    <p className={styles.shipStatus}>Não foi possível calcular o frete. Tente novamente.</p>
-                  )}
-
-                  {!shipLoading && !shipError && shipOptions && shipOptions.length === 0 && (
-                    <p className={styles.shipStatus}>Nenhuma opção de frete para este CEP.</p>
-                  )}
-
-                  {/* Estado com resultado */}
-                  {!shipLoading && !shipError && shipOptions && shipOptions.length > 0 && (
-                    <div className={styles.freightResult}>
-                      {address && (
-                        <p className={styles.freightAddress}>
-                          <Icon name="map-pin" size={14} /> {address}
-                        </p>
-                      )}
-                      <div className={styles.freightCepRow}>
-                        <span>CEP: {cep}</span>
-                        <button type="button" className={styles.cepGeo} onClick={() => setShipOptions(null)}>
-                          Verificar outro CEP
-                        </button>
-                      </div>
-
-                      <ul className={styles.shipList} role="radiogroup" aria-label="Opções de frete">
-                        {shipOptions.map((opt, i) => {
-                          const selected = (opt.service_code || String(i)) === shipSelected;
-                          return (
-                            <li key={opt.service_code || i}>
-                              <button
-                                type="button"
-                                role="radio"
-                                aria-checked={selected}
-                                className={cx(styles.shipOption, selected && styles.shipOptionSel)}
-                                onClick={() => setShipSelected(opt.service_code || String(i))}
-                              >
-                                <span className={cx(styles.shipRadio, selected && styles.shipRadioSel)} aria-hidden="true" />
-                                <div className={styles.shipInfo}>
-                                  <span className={styles.shipName}>{opt.company} · {opt.service_name}</span>
-                                </div>
-                                <div className={styles.shipRight}>
-                                  <span className={styles.shipPrice}>
-                                    {opt.free_shipping ? 'Grátis' : BRL.format(Number(opt.price) || 0)}
-                                  </span>
-                                  {opt.delivery_time != null && (
-                                    <span className={styles.shipEta}>
-                                      {opt.delivery_time} {opt.delivery_time === 1 ? 'dia útil' : 'dias úteis'}
-                                    </span>
-                                  )}
-                                </div>
-                              </button>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                      {shipOptions.length > 3 && (
-                        <span className={styles.shipCount}>{shipOptions.length} opções · role para ver todas</span>
-                      )}
-
-                      <p className={styles.freightNote}>
-                        <AlertIcon size={14} /> Os prazos de entrega começam a contar a partir da
-                        confirmação de pagamento.
-                      </p>
-                    </div>
-                  )}
-                </div>
-
                 <p className={styles.stockLine}>
                   <strong>Estoque disponível</strong>
                   <span className={styles.stockQty}>({stock} {stock === 1 ? 'unidade' : 'unidades'})</span>
@@ -928,12 +970,30 @@ export default function ProdutoPage() {
                   </div>
                 </div>
 
-                <button className={styles.buy} onClick={buyNow}>
-                  Comprar agora
-                </button>
-                <button className={styles.addCart} onClick={add}>
-                  Adicionar ao carrinho
-                </button>
+                {isOwner ? (
+                  <div className={styles.ownListing}>
+                    <Icon name="store" size={18} />
+                    <div>
+                      <strong>Este é o seu anúncio</strong>
+                      <span>Você não pode comprar o próprio produto.</span>
+                      <a href={`/produto/${product.id}/gerenciar`} className={styles.ownManage}>
+                        Gerenciar anúncio <Icon name="arrow-right" size={14} />
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <button className={styles.buy} onClick={buyNow}>
+                      Comprar agora
+                    </button>
+                    <button className={styles.addCart} onClick={add}>
+                      Adicionar ao carrinho
+                    </button>
+                  </>
+                )}
+
+                {/* CEP / frete — abaixo dos botões (estilo OLX/ML) */}
+                {freightCard}
 
                 {product.allowPickup && (
                   <div className={styles.pickupNote}>
@@ -945,15 +1005,19 @@ export default function ProdutoPage() {
                   </div>
                 )}
 
-                {/* Selos informativos */}
+                {/* Selos informativos — abrem o modal de política ao clicar */}
                 <ul className={styles.seals}>
                   <li>
-                    <span className={styles.sealIcon}><Icon name="package" size={16} /></span>
-                    <span><strong>Devolução grátis.</strong> 30 dias a partir do recebimento.</span>
+                    <button type="button" className={styles.sealBtn} onClick={() => setPolicyKind('returns')}>
+                      <span className={styles.sealIcon}><Icon name="package" size={16} /></span>
+                      <span><strong>Devolução grátis.</strong> 30 dias a partir do recebimento.</span>
+                    </button>
                   </li>
                   <li>
-                    <span className={styles.sealIcon}><Icon name="shield" size={16} /></span>
-                    <span><strong>Compra garantida.</strong> Receba o produto ou devolvemos o dinheiro.</span>
+                    <button type="button" className={styles.sealBtn} onClick={() => setPolicyKind('protected')}>
+                      <span className={styles.sealIcon}><Icon name="shield" size={16} /></span>
+                      <span><strong>Compra garantida.</strong> Receba o produto ou devolvemos o dinheiro.</span>
+                    </button>
                   </li>
                 </ul>
               </div>
@@ -966,6 +1030,11 @@ export default function ProdutoPage() {
                 const sellerReviews = Number(seller && seller.reviews_count) || 0;
                 const sellerSales = Number(seller && seller.sales_count) || 0;
                 const isPremium = !!(seller && seller.seller_tier === 'premium');
+                // Local (cidade/estado, se houver) e tempo de cadastro (member_since).
+                const sellerCity = seller && (seller.city || seller.localidade);
+                const sellerState = seller && (seller.state || seller.uf);
+                const sellerPlace = [sellerCity, sellerState].filter(Boolean).join('/');
+                const memberSince = seller && seller.member_since;
                 return (
                   <div className={styles.sideCard}>
                     <div className={styles.sellerHead}>
@@ -989,6 +1058,23 @@ export default function ProdutoPage() {
                         </span>
                       </div>
                     </div>
+
+                    {/* Local + tempo de cadastro — posição alta/visível no card. */}
+                    {(sellerPlace || memberSince) && (
+                      <div className={styles.sellerLoc}>
+                        {sellerPlace && (
+                          <span className={styles.sellerLocItem}>
+                            <Icon name="map-pin" size={15} /> {sellerPlace}
+                          </span>
+                        )}
+                        {memberSince && (
+                          <span className={styles.sellerLocItem}>
+                            <CalendarIcon size={15} /> Desde {memberSince}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
                     {sellerReviews > 0 ? (
                       <Rating value={sellerRating} sales={sellerSales} className={styles.sellerRating} />
                     ) : (
@@ -1003,9 +1089,6 @@ export default function ProdutoPage() {
                       <SellerTrust seller={seller} compact className={styles.sellerTrust} />
                     )}
 
-                    <div className={styles.sellerLoc}>
-                      <Icon name="map-pin" size={15} /> Brasil
-                    </div>
                     <a href={`/loja/${product.sellerId || ''}`} className={styles.sellerPageBtn}>
                       <Icon name="store" size={16} /> Ir para a página do vendedor
                     </a>
@@ -1081,10 +1164,35 @@ export default function ProdutoPage() {
 
       <PaymentMethodsModal open={payOpen} onClose={() => setPayOpen(false)} />
 
+      <PolicyModal
+        open={policyKind != null}
+        kind={policyKind || 'protected'}
+        onClose={() => setPolicyKind(null)}
+      />
+
+      <Modal
+        open={ownNotice}
+        onClose={() => setOwnNotice(false)}
+        title="Este é o seu anúncio"
+        size="sm"
+      >
+        <div className={styles.ownModal}>
+          <p>Você não pode comprar o próprio produto. Gerencie o anúncio para editá-lo, pausá-lo ou acompanhar suas vendas.</p>
+          <div className={styles.ownModalActions}>
+            <button type="button" className={styles.reportCancel} onClick={() => setOwnNotice(false)}>
+              Fechar
+            </button>
+            <a href={`/produto/${product.id}/gerenciar`} className={styles.ownModalManage}>
+              Gerenciar anúncio
+            </a>
+          </div>
+        </div>
+      </Modal>
+
       <Modal
         open={reportTarget != null}
         onClose={() => (reportSubmitting ? null : setReportTarget(null))}
-        title="Denunciar pergunta"
+        title={reportTarget?.type === 'product' ? 'Denunciar anúncio' : 'Denunciar pergunta'}
         size="sm"
       >
         <form className={styles.reportForm} onSubmit={submitReport}>
@@ -1095,7 +1203,7 @@ export default function ProdutoPage() {
             value={reportReason}
             onChange={(e) => setReportReason(e.target.value)}
           >
-            {REPORT_REASONS.map((r) => (
+            {(reportTarget?.type === 'product' ? PRODUCT_REPORT_REASONS : REPORT_REASONS).map((r) => (
               <option key={r.value} value={r.value}>{r.label}</option>
             ))}
           </select>
@@ -1106,7 +1214,9 @@ export default function ProdutoPage() {
             className={styles.reportTextarea}
             value={reportDescription}
             onChange={(e) => setReportDescription(e.target.value.slice(0, 500))}
-            placeholder="Conte o que há de errado com esta pergunta…"
+            placeholder={reportTarget?.type === 'product'
+              ? 'Conte o que há de errado com este anúncio…'
+              : 'Conte o que há de errado com esta pergunta…'}
             rows={3}
           />
 

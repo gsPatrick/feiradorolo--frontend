@@ -6,6 +6,7 @@ import styles from './SiteFooter.module.css';
 import { cx } from '@/lib/cx';
 import Icon from '../../atoms/Icon/Icon';
 import { useSiteConfig } from '../../providers/SiteConfigProvider';
+import PolicyModal from '../PolicyModal/PolicyModal';
 
 const MORE_COLUMNS = [
   [
@@ -54,6 +55,8 @@ const DEFAULT_LEGAL = [
 export default function SiteFooter() {
   const { getSetting } = useSiteConfig();
   const [moreOpen, setMoreOpen] = useState(false);
+  // Modal de política: 'protected' | 'returns' | null
+  const [policyKind, setPolicyKind] = useState(null);
 
   const brand = getSetting('app.name', 'Feira do Rolo');
   const tagline = getSetting(
@@ -120,9 +123,22 @@ export default function SiteFooter() {
               </div>
             </div>
             <p className={styles.cardBody}>{prot.body}</p>
-            <a href={prot.link_url || '#'} className={`${styles.cardLink} ${styles.linkSafe}`}>
-              {prot.link_text}
-            </a>
+            <div className={styles.policyLinks}>
+              <button
+                type="button"
+                className={`${styles.cardLink} ${styles.linkSafe}`}
+                onClick={() => setPolicyKind('protected')}
+              >
+                Compra Protegida
+              </button>
+              <button
+                type="button"
+                className={`${styles.cardLink} ${styles.linkSafe}`}
+                onClick={() => setPolicyKind('returns')}
+              >
+                Devolução Grátis
+              </button>
+            </div>
           </div>
         </div>
 
@@ -164,6 +180,12 @@ export default function SiteFooter() {
           © {new Date().getFullYear()} {brand} · Todos os direitos reservados.
         </span>
       </div>
+
+      <PolicyModal
+        open={policyKind != null}
+        kind={policyKind || 'protected'}
+        onClose={() => setPolicyKind(null)}
+      />
     </footer>
   );
 }

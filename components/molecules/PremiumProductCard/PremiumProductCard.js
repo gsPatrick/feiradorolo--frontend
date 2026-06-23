@@ -82,6 +82,7 @@ export default function PremiumProductCard({ product, loading = false, className
     e.preventDefault();
     e.stopPropagation();
     const nowFav = toggle(product);
+    if (nowFav === null) return; // deslogado: abriu o modal de login, sem toast.
     toast({
       title: nowFav ? '♥ Adicionado aos favoritos' : 'Removido dos favoritos',
       variant: nowFav ? 'success' : 'default',

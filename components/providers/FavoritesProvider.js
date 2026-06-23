@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { favoriteService, mapProduct } from '@/lib/api';
 import { useAuth } from './AuthProvider';
+import LoginPromptModal from '../organisms/LoginPromptModal/LoginPromptModal';
 
 const FavoritesContext = createContext(null);
 const STORAGE_KEY = 'fdr_favorites';
@@ -49,6 +50,8 @@ export function FavoritesProvider({ children }) {
   // Lista de produtos favoritados (objetos com pelo menos { id }).
   const [items, setItems] = useState([]);
   const [hydrated, setHydrated] = useState(false);
+  // Modal que convida o visitante deslogado a entrar/cadastrar antes de favoritar.
+  const [promptOpen, setPromptOpen] = useState(false);
   const wasLogged = useRef(false);
 
   // Hidrata do localStorage no mount (estado inicial para deslogado).
@@ -107,6 +110,14 @@ export function FavoritesProvider({ children }) {
       const currentlyFav = ids.has(key);
       const next = !currentlyFav;
 
+      // Visitante deslogado: em vez de navegar para uma tela vazia, abre o
+      // modal de login/cadastro convidando a entrar. Não altera favoritos.
+      // Retorna null para sinalizar aos chamadores que nada mudou (sem toast).
+      if (!user) {
+        setPromptOpen(true);
+        return null;
+      }
+
       // Atualização otimista do estado.
       setItems((prev) => {
         if (currentlyFav) return prev.filter((it) => String(it.id) !== key);
@@ -114,29 +125,24 @@ export function FavoritesProvider({ children }) {
         return [...prev, summary];
       });
 
-      if (user) {
-        const call = currentlyFav ? favoriteService.remove(id) : favoriteService.add(id);
-        Promise.resolve(call).catch(() => {});
-      } else {
-        // Persiste no localStorage (recalcula a partir do estado atual).
-        const local = readLocal().filter((it) => String(it.id) !== key);
-        if (next) {
-          const summary = summarize(typeof product === 'object' ? product : { id }) || { id };
-          local.push(summary);
-        }
-        writeLocal(local);
-      }
+      const call = currentlyFav ? favoriteService.remove(id) : favoriteService.add(id);
+      Promise.resolve(call).catch(() => {});
       return next;
     },
     [ids, user]
   );
 
   const value = useMemo(
-    () => ({ favorites: items, ids, isFavorite, toggle, hydrated }),
+    () => ({ favorites: items, ids, isFavorite, toggle, hydrated, openLoginPrompt: () => setPromptOpen(true) }),
     [items, ids, isFavorite, toggle, hydrated]
   );
 
-  return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>;
+  return (
+    <FavoritesContext.Provider value={value}>
+      {children}
+      <LoginPromptModal open={promptOpen} onClose={() => setPromptOpen(false)} />
+    </FavoritesContext.Provider>
+  );
 }
 
 export function useFavorites() {
@@ -147,6 +153,7 @@ export function useFavorites() {
       isFavorite: () => false,
       toggle: () => false,
       hydrated: false,
+      openLoginPrompt: () => {},
     }
   );
 }

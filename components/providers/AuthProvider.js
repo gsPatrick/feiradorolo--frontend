@@ -27,8 +27,18 @@ export function AuthProvider({ children }) {
   };
   const closeAuth = () => setOpen(false);
   const logout = () => {
+    // Limpa credenciais e estado do usuário.
     setToken(null);
     setUser(null);
+    // Avisa outros providers (ex.: carrinho) para limparem dados por usuário.
+    try {
+      window.dispatchEvent(new CustomEvent('fdr:logout'));
+    } catch {}
+    // Redireciona para a Home com reset total de estado (evita ficar preso
+    // em telas privadas como o painel admin).
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
   };
 
   return (

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import styles from './SearchBar.module.css';
 import Icon from '../../atoms/Icon/Icon';
+import { productService } from '@/lib/api';
 
 export default function SearchBar({
   value,
@@ -19,13 +20,72 @@ export default function SearchBar({
   const [error, setError] = useState('');
   const recRef = useRef(null);
 
+  // Autocomplete (sugestões)
+  const [suggestions, setSuggestions] = useState([]);
+  const [sugOpen, setSugOpen] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const formRef = useRef(null);
+  const debounceRef = useRef(null);
+  const reqRef = useRef(0);
+
   function setText(text) {
     if (!controlled) setInner(text);
     onChange && onChange(text);
   }
 
+  // Busca sugestões com debounce (~250ms) quando o dropdown está aberto.
+  useEffect(() => {
+    if (!sugOpen) return undefined;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      const reqId = (reqRef.current += 1);
+      try {
+        const list = await productService.suggestions(current);
+        if (reqId !== reqRef.current) return; // ignora respostas obsoletas
+        setSuggestions(Array.isArray(list) ? list : []);
+        setActiveIdx(-1);
+      } catch {
+        if (reqId === reqRef.current) setSuggestions([]);
+      }
+    }, 250);
+    return () => debounceRef.current && clearTimeout(debounceRef.current);
+  }, [current, sugOpen]);
+
+  // Fecha o dropdown ao clicar fora.
+  useEffect(() => {
+    if (!sugOpen) return undefined;
+    function onDoc(e) {
+      if (formRef.current && !formRef.current.contains(e.target)) setSugOpen(false);
+    }
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [sugOpen]);
+
+  function pickSuggestion(term) {
+    setText(term);
+    setSugOpen(false);
+    onSubmit && onSubmit(term);
+  }
+
+  function handleKeyDown(e) {
+    if (!sugOpen || !suggestions.length) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIdx((i) => (i + 1) % suggestions.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIdx((i) => (i <= 0 ? suggestions.length - 1 : i - 1));
+    } else if (e.key === 'Enter' && activeIdx >= 0) {
+      e.preventDefault();
+      pickSuggestion(suggestions[activeIdx].term);
+    } else if (e.key === 'Escape') {
+      setSugOpen(false);
+    }
+  }
+
   function handleSubmit(e) {
     e.preventDefault();
+    setSugOpen(false);
     onSubmit && onSubmit(current);
   }
 
@@ -114,15 +174,47 @@ export default function SearchBar({
 
   return (
     <>
-      <form className={styles.bar} onSubmit={handleSubmit} role="search">
+      <form
+        ref={formRef}
+        className={styles.bar}
+        onSubmit={handleSubmit}
+        role="search"
+        autoComplete="off"
+      >
         <Icon name="search" size={20} className={styles.lead} />
         <input
           className={styles.input}
           value={current}
           placeholder={placeholder}
           aria-label="Buscar"
+          role="combobox"
+          aria-expanded={sugOpen}
+          aria-autocomplete="list"
           onChange={(e) => setText(e.target.value)}
+          onFocus={() => setSugOpen(true)}
+          onKeyDown={handleKeyDown}
         />
+        {sugOpen && suggestions.length > 0 && (
+          <ul className={styles.suggestions} role="listbox">
+            {suggestions.map((s, i) => (
+              <li key={`${s.term}-${i}`} role="option" aria-selected={i === activeIdx}>
+                <button
+                  type="button"
+                  className={`${styles.sugItem} ${i === activeIdx ? styles.sugActive : ''}`}
+                  // onMouseDown evita que o blur feche o dropdown antes do clique.
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    pickSuggestion(s.term);
+                  }}
+                  onMouseEnter={() => setActiveIdx(i)}
+                >
+                  <Icon name="search" size={16} className={styles.sugIcon} />
+                  <span className={styles.sugText}>{s.term}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
         <button
           type="button"
           className={`${styles.mic} ${listening ? styles.micActive : ''}`}

@@ -24,6 +24,7 @@ export default function ProductCardMini({ product, loading = false, href, classN
     e.preventDefault();
     e.stopPropagation();
     const nowFav = toggle(product);
+    if (nowFav === null) return; // deslogado: abriu o modal de login, sem toast.
     toast({
       title: nowFav ? '♥ Adicionado aos favoritos' : 'Removido dos favoritos',
       variant: nowFav ? 'success' : 'default',

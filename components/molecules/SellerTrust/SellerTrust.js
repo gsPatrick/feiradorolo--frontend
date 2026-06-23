@@ -127,13 +127,16 @@ export default function SellerTrust({ seller, sellerId, compact = false, classNa
               title={`${it.label}: ${it.ok ? 'verificado' : 'pendente'}`}
             >
               <span className={styles.compactIcon}>{it.icon}</span>
-              <span className={styles.compactMark} aria-hidden="true">
-                <Icon name={it.ok ? 'check' : 'close'} size={10} />
-              </span>
+              {/* Verificado = só check verde. Não-verificado = sem marca (cinza/apagado),
+                  para não confundir com um "X" de erro ao lado do que está validado. */}
+              {it.ok && (
+                <span className={styles.compactMark} aria-hidden="true">
+                  <Icon name="check" size={10} />
+                </span>
+              )}
             </li>
           ))}
         </ul>
-        <span className={styles.summary}>{doneCount}/{totalCount} verificações</span>
       </div>
     );
   }
@@ -154,7 +157,8 @@ export default function SellerTrust({ seller, sellerId, compact = false, classNa
             <span className={styles.itemIcon}>{it.icon}</span>
             <span className={styles.itemLabel}>{it.label}</span>
             <span className={styles.itemMark}>
-              <Icon name={it.ok ? 'check' : 'close'} size={14} />
+              {/* Verificado = check verde; pendente = só o texto, sem "X" de erro. */}
+              {it.ok && <Icon name="check" size={14} />}
               <span className={styles.itemStatus}>{it.ok ? 'Validado' : 'Pendente'}</span>
             </span>
           </li>

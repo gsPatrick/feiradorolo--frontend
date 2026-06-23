@@ -105,6 +105,19 @@
   margin-top: 12px;
   font-size: 0.9rem;
   font-weight: 600;
+  /* funciona como link mesmo sendo <button> */
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.policyLinks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 18px;
 }
 .linkPay {
   color: #2563eb;

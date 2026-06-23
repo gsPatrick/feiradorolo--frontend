@@ -183,29 +183,84 @@
   color: var(--muted-foreground);
 }
 
-/* — Filtros de pedidos — */
-.orderFilters {
+/* — Abas de status estilo Shopee (roláveis no mobile) — */
+.statusTabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px;
   margin-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
-.ofPill {
-  height: 38px;
-  padding: 0 16px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  border-radius: var(--r-md);
-  font-size: 0.84rem;
+.statusTabs::-webkit-scrollbar { display: none; }
+.statusTab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  height: 42px;
+  padding: 0 14px;
+  border: none;
+  background: transparent;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  font-size: 0.86rem;
   font-weight: 600;
   color: var(--muted-foreground);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.statusTab:hover { color: var(--foreground); }
+.statusTabActive {
+  color: var(--feira-blue, #1d4ed8);
+  border-bottom-color: var(--feira-blue, #1d4ed8);
+}
+.statusTabCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+  border-radius: var(--r-pill);
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+.statusTabActive .statusTabCount {
+  background: var(--feira-blue, #1d4ed8);
+  color: #fff;
+}
+
+/* — Rastreio / status logístico na lista — */
+.trackRow {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin-top: 4px;
+  font-size: 0.76rem;
+  color: var(--muted-foreground);
+}
+.trackIcon { color: var(--feira-blue, #1d4ed8); flex-shrink: 0; }
+.trackCode strong {
+  font-weight: 800;
+  color: var(--foreground);
+  letter-spacing: 0.01em;
+}
+.trackStatus { font-weight: 600; }
+.trackLink {
+  font-weight: 800;
+  color: var(--feira-blue, #1d4ed8);
+  text-decoration: underline;
   cursor: pointer;
 }
-.ofActive {
-  background: #1e293b !important;
-  border-color: #1e293b !important;
-  color: #fff !important;
-}
+.trackLink:hover { opacity: 0.85; }
 
 /* — Empty — */
 .emptyCard {
@@ -964,7 +1019,7 @@
   .addrActions {
     margin-left: 34px;
   }
-  .ofPill,
+  .statusTab,
   .vt {
     padding: 0 12px;
   }
