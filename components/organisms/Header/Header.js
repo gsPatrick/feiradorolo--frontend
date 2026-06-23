@@ -11,6 +11,7 @@ import AddressSelectionModal from '../AddressSelectionModal/AddressSelectionModa
 import { useCart } from '../../providers/CartProvider';
 import { useSiteConfig } from '../../providers/SiteConfigProvider';
 import { useAuth } from '../../providers/AuthProvider';
+import { useFavorites } from '../../providers/FavoritesProvider';
 import { categoryService, notificationService, addressService } from '@/lib/api';
 import { getSocket } from '@/lib/socket';
 
@@ -63,6 +64,7 @@ export default function Header({ favCount = 0 }) {
   const { totalItems, openCart } = useCart();
   const { getSetting } = useSiteConfig();
   const { openAuth, user, logout } = useAuth();
+  const { openLoginPrompt } = useFavorites();
   const router = useRouter();
 
   const topbarMessage = getSetting('branding.topbar_message', 'Frete grátis a partir de R$ 79 | Parcelamos em até 12x');
@@ -205,6 +207,16 @@ export default function Header({ favCount = 0 }) {
     router.push('/');
   }
 
+  // Coração do header: logado → vai aos favoritos da conta; deslogado → abre o
+  // modal de login/cadastro (do FavoritesProvider) em vez de jogar numa tela cinza.
+  function handleFavorites() {
+    if (user) {
+      router.push('/minha-conta?tab=favoritos');
+    } else {
+      openLoginPrompt();
+    }
+  }
+
   const displayName = (user && (user.name || user.email)) || 'Conta';
   const firstName = displayName.split(' ')[0];
   const initial = displayName.charAt(0).toUpperCase();
@@ -246,10 +258,10 @@ export default function Header({ favCount = 0 }) {
           </div>
 
           <div className={styles.actions}>
-            <Link href="/minha-conta?tab=favoritos" className={styles.iconBtn} aria-label="Favoritos">
+            <button type="button" className={styles.iconBtn} aria-label="Favoritos" onClick={handleFavorites}>
               <Icon name="heart" size={24} />
               {favCount > 0 && <span className={styles.count}>{favCount}</span>}
-            </Link>
+            </button>
             <button type="button" className={styles.iconBtn} aria-label="Carrinho" onClick={openCart}>
               <Icon name="cart" size={24} />
               {totalItems > 0 && <span className={styles.count}>{totalItems > 99 ? '99+' : totalItems}</span>}

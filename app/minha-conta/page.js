@@ -15,6 +15,7 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { orderService, favoriteService, userService, addressService, productService, paymentService, verificationService, reviewService, planService, configService, uploadImage, mapProduct, ApiError } from '@/lib/api';
 import VerificationModal from '@/components/organisms/VerificationModal/VerificationModal';
+import SellerVerification from '@/components/organisms/SellerVerification/SellerVerification';
 import VerifiedSeal from '@/components/atoms/VerifiedSeal/VerifiedSeal';
 import { maskPhone, maskCPF, maskCNPJ, onlyDigits, isEmail, isPhone, isCPF, isCNPJ } from '@/lib/masks';
 // Rótulos de status dos pedidos (mapa estático de UI).
@@ -1363,6 +1364,7 @@ function VerificationStatus({ user, onStatus }) {
   const [status, setStatus] = useState(null);
   const [state, setState] = useState('idle'); // idle | loading | ready | error
   const [modalChannel, setModalChannel] = useState(null); // 'email' | 'phone' | null
+  const [kycOpen, setKycOpen] = useState(false); // wizard KYC de vendedor
   const [docValidating, setDocValidating] = useState(false);
   const [docError, setDocError] = useState('');
 
@@ -1500,6 +1502,18 @@ function VerificationStatus({ user, onStatus }) {
           </div>
 
           {docError && <div className={styles.verifWarn}>⚠ {docError}</div>}
+
+          {/* Wizard de verificação de vendedor (KYC) — fluxo completo em 3 etapas. */}
+          <div className={cx(styles.verifItem, styles.verifItemWide)}>
+            <span className={cx(styles.vIcon, styles.vi_pending)}><Icon name="store" size={18} /></span>
+            <span className={styles.vLabelBlock}>
+              <span className={styles.vLabel}>Verificação de Vendedor (KYC)</span>
+              <span className={styles.vHint}>Tipo de loja, contato, documentos e biometria facial</span>
+            </span>
+            <Button variant="outline" size="sm" onClick={() => setKycOpen(true)}>
+              Iniciar verificação
+            </Button>
+          </div>
         </>
       )}
 
@@ -1512,6 +1526,13 @@ function VerificationStatus({ user, onStatus }) {
         channel={modalChannel || 'email'}
         onClose={() => setModalChannel(null)}
         onVerified={load}
+      />
+
+      <SellerVerification
+        open={kycOpen}
+        user={user}
+        onClose={() => setKycOpen(false)}
+        onSubmitted={load}
       />
     </div>
   );

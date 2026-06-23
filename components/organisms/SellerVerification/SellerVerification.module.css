@@ -1,0 +1,432 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ===== Indicador de passos (estilo Shopee) ===== */
+.steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 4px 0 8px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stepDot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--muted);
+  color: var(--muted-foreground);
+  border: 2px solid var(--input);
+  transition: all var(--t-fast, 0.18s) var(--ease, ease);
+  flex-shrink: 0;
+}
+
+.stepActive .stepDot {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+.stepDone .stepDot {
+  background: var(--feira-yellow, #f4c430);
+  color: #1a1a1a;
+  border-color: var(--feira-yellow, #f4c430);
+}
+
+.stepLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.stepActive .stepLabel,
+.stepDone .stepLabel {
+  color: var(--foreground);
+}
+
+.stepBar {
+  width: 32px;
+  height: 2px;
+  background: var(--input);
+  border-radius: 2px;
+}
+
+.stepBarDone {
+  background: var(--feira-yellow, #f4c430);
+}
+
+/* ===== Conteúdo do passo ===== */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.counter {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.row > :global(.grow),
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ===== Passo 1: cards tipo de loja ===== */
+.typeGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.typeCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 18px 16px;
+  border-radius: var(--r-md, 12px);
+  border: 2px solid var(--input);
+  background: var(--bg);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--t-fast, 0.18s) var(--ease, ease), background var(--t-fast, 0.18s) var(--ease, ease);
+  position: relative;
+}
+
+.typeCard:hover {
+  border-color: var(--feira-yellow, #f4c430);
+}
+
+.typeCardActive {
+  border-color: var(--primary);
+  background: var(--feira-yellow-soft, #fff8e1);
+}
+
+.typeCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.typeIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.typeCardActive .typeIcon {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.radio {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--input);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.typeCardActive .radio {
+  border-color: var(--primary);
+}
+
+.radioDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+.typeName {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.typeDesc {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+/* ===== Verificação de contato (email/telefone) ===== */
+.verifyBlock {
+  border: 1px solid var(--input);
+  border-radius: var(--r-md, 12px);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.verifyHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.verifyTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--foreground);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.okBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #15803d;
+}
+
+.ddi {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: var(--r-md, 10px);
+  background: var(--muted);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+
+/* ===== Upload de documentos ===== */
+.uploadGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.uploadBox {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 140px;
+  border: 2px dashed var(--input);
+  border-radius: var(--r-md, 12px);
+  background: var(--bg);
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color var(--t-fast, 0.18s) var(--ease, ease);
+}
+
+.uploadBox:hover {
+  border-color: var(--feira-yellow, #f4c430);
+}
+
+.uploadPlus {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--muted);
+  color: var(--muted-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uploadLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.uploadHint {
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+
+.uploadPreview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.uploadRemove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ===== QR biometria ===== */
+.qrBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  border: 1px solid var(--input);
+  border-radius: var(--r-md, 12px);
+  padding: 18px 14px;
+}
+
+.qrImg {
+  width: 200px;
+  height: 200px;
+  max-width: 100%;
+  border-radius: var(--r-md, 8px);
+  background: #fff;
+  border: 1px solid var(--input);
+}
+
+.qrPlaceholder {
+  width: 200px;
+  height: 200px;
+  max-width: 100%;
+  border-radius: var(--r-md, 8px);
+  border: 1px dashed var(--input);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground);
+  font-size: 13px;
+}
+
+.qrHint {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  max-width: 320px;
+}
+
+.qrTimer {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.qrTimerExpired {
+  color: var(--destructive);
+}
+
+/* ===== Termos & feedback ===== */
+.terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--foreground);
+}
+
+.termsLink {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.warn {
+  font-size: 13px;
+  color: var(--destructive);
+  background: rgba(220, 38, 38, 0.08);
+  border-radius: var(--r-md, 8px);
+  padding: 8px 12px;
+}
+
+.info {
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+
+/* ===== Footer (navegação) ===== */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.footerSpacer {
+  flex: 1;
+}
+
+@media (max-width: 560px) {
+  .typeGrid,
+  .uploadGrid {
+    grid-template-columns: 1fr;
+  }
+  .stepLabel {
+    display: none;
+  }
+  .stepBar {
+    width: 18px;
+  }
+  .footer :global(button) {
+    flex: 1;
+  }
+}
