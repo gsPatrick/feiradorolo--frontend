@@ -19,6 +19,9 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Garante que a pasta public exista mesmo se vazia (evita flake do BuildKit
+# "/app/public: not found" no COPY do estágio runner).
+RUN mkdir -p /app/public
 # Default aponta para a API de produção (easypanel). Sobrescreva com --build-arg se precisar.
 ARG NEXT_PUBLIC_API_URL=https://geral-feiradorolo--api.r954jc.easypanel.host/api/v1
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
