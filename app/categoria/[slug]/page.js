@@ -1,12 +1,22 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import ProductListing from '@/components/organisms/ProductListing/ProductListing';
 import { productService, mapProduct } from '@/lib/api';
+import { categoryRoute } from '@/lib/searchRoute';
 
 export default function CategoriaPage() {
   const { slug } = useParams();
+  const router = useRouter();
+
+  // Categorias de verticais (Pneus, Imóveis, Veículos...) redirecionam para a
+  // página dedicada da vertical.
+  useEffect(() => {
+    if (!slug) return;
+    const route = categoryRoute(slug);
+    if (route && !route.startsWith('/categoria/')) router.replace(route);
+  }, [slug, router]);
   const label = (slug || '')
     .replace(/-/g, ' ')
     .replace(/\b\w/g, (c) => c.toUpperCase());

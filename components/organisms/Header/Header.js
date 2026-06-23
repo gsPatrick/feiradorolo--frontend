@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from './Header.module.css';
 import { cx } from '@/lib/cx';
-import { searchRoute } from '@/lib/searchRoute';
+import { searchRoute, categoryRoute } from '@/lib/searchRoute';
 import Icon from '../../atoms/Icon/Icon';
 import SearchBar from '../../molecules/SearchBar/SearchBar';
 import AddressSelectionModal from '../AddressSelectionModal/AddressSelectionModal';
@@ -393,7 +393,7 @@ export default function Header({ favCount = 0 }) {
                           <li key={c.id} className={styles.catRow}>
                             <div className={cx(styles.catHead, isExpanded && styles.catHeadOpen)}>
                               <Link
-                                href={`/categoria/${c.slug}`}
+                                href={categoryRoute(c.slug)}
                                 className={styles.catLink}
                                 onClick={closeCategories}
                               >
@@ -421,7 +421,7 @@ export default function Header({ favCount = 0 }) {
                                 {children.map((sub) => (
                                   <li key={sub.id}>
                                     <Link
-                                      href={`/categoria/${sub.slug}`}
+                                      href={categoryRoute(sub.slug)}
                                       className={styles.subItem}
                                       onClick={closeCategories}
                                     >
