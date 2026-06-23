@@ -16,6 +16,7 @@ import { categoryService, notificationService, addressService } from '@/lib/api'
 import { getSocket } from '@/lib/socket';
 
 const NAV = [
+  { label: 'Pneus', href: '/pneus' },
   { label: 'Ofertas', href: '/promocoes' },
   { label: 'Cupons', href: '/cupons' },
   { label: 'Casa & Jardim', href: '/categoria/casa-e-decoracao' },
@@ -68,7 +69,11 @@ export default function Header({ favCount = 0 }) {
   const router = useRouter();
 
   const topbarMessage = getSetting('branding.topbar_message', 'Frete grátis a partir de R$ 79 | Parcelamos em até 12x');
-  const navItems = getSetting('nav.primary_menu', NAV);
+  const navConfig = getSetting('nav.primary_menu', NAV);
+  // Garante o atalho da vertical de Pneus mesmo quando o menu vem do config remoto.
+  const navItems = Array.isArray(navConfig) && navConfig.some((n) => n.href === '/pneus')
+    ? navConfig
+    : [{ label: 'Pneus', href: '/pneus' }, ...(Array.isArray(navConfig) ? navConfig : [])];
 
   // CEP / endereço
   const [city, setCity] = useState('');
