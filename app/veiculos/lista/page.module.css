@@ -1,0 +1,452 @@
+.page {
+  padding: 16px 0 48px;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* ===== CABEÇALHO TEMÁTICO (vertical de veículos — identidade Feira do Rolo) ===== */
+.hero {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 10px 0 18px;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  background: linear-gradient(120deg, #1f2937 0%, #3a3320 55%, #111827 100%);
+  box-shadow: var(--shadow-md);
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 92% 0%, rgba(255, 193, 7, 0.22), transparent 45%);
+  pointer-events: none;
+}
+
+.heroText {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 22px 24px;
+  min-width: 0;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 4px 10px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #1f2937;
+  background: var(--feira-yellow);
+  border-radius: var(--r-pill);
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0;
+  color: #fff;
+  text-transform: capitalize;
+}
+
+.count {
+  font-size: 13px;
+  color: #cbd5e1;
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .title { font-size: 24px; }
+}
+
+/* Cabeçalho de resultados */
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0 14px;
+  flex-wrap: wrap;
+}
+
+.resultsTitle {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.headControls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filterBtn {
+  display: none;
+}
+
+.sortLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.sortLabel > span {
+  white-space: nowrap;
+}
+
+/* Filtros ativos */
+.activeBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.activeLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.activeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font-size: 13px;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-strong);
+  color: var(--feira-gray);
+  border-radius: var(--r-pill);
+  cursor: pointer;
+}
+
+.activeChipKey {
+  font-weight: 700;
+}
+
+.clearAll {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--feira-red);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px 4px;
+}
+
+.clearAll:hover {
+  text-decoration: underline;
+}
+
+/* Layout sidebar + resultados */
+.layout {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.sidebar {
+  position: sticky;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 6px 18px 14px;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+}
+
+.sideTitle {
+  font-size: 15px;
+  font-weight: 800;
+  margin: 0;
+}
+
+/* Faceta estilo Mercado Livre */
+.facet {
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+}
+
+.facet:first-of-type {
+  border-top: none;
+}
+
+.facetTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.facetList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.facetScroll {
+  max-height: 210px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.facetItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px 6px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  border-radius: var(--r-sm);
+  transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+
+.facetItem:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.facetItemOn {
+  color: var(--feira-gray);
+  font-weight: 700;
+}
+
+.facetCheck {
+  color: var(--feira-yellow-strong);
+  flex-shrink: 0;
+}
+
+/* Localização (cidade + UF) */
+.locFields {
+  display: grid;
+  grid-template-columns: 1fr 72px;
+  gap: 8px;
+}
+
+/* Preço / Ano (min/máx) */
+.priceInputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.priceDash {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* Pílulas (Condição / Câmbio) */
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  min-width: 40px;
+  padding: 6px 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease);
+}
+
+.pill:hover {
+  border-color: var(--brand-strong);
+  color: var(--text);
+}
+
+.pillOn {
+  color: var(--feira-gray);
+  background: var(--brand-soft);
+  border-color: var(--feira-yellow-strong);
+}
+
+/* Resultados */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.cardWrap {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Meta do veículo abaixo do card */
+.cardMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 6px;
+  padding: 0 2px;
+}
+
+.cardSpecs {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.cardLocal {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    display: none;
+  }
+  .filterBtn {
+    display: inline-flex;
+  }
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 460px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Estado vazio temático */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 48px 16px;
+}
+
+.emptyIcon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 8px;
+  border-radius: var(--r-pill);
+  color: var(--feira-gray);
+  background: var(--brand-soft);
+  border: 2px solid var(--feira-yellow-strong);
+}
+
+.emptyTitle {
+  font-size: 17px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.emptyDesc {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0 0 8px;
+}
+
+/* Drawer mobile */
+.drawerOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.drawer {
+  width: min(86vw, 340px);
+  height: 100%;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.18s ease-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.drawerHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.drawerClose {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+}
+
+.drawerBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px;
+}
+
+.drawerFoot {
+  display: flex;
+  gap: 10px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+}

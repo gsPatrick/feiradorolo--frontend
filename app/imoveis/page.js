@@ -136,16 +136,6 @@ function SearchBar() {
         <Button type="submit" variant="primary" leftIcon="search" className={styles.searchBtn}>
           Buscar
         </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          leftIcon="map-pin"
-          className={styles.mapBtn}
-          onClick={() => {}}
-          title="Em breve"
-        >
-          Buscar no mapa
-        </Button>
       </div>
     </form>
   );

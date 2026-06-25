@@ -1,0 +1,531 @@
+.page {
+  padding-bottom: 56px;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* ===== 1 — HERO ===== */
+.hero {
+  position: relative;
+  margin-bottom: 0;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+/* Fallback bonito (cinza/amarelo Feira do Rolo) quando o admin não gerou banner. */
+.heroPlaceholder {
+  background:
+    radial-gradient(circle at 82% 18%, rgba(255, 215, 0, 0.28), transparent 55%),
+    linear-gradient(135deg, #161b26 0%, #2b3242 48%, #4a5468 130%);
+}
+
+.heroImage {
+  background-color: #161b26;
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(15, 18, 26, 0.66) 0%, rgba(15, 18, 26, 0.22) 60%, transparent 100%);
+}
+
+.heroInner {
+  position: relative;
+  z-index: 1;
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+.heroTitle {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(34px, 6vw, 58px);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1.02;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
+}
+
+.heroTitle::after {
+  content: '';
+  display: block;
+  width: 72px;
+  height: 5px;
+  margin-top: 12px;
+  border-radius: var(--r-pill);
+  background: var(--feira-yellow);
+}
+
+.heroSubtitle {
+  margin: 12px 0 0;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: clamp(16px, 2.4vw, 22px);
+  font-weight: 500;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  background: var(--feira-yellow);
+  color: var(--feira-gray);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* ===== 2 — BARRA DE BUSCA ===== */
+.searchWrap {
+  margin-top: -36px;
+  margin-bottom: 40px;
+  position: relative;
+  z-index: 2;
+}
+
+.searchCard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
+  padding: 20px 22px;
+}
+
+.searchFields {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px;
+  align-items: end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.field > span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.searchActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.searchBtn {
+  min-width: 150px;
+}
+
+@media (max-width: 980px) {
+  .searchFields {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .searchFields {
+    grid-template-columns: 1fr 1fr;
+  }
+  .searchActions {
+    flex-direction: column;
+  }
+  .searchBtn {
+    width: 100%;
+  }
+}
+
+/* ===== SEÇÕES (cabeçalho comum) ===== */
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8px 0 16px;
+}
+
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.seeAll {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.seeAll:hover {
+  color: var(--brand-strong);
+}
+
+/* ===== 3 / 7 — CARDS DE CARROCERIA / CATEGORIA ===== */
+.bodyRow {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 14px;
+  margin-bottom: 44px;
+}
+
+.bodyCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 12px;
+  text-align: center;
+  text-decoration: none;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.bodyCard:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+
+.bodyIcon {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: var(--r-pill);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.bodyLabel {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+@media (max-width: 900px) {
+  .bodyRow {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .bodyRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===== 4 — AS MELHORES MARCAS (logos) ===== */
+.brandsGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 44px;
+}
+
+.brandCard {
+  display: grid;
+  place-items: center;
+  min-height: 84px;
+  padding: 18px 14px;
+  text-decoration: none;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.brandCard:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+
+.brandName {
+  color: var(--accent);
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  text-align: center;
+  line-height: 1.1;
+}
+
+@media (max-width: 860px) {
+  .brandsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .brandsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .brandName {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 400px) {
+  .brandsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===== 5 — CARROSSEL DE POPULARES ===== */
+.carousel {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(220px, 1fr);
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 44px;
+  scroll-snap-type: x mandatory;
+}
+
+.carouselCard {
+  scroll-snap-align: start;
+}
+
+.emptyInline {
+  color: var(--text-muted);
+  font-size: 14px;
+  padding: 24px 0;
+}
+
+@media (min-width: 900px) {
+  .carousel {
+    grid-auto-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-flow: row;
+    overflow-x: visible;
+  }
+}
+
+/* ===== 6 — COMPRAR POR PREÇO ===== */
+.priceGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 44px;
+}
+
+.priceCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 18px;
+  text-decoration: none;
+  color: var(--text);
+  background: linear-gradient(120deg, var(--feira-gray) 0%, #2b3242 100%);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+
+.priceCard:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+
+.priceLabel {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.priceValue {
+  color: var(--feira-yellow);
+  font-size: 22px;
+  font-weight: 900;
+}
+
+@media (max-width: 760px) {
+  .priceGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===== 8 — FIPE + PEÇAS ===== */
+.fipeRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+.toolCard {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  padding: 24px 26px;
+  text-decoration: none;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s, transform 0.15s, border-color 0.15s;
+}
+
+.partsCard:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+  border-color: var(--feira-yellow);
+}
+
+.fipeCard {
+  background: linear-gradient(120deg, #fffbe6 0%, var(--card) 70%);
+}
+
+.toolIcon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--r-lg);
+  color: var(--feira-gray);
+  background: var(--feira-yellow);
+  box-shadow: 0 6px 18px rgba(255, 215, 0, 0.35);
+}
+
+.toolBody {
+  min-width: 0;
+}
+
+.toolTitle {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.toolSub {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.toolBtn,
+.toolBtnDisabled {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.toolBtn {
+  color: var(--brand-strong);
+}
+
+.toolBtnDisabled {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.soonBadge {
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--feira-gray) 12%, transparent);
+  color: var(--feira-gray);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+@media (max-width: 760px) {
+  .fipeRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== 9 — SEO FOOTER ===== */
+.seoSection {
+  margin-top: 8px;
+  padding-top: 28px;
+  border-top: 1px solid var(--border);
+}
+
+.seoHeading {
+  margin: 0 0 18px;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.seoGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px 28px;
+}
+
+.seoCol {
+  min-width: 0;
+}
+
+.seoColTitle {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--feira-gray);
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--feira-yellow);
+}
+
+.seoLinks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.seoLinks a {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.seoLinks a:hover {
+  color: var(--brand-strong);
+  text-decoration: underline;
+}
+
+@media (max-width: 880px) {
+  .seoGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .seoGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
