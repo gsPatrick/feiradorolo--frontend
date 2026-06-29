@@ -367,7 +367,7 @@ export default function VeiculosLanding() {
       {/* 8 — Tabela FIPE + cross-sell de peças */}
       <section className={styles.container}>
         <div className={styles.fipeRow}>
-          <div className={`${styles.toolCard} ${styles.fipeCard}`}>
+          <a href="/veiculos/fipe" className={`${styles.toolCard} ${styles.fipeCard}`}>
             <span className={styles.toolIcon}>
               <Icon name="trending-up" size={30} />
             </span>
@@ -376,12 +376,12 @@ export default function VeiculosLanding() {
               <p className={styles.toolSub}>
                 Consulte o valor de mercado do veículo antes de comprar ou vender.
               </p>
-              <span className={styles.toolBtnDisabled}>
+              <span className={styles.toolBtn}>
                 <Icon name="search" size={15} /> Consultar tabela FIPE
-                <span className={styles.soonBadge}>Em breve</span>
+                <Icon name="arrow-right" size={15} />
               </span>
             </div>
-          </div>
+          </a>
 
           <a href="/buscar?q=peças" className={`${styles.toolCard} ${styles.partsCard}`}>
             <span className={styles.toolIcon}>
