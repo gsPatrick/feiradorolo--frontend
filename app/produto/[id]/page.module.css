@@ -1161,3 +1161,185 @@
   font-weight: 700;
 }
 .ownModalManage:hover { background: #c2410c; }
+
+/* ═══════════ Modo CONTATO (imóveis / veículos) ═══════════ */
+.contactTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.contactAnnounced {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+.contactTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--foreground);
+  margin: 0 0 8px;
+}
+.contactPrice {
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+.contactVerified {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 14px;
+  padding: 6px 10px;
+  border-radius: var(--r-pill);
+  background: var(--feira-yellow-soft);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.contactSpecs {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.contactSpecs li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.86rem;
+}
+.contactSpecs li:last-child { border-bottom: none; }
+.contactSpecLabel { color: var(--muted-foreground); }
+.contactSpecValue {
+  color: var(--foreground);
+  font-weight: 700;
+  text-align: right;
+  text-transform: capitalize;
+}
+
+/* Botão "Contato" reusa .buy; "WhatsApp" abaixo */
+.buy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+/* Aviso: negociação sempre pelo chat da plataforma (sem WhatsApp/telefone). */
+.contactChatNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  font-weight: 600;
+}
+.contactChatNote svg { flex-shrink: 0; margin-top: 1px; }
+
+.contactReportLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 16px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.contactReportLine:hover { color: #dc2626; text-decoration: underline; }
+.contactReportLine svg { flex-shrink: 0; }
+
+/* — Dicas de segurança — */
+.cardSubtitle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.cardSubtitle svg { flex-shrink: 0; color: var(--feira-yellow-strong, #e0a500); }
+.tipsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.tipsList li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+.tipDot {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+/* — Formulário "Entre em contato com o proprietário" — */
+.contactTextarea {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--input, var(--border));
+  border-radius: var(--r-md);
+  background: var(--bg);
+  color: var(--foreground);
+  font-size: 0.9rem;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 92px;
+}
+.contactTextarea:focus {
+  outline: none;
+  border-color: var(--feira-yellow-strong);
+}
+.contactSendBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 46px;
+  margin-top: 12px;
+  border: none;
+  border-radius: var(--r-md);
+  background: #2563eb;
+  color: #fff;
+  font-size: 0.94rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+.contactSendBtn:hover { background: #1d4ed8; }
+.contactSendBtn:disabled { opacity: 0.55; cursor: not-allowed; }

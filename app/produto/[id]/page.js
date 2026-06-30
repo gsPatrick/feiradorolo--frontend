@@ -115,6 +115,39 @@ function formatDate(value) {
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
+/** "Anunciado há X dias" a partir de uma data ISO (modo contato). */
+function daysAgoLabel(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  const diff = Math.floor((Date.now() - d.getTime()) / 86400000);
+  if (diff <= 0) return 'Anunciado hoje';
+  if (diff === 1) return 'Anunciado há 1 dia';
+  return `Anunciado há ${diff} dias`;
+}
+
+/** Rótulo da operação (À venda / Para alugar) a partir do bruto da API. */
+function deriveOperationLabel(raw) {
+  const meta = raw.metadata || {};
+  let val = raw.spec_operacao ?? raw.operacao ?? meta.operacao ?? meta.spec_operacao;
+  if (val == null && raw.specifications && typeof raw.specifications === 'object') {
+    val = raw.specifications.operacao ?? raw.specifications['operação'] ?? raw.specifications.operation;
+  }
+  const s = String(val || '').toLowerCase();
+  if (s.includes('alug') || s.includes('loca') || s.includes('rent')) return 'Para alugar';
+  return 'À venda';
+}
+
+
+/* Dicas de segurança fixas (estilo Mercado Livre) para anúncios de contato. */
+const SAFETY_TIPS = [
+  'Nunca pagamos nem pedimos senhas, códigos ou dados bancários por fora da plataforma.',
+  'Verifique pessoalmente se o imóvel ou veículo existe e confere com o anúncio.',
+  'Desconfie de preços muito abaixo do mercado — pode ser golpe.',
+  'Não faça pagamentos antecipados nem use transferências anônimas antes de ver o item.',
+  'Combine encontros em locais públicos e movimentados, de preferência acompanhado.',
+];
+
 // Rótulos amigáveis para chaves de specification comuns (o backend manda
 // `specs_list` já rotulado via field_definitions; isto é fallback).
 const SPEC_LABELS = {
@@ -157,6 +190,11 @@ function buildProduct(raw) {
     // Preserva o objeto seller enriquecido (verificações, tier, reputação…)
     // que o mapProduct achata para string. Fallback seguro p/ undefined.
     sellerData: raw.seller && typeof raw.seller === 'object' ? raw.seller : null,
+    // Modo "contato" (imóveis/veículos): anúncio sem compra, só contato.
+    contactOnly: !!(raw.contact_only ?? (raw.seller && raw.seller.contact_only)),
+    sellerPhone: (raw.seller && raw.seller.phone) || null,
+    createdAt: raw.created_at || raw.createdAt || raw.published_at || null,
+    operationLabel: deriveOperationLabel(raw),
     allowPickup: !!(meta.allow_pickup || meta.pickup_available || raw.allow_pickup),
     images: images.length ? images : (mapped.image ? [mapped.image] : []),
     description: raw.description || '',
@@ -181,6 +219,8 @@ export default function ProdutoPage() {
   const router = useRouter();
   const [chatLoading, setChatLoading] = useState(false);
   const [qty, setQty] = useState(1);
+  // Modo contato (imóveis/veículos): mensagem do formulário (negociação só pelo chat).
+  const [contactMessage, setContactMessage] = useState('');
   const [cep, setCep] = useState('');
   const [geo, setGeo] = useState(null);
   const [address, setAddress] = useState(null);
@@ -289,11 +329,15 @@ export default function ProdutoPage() {
     );
   }
 
-  async function startChat() {
+  async function startChat(message) {
     if (!product || !product.sellerId) return;
     setChatLoading(true);
     try {
       const chat = await chatService.open(product.sellerId, id);
+      // Se vier uma mensagem (formulário de contato), já envia antes de navegar.
+      if (typeof message === 'string' && message.trim()) {
+        try { await chatService.send(chat.id, message.trim()); } catch { /* segue p/ o chat */ }
+      }
       router.push(`/mensagens?chat=${chat.id}`);
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) openAuth('login');
@@ -482,6 +526,14 @@ export default function ProdutoPage() {
     };
   }, [id, user]);
 
+  // Pré-preenche a mensagem do formulário de contato (modo imóveis/veículos).
+  useEffect(() => {
+    if (product && product.contactOnly) {
+      setContactMessage(`Olá, tenho interesse em ${product.title}. Aguardo retorno.`);
+      setPhoneRevealed(false);
+    }
+  }, [product]);
+
   useEffect(() => {
     if (!product) return;
     recordView({
@@ -593,6 +645,11 @@ export default function ProdutoPage() {
 
   const reviewsCount = (reviews && reviews.count) || 0;
   const highlightSpecs = product.specs.slice(0, 6);
+
+  // ── Modo "contato" (imóveis/veículos): anúncio sem compra ──
+  const contactOnly = !!product.contactOnly;
+  const announcedLabel = daysAgoLabel(product.createdAt);
+  const operationLabel = product.operationLabel || 'À venda';
 
   const qaTotal = (questions && questions.total) || 0;
   const mappedQuestions = ((questions && questions.questions) || []).map((q) => ({
@@ -774,10 +831,13 @@ export default function ProdutoPage() {
 
                   <div className={styles.heroInfo}>
                     <div className={styles.condition}>
+                      {contactOnly && (
+                        <Badge variant="info" size="sm">{operationLabel}</Badge>
+                      )}
                       <Badge variant={product.condition === 'new' ? 'success' : 'neutral'} size="sm">
                         {product.condition === 'new' ? 'Novo' : 'Usado'}
                       </Badge>
-                      <span>· {product.sales} vendidos</span>
+                      <span>· {contactOnly ? (announcedLabel || 'Anúncio de contato') : `${product.sales} vendidos`}</span>
                     </div>
 
                     <h1 className={styles.title}>{product.title}</h1>
@@ -800,10 +860,14 @@ export default function ProdutoPage() {
                         {discount && <Badge variant="danger" size="sm">-{discount}%</Badge>}
                       </div>
                       <div className={styles.price}>{BRL.format(product.price)}</div>
-                      <span className={styles.installments}>em até {product.installments}x sem juros</span>
-                      <button type="button" className={styles.payLink} onClick={() => setPayOpen(true)}>
-                        Ver os meios de pagamento
-                      </button>
+                      {!contactOnly && (
+                        <>
+                          <span className={styles.installments}>em até {product.installments}x sem juros</span>
+                          <button type="button" className={styles.payLink} onClick={() => setPayOpen(true)}>
+                            Ver os meios de pagamento
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -951,76 +1015,140 @@ export default function ProdutoPage() {
 
             {/* ───────── Coluna direita (sticky) ───────── */}
             <aside className={styles.sidebar}>
-              <div className={styles.buyBox}>
-                <p className={styles.stockLine}>
-                  <strong>Estoque disponível</strong>
-                  <span className={styles.stockQty}>({stock} {stock === 1 ? 'unidade' : 'unidades'})</span>
-                </p>
-
-                <div className={styles.qty}>
-                  <span>Quantidade:</span>
-                  <div className={styles.stepper}>
-                    <button onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Diminuir">
-                      <Icon name="close" size={14} />
-                    </button>
-                    <span>{qty}</span>
-                    <button onClick={() => setQty((q) => Math.min(stock, q + 1))} aria-label="Aumentar">
-                      <Icon name="plus" size={14} />
-                    </button>
+              {contactOnly ? (
+                /* ── Modo CONTATO (imóveis/veículos): sem compra ── */
+                <div className={styles.buyBox}>
+                  <div className={styles.contactTop}>
+                    <Badge variant="info" size="sm">{operationLabel}</Badge>
+                    {announcedLabel && <span className={styles.contactAnnounced}>{announcedLabel}</span>}
                   </div>
-                </div>
+                  <h2 className={styles.contactTitle}>{product.title}</h2>
+                  <div className={styles.contactPrice}>{BRL.format(product.price)}</div>
 
-                {isOwner ? (
-                  <div className={styles.ownListing}>
-                    <Icon name="store" size={18} />
-                    <div>
-                      <strong>Este é o seu anúncio</strong>
-                      <span>Você não pode comprar o próprio produto.</span>
-                      <a href={`/produto/${product.id}/gerenciar`} className={styles.ownManage}>
-                        Gerenciar anúncio <Icon name="arrow-right" size={14} />
-                      </a>
+                  {(product.sellerData || product.sellerId) && (
+                    <div className={styles.contactVerified}>
+                      {product.sellerData ? (
+                        <VerifiedSeal seller={product.sellerData} size={16} />
+                      ) : (
+                        <VerifiedSeal sellerId={product.sellerId} size={16} />
+                      )}
+                      <span>Proprietário verificado</span>
+                    </div>
+                  )}
+
+                  {highlightSpecs.length > 0 && (
+                    <ul className={styles.contactSpecs}>
+                      {highlightSpecs.slice(0, 4).map((s) => (
+                        <li key={s.label}>
+                          <span className={styles.contactSpecLabel}>{s.label}</span>
+                          <strong className={styles.contactSpecValue}>{s.value}</strong>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <button
+                    className={styles.buy}
+                    onClick={() => startChat(contactMessage)}
+                    disabled={chatLoading}
+                  >
+                    <Icon name="chat" size={18} /> {chatLoading ? 'Abrindo…' : 'Conversar pelo chat'}
+                  </button>
+                  <p className={styles.contactChatNote}>
+                    <Icon name="shield" size={13} /> Negocie sempre pelo chat da Feira do Rolo. É mais seguro e fica registrado.
+                  </p>
+
+                  <button type="button" className={styles.contactReportLine} onClick={() => openReport('product', id)}>
+                    <FlagIcon size={13} /> Você teve problemas com o anúncio? Avise-nos
+                  </button>
+                </div>
+              ) : (
+                <div className={styles.buyBox}>
+                  <p className={styles.stockLine}>
+                    <strong>Estoque disponível</strong>
+                    <span className={styles.stockQty}>({stock} {stock === 1 ? 'unidade' : 'unidades'})</span>
+                  </p>
+
+                  <div className={styles.qty}>
+                    <span>Quantidade:</span>
+                    <div className={styles.stepper}>
+                      <button onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Diminuir">
+                        <Icon name="close" size={14} />
+                      </button>
+                      <span>{qty}</span>
+                      <button onClick={() => setQty((q) => Math.min(stock, q + 1))} aria-label="Aumentar">
+                        <Icon name="plus" size={14} />
+                      </button>
                     </div>
                   </div>
-                ) : (
-                  <>
-                    <button className={styles.buy} onClick={buyNow}>
-                      Comprar agora
-                    </button>
-                    <button className={styles.addCart} onClick={add}>
-                      Adicionar ao carrinho
-                    </button>
-                  </>
-                )}
 
-                {/* CEP / frete — abaixo dos botões (estilo OLX/ML) */}
-                {freightCard}
+                  {isOwner ? (
+                    <div className={styles.ownListing}>
+                      <Icon name="store" size={18} />
+                      <div>
+                        <strong>Este é o seu anúncio</strong>
+                        <span>Você não pode comprar o próprio produto.</span>
+                        <a href={`/produto/${product.id}/gerenciar`} className={styles.ownManage}>
+                          Gerenciar anúncio <Icon name="arrow-right" size={14} />
+                        </a>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <button className={styles.buy} onClick={buyNow}>
+                        Comprar agora
+                      </button>
+                      <button className={styles.addCart} onClick={add}>
+                        Adicionar ao carrinho
+                      </button>
+                    </>
+                  )}
 
-                {product.allowPickup && (
-                  <div className={styles.pickupNote}>
-                    <Icon name="shield" size={16} />
-                    <span>
-                      <strong>Retirada presencial disponível</strong> — escolha no checkout. Um código de
-                      6 dígitos protege a entrega; combine em local público e movimentado.
-                    </span>
-                  </div>
-                )}
+                  {/* CEP / frete — abaixo dos botões (estilo OLX/ML) */}
+                  {freightCard}
 
-                {/* Selos informativos — abrem o modal de política ao clicar */}
-                <ul className={styles.seals}>
-                  <li>
-                    <button type="button" className={styles.sealBtn} onClick={() => setPolicyKind('returns')}>
-                      <span className={styles.sealIcon}><Icon name="package" size={16} /></span>
-                      <span><strong>Devolução grátis.</strong> 30 dias a partir do recebimento.</span>
-                    </button>
-                  </li>
-                  <li>
-                    <button type="button" className={styles.sealBtn} onClick={() => setPolicyKind('protected')}>
-                      <span className={styles.sealIcon}><Icon name="shield" size={16} /></span>
-                      <span><strong>Compra garantida.</strong> Receba o produto ou devolvemos o dinheiro.</span>
-                    </button>
-                  </li>
-                </ul>
-              </div>
+                  {product.allowPickup && (
+                    <div className={styles.pickupNote}>
+                      <Icon name="shield" size={16} />
+                      <span>
+                        <strong>Retirada presencial disponível</strong> — escolha no checkout. Um código de
+                        6 dígitos protege a entrega; combine em local público e movimentado.
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Selos informativos — abrem o modal de política ao clicar */}
+                  <ul className={styles.seals}>
+                    <li>
+                      <button type="button" className={styles.sealBtn} onClick={() => setPolicyKind('returns')}>
+                        <span className={styles.sealIcon}><Icon name="package" size={16} /></span>
+                        <span><strong>Devolução grátis.</strong> 30 dias a partir do recebimento.</span>
+                      </button>
+                    </li>
+                    <li>
+                      <button type="button" className={styles.sealBtn} onClick={() => setPolicyKind('protected')}>
+                        <span className={styles.sealIcon}><Icon name="shield" size={16} /></span>
+                        <span><strong>Compra garantida.</strong> Receba o produto ou devolvemos o dinheiro.</span>
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              )}
+
+              {/* ── Modo contato: dicas de segurança (estilo ML) ── */}
+              {contactOnly && (
+                <div className={styles.sideCard}>
+                  <h3 className={styles.cardSubtitle}><Icon name="shield" size={16} /> Dicas de segurança</h3>
+                  <ul className={styles.tipsList}>
+                    {SAFETY_TIPS.map((tip, i) => (
+                      <li key={i}>
+                        <span className={styles.tipDot} aria-hidden="true"><Icon name="check" size={12} /></span>
+                        <span>{tip}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* Caixa do vendedor — dados reais do objeto seller enriquecido */}
               {(() => {
@@ -1092,14 +1220,37 @@ export default function ProdutoPage() {
                     <a href={`/loja/${product.sellerId || ''}`} className={styles.sellerPageBtn}>
                       <Icon name="store" size={16} /> Ir para a página do vendedor
                     </a>
-                    <button type="button" className={styles.chatSeller} onClick={startChat} disabled={chatLoading}>
-                      <Icon name="chat" size={16} /> {chatLoading ? 'Abrindo…' : 'Falar com o vendedor'}
+                    <button type="button" className={styles.chatSeller} onClick={() => startChat()} disabled={chatLoading}>
+                      <Icon name="chat" size={16} /> {chatLoading ? 'Abrindo…' : (contactOnly ? 'Conversar pelo chat' : 'Falar com o vendedor')}
                     </button>
                   </div>
                 );
               })()}
 
-              {/* Meios de pagamento */}
+              {/* Modo contato: formulário "Entre em contato com o proprietário" */}
+              {contactOnly && (
+                <div className={styles.sideCard}>
+                  <h3 className={styles.cardSubtitle}>Entre em contato com o proprietário</h3>
+                  <textarea
+                    className={styles.contactTextarea}
+                    rows={4}
+                    value={contactMessage}
+                    onChange={(e) => setContactMessage(e.target.value.slice(0, 600))}
+                    placeholder="Escreva sua mensagem para o proprietário…"
+                  />
+                  <button
+                    type="button"
+                    className={styles.contactSendBtn}
+                    onClick={() => startChat(contactMessage)}
+                    disabled={chatLoading || !contactMessage.trim()}
+                  >
+                    <Icon name="chat" size={16} /> {chatLoading ? 'Enviando…' : 'Enviar pelo chat'}
+                  </button>
+                </div>
+              )}
+
+              {/* Meios de pagamento — só no fluxo de compra */}
+              {!contactOnly && (
               <div className={styles.sideCard} ref={paymentRef}>
                 <h3 className={styles.cardSubtitle}>Meios de pagamento</h3>
                 <ul className={styles.payList}>
@@ -1109,6 +1260,7 @@ export default function ProdutoPage() {
                 </ul>
                 <span className={styles.payNote}>Veja as condições na página de pagamento</span>
               </div>
+              )}
             </aside>
           </div>
 
