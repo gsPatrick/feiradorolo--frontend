@@ -13,6 +13,7 @@ import AdminOrders from '@/components/organisms/admin/AdminOrders/AdminOrders';
 import AdminProducts from '@/components/organisms/admin/AdminProducts/AdminProducts';
 import AdminDisputes from '@/components/organisms/admin/AdminDisputes/AdminDisputes';
 import AdminUsers from '@/components/organisms/admin/AdminUsers/AdminUsers';
+import AdminVerifications from '@/components/organisms/admin/AdminVerifications/AdminVerifications';
 import AdminChatModeration from '@/components/organisms/admin/AdminChatModeration/AdminChatModeration';
 import AdminAnalytics from '@/components/organisms/admin/AdminAnalytics/AdminAnalytics';
 import AdminRevenue from '@/components/organisms/admin/AdminRevenue/AdminRevenue';
@@ -35,6 +36,7 @@ const TABS = [
   { k: 'products', label: 'Produtos', icon: 'package', Comp: AdminProducts },
   { k: 'disputes', label: 'Disputas', icon: 'shield', Comp: AdminDisputes },
   { k: 'users', label: 'Usuários', icon: 'user', Comp: AdminUsers },
+  { k: 'verifications', label: 'Verificações', icon: 'shield', Comp: AdminVerifications },
   { k: 'chat', label: 'Chat', icon: 'chat', Comp: AdminChatModeration },
   { k: 'analytics', label: 'Analytics', icon: 'trending-up', Comp: AdminAnalytics },
   { k: 'revenue', label: 'Receitas', icon: 'dollar', Comp: AdminRevenue },

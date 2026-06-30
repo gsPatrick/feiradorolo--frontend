@@ -23,6 +23,7 @@ const ACTIONS = [
   { k: 'integrations', label: 'Integrações', icon: 'bolt', desc: 'Conecte serviços e ferramentas externas.' },
   { k: 'plans', label: 'Planos', icon: 'package', desc: 'Configure planos e assinaturas.' },
   { k: 'users', label: 'Usuários', icon: 'user', desc: 'Contas, permissões e moderação.' },
+  { k: 'verifications', label: 'Verificações', icon: 'shield', desc: 'Aprove ou rejeite documentos de identidade (KYC).' },
   { k: 'finance', label: 'Financeiro', icon: 'dollar', desc: 'Saldos, repasses e movimentações.' },
   { k: 'emails', label: 'Emails', icon: 'mail', desc: 'Modelos e disparos de e-mail.' },
   { k: 'notifications', label: 'Push', icon: 'bell', desc: 'Notificações push para os usuários.' },
