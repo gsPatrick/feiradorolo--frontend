@@ -15,6 +15,22 @@ import ImageUploader from '@/components/molecules/ImageUploader/ImageUploader';
 import ProductSpecifications from '@/components/molecules/ProductSpecifications/ProductSpecifications';
 import CategoryPicker from '@/components/organisms/CategoryPicker/CategoryPicker';
 import Modal from '@/components/organisms/Modal/Modal';
+import FipeHelper from '@/components/organisms/FipeHelper/FipeHelper';
+
+/** Detecta categoria de veículos pela cadeia selecionada (slug `veiculos` ou nome). */
+function isVehicleCategory(path) {
+  return (path || []).some((n) => {
+    const slug = (n.slug || '').toLowerCase();
+    const name = (n.name || '').toLowerCase();
+    // Cobre slug `veiculos`/`veiculo-*` e nomes "Veículos"/"Veiculos" (com/sem acento).
+    return slug.startsWith('veicul') || name.includes('veícul') || name.includes('veicul');
+  });
+}
+
+/** "R$ 50.000,00" → 50000 (número) | 0. */
+function parseFipeValor(str) {
+  return Number(String(str || '').replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+}
 
 const SHIPPING_METHODS = [
   { id: 'correios-pac', name: 'Correios PAC', icon: '📦', description: 'Mais econômico, 8-12 dias úteis' },
@@ -138,7 +154,7 @@ export default function EditarProdutoPage() {
         const imgs = Array.isArray(p.images) ? p.images : [];
         setImages(imgs.map((url, i) => ({ id: `existing-${i}`, url, preview: url })));
         const cat = p.category;
-        setCategoryPath(cat ? [{ id: cat.id, name: cat.name, icon: cat.icon || null }] : []);
+        setCategoryPath(cat ? [{ id: cat.id, name: cat.name, icon: cat.icon || null, slug: cat.slug || null }] : []);
       })
       .catch((err) => {
         if (!active) return;
@@ -177,6 +193,24 @@ export default function EditarProdutoPage() {
     setShowSpecErrors(false);
     toast({ title: `Categoria selecionada: ${node.name}`, variant: 'success', duration: 2500 });
   }
+
+  // Auxiliar FIPE: preenche marca/modelo/ano e sugere o preço (só se ainda vazio).
+  function handleFipeFill({ marca, modelo, ano, valor }) {
+    const num = parseFipeValor(valor);
+    setForm((prev) => {
+      const next = { ...prev, specifications: { ...prev.specifications, marca, modelo, ano } };
+      if (num > 0 && !prev.price) next.price = String(num);
+      return next;
+    });
+    toast({
+      title: 'Dados da FIPE aplicados',
+      description: 'Marca, modelo e ano preenchidos. Confira e ajuste se necessário.',
+      variant: 'success',
+      duration: 3500,
+    });
+  }
+
+  const isVehicle = isVehicleCategory(categoryPath);
 
   // Monta a mensagem amigável listando até 5 campos obrigatórios faltantes.
   function missingSpecsMessage() {
@@ -449,6 +483,11 @@ export default function EditarProdutoPage() {
                     </p>
                   )}
                 </div>
+
+                {/* Auxiliar FIPE (apenas categorias de veículos) */}
+                {form.categoryId && isVehicle && (
+                  <FipeHelper active onFill={handleFipeFill} />
+                )}
 
                 {/* Especificações dinâmicas */}
                 {form.categoryId && (

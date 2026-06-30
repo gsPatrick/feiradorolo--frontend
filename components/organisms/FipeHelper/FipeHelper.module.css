@@ -1,0 +1,124 @@
+.box {
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--info-soft);
+  padding: 18px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.headIcon {
+  color: var(--info);
+}
+.title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0;
+}
+.badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--info);
+  background: var(--surface);
+  border: 1px solid var(--info);
+  border-radius: var(--r-pill);
+  padding: 2px 8px;
+}
+
+.hint {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+  margin: 0 0 14px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.loadingValor {
+  margin: 12px 0 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.result {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.resultInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.resultLabel {
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+.resultValue {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--success);
+  line-height: 1.1;
+}
+.resultMeta {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+.fillBtn {
+  flex-shrink: 0;
+}
+
+@media (max-width: 560px) {
+  .result {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .fillBtn {
+    width: 100%;
+  }
+}
