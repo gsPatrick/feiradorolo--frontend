@@ -530,7 +530,6 @@ export default function ProdutoPage() {
   useEffect(() => {
     if (product && product.contactOnly) {
       setContactMessage(`Olá, tenho interesse em ${product.title}. Aguardo retorno.`);
-      setPhoneRevealed(false);
     }
   }, [product]);
 
