@@ -9,9 +9,9 @@ import { useSiteConfig } from '../../providers/SiteConfigProvider';
 // Fallback (usado enquanto a API não responde / se estiver vazia).
 const SLIDES = [
   {
-    grad: 'g1', title: 'Baixe nosso App', titleIcon: 'smartphone',
-    sub: 'Compre com mais praticidade e ganhe ofertas exclusivas', cta: 'Baixar Agora', ctaIcon: 'download',
-    href: '/app', side: { top: 'GRÁTIS', word: 'App', bottom: 'DISPONÍVEL' },
+    grad: 'g1', title: 'Nosso App está chegando', titleIcon: 'smartphone',
+    sub: 'Estamos finalizando o aplicativo para Android e iOS. Saiba mais!', cta: 'Saiba mais', ctaIcon: 'arrow-right',
+    href: '/aplicativo', side: { top: 'EM', word: 'App', bottom: 'BREVE' },
   },
   {
     grad: 'g2', title: 'Frete grátis a partir de R$ 79', titleIcon: 'truck',
