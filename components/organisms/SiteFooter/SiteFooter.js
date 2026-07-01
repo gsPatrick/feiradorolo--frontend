@@ -52,6 +52,18 @@ const DEFAULT_LEGAL = [
   { label: 'Suporte', href: '/suporte' },
 ];
 
+// SEO — termos mais procurados (editável pelo admin em footer.popular_terms).
+const DEFAULT_TERMS = [
+  'iPhone', 'Celular', 'Notebook', 'Notebook Gamer', 'Smart TV', 'Playstation 5', 'Xbox Series X',
+  'Cadeira Gamer', 'Geladeira', 'Fogão', 'Máquina de Lavar', 'Ar Condicionado', 'Micro-ondas',
+  'Bicicleta', 'Bicicleta Elétrica', 'Sofá', 'Guarda-Roupa', 'Cama Box', 'Ventilador', 'Air Fryer',
+  'Fone Bluetooth', 'Smartwatch', 'Monitor', 'Impressora', 'Violão', 'Tênis', 'Pneus', 'Carros',
+  'Motos', 'Imóveis', 'Ferramentas', 'Furadeira', 'Berço', 'Carrinho de Bebê', 'Perfume',
+];
+
+// Letras para "Pesquise produto por letra inicial".
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
 export default function SiteFooter() {
   const { getSetting } = useSiteConfig();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -68,6 +80,8 @@ export default function SiteFooter() {
   const prot = getSetting('footer.protection_card', DEFAULT_PROTECTION);
   const legal = getSetting('nav.legal_links', DEFAULT_LEGAL);
   const cnpj = getSetting('branding.company_cnpj', '12.345.678/0001-90');
+  const popularTerms = getSetting('footer.popular_terms', DEFAULT_TERMS);
+  const terms = Array.isArray(popularTerms) && popularTerms.length ? popularTerms : DEFAULT_TERMS;
 
   const socialIcons = [
     { key: 'facebook', icon: 'facebook', label: 'Facebook' },
@@ -141,6 +155,32 @@ export default function SiteFooter() {
             </div>
           </div>
         </div>
+
+        {/* SEO — termos mais procurados */}
+        <section className={styles.seoBlock} aria-label="Termos mais procurados">
+          <h4 className={styles.seoTitle}>Termos mais procurados</h4>
+          <p className={styles.seoTerms}>
+            {terms.map((t, i) => (
+              <span key={t}>
+                <Link href={`/buscar?q=${encodeURIComponent(t)}`} className={styles.seoTerm}>{t}</Link>
+                {i < terms.length - 1 && <span className={styles.seoSep}> - </span>}
+              </span>
+            ))}
+          </p>
+        </section>
+
+        {/* SEO — busca por letra inicial */}
+        <section className={styles.seoBlock} aria-label="Pesquise produto por letra inicial">
+          <h4 className={styles.seoTitle}>Pesquise produto por letra inicial</h4>
+          <p className={styles.seoLetters}>
+            {ALPHABET.map((letter, i) => (
+              <span key={letter}>
+                <Link href={`/buscar?inicial=${letter}`} className={styles.seoLetter}>{letter}</Link>
+                {i < ALPHABET.length - 1 && <span className={styles.seoSep}> - </span>}
+              </span>
+            ))}
+          </p>
+        </section>
 
         <button
           className={styles.more}

@@ -129,11 +129,49 @@
   text-decoration: underline;
 }
 
+/* — SEO: termos mais procurados / busca por letra inicial — */
+.seoBlock {
+  border-top: 1px solid var(--border);
+  padding: 22px 0 4px;
+}
+.seoTitle {
+  margin: 0 0 12px;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+.seoTerms,
+.seoLetters {
+  margin: 0;
+  line-height: 1.9;
+  color: var(--muted-foreground);
+  font-size: 0.86rem;
+}
+.seoTerm,
+.seoLetter {
+  color: var(--muted-foreground);
+  text-decoration: none;
+  transition: color var(--t-fast) var(--ease);
+}
+.seoTerm:hover,
+.seoLetter:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+.seoLetter {
+  font-weight: 600;
+  padding: 0 2px;
+}
+.seoSep {
+  color: var(--border);
+  user-select: none;
+}
+
 .more {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0 auto;
+  margin: 18px auto 0;
   padding: 10px 18px;
   background: none;
   border: none;

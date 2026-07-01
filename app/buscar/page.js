@@ -35,6 +35,8 @@ function BuscarContent() {
   const searchParams = useSearchParams();
   const q = (searchParams.get('q') || '').trim();
   const urlCategory = searchParams.get('category_id') || '';
+  // Busca por letra inicial (footer SEO): só letra A-Z.
+  const inicial = (searchParams.get('inicial') || '').trim().slice(0, 1).toUpperCase();
 
   const [filters, setFilters] = useState({ ...INITIAL_FILTERS, category_id: urlCategory });
   const [products, setProducts] = useState([]);
@@ -46,10 +48,10 @@ function BuscarContent() {
 
   const reqId = useRef(0);
 
-  // Quando o termo (ou category_id da URL) muda, reseta filtros e refaz a busca.
+  // Quando o termo (ou category_id / letra inicial da URL) muda, reseta filtros.
   useEffect(() => {
     setFilters({ ...INITIAL_FILTERS, category_id: urlCategory });
-  }, [q, urlCategory]);
+  }, [q, urlCategory, inicial]);
 
   // Executa a busca server-side a cada mudança de filtros / termo.
   useEffect(() => {
@@ -60,6 +62,7 @@ function BuscarContent() {
     productService
       .search({
         q,
+        inicial,
         category_id: filters.category_id,
         price_min: filters.price_min,
         price_max: filters.price_max,
@@ -85,7 +88,7 @@ function BuscarContent() {
       .finally(() => {
         if (id === reqId.current) setLoading(false);
       });
-  }, [q, filters]);
+  }, [q, inicial, filters]);
 
   // Helpers que atualizam filtros e voltam para a página 1.
   const patch = useCallback((next) => {
@@ -134,6 +137,10 @@ function BuscarContent() {
             {q ? (
               <>
                 Resultado da pesquisa para <span className={styles.term}>“{q}”</span>
+              </>
+            ) : inicial ? (
+              <>
+                Produtos começando com <span className={styles.term}>“{inicial}”</span>
               </>
             ) : (
               'Buscar produtos'
