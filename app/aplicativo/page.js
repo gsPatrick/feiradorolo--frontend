@@ -20,8 +20,9 @@ export default function AplicativoPage() {
         <span className={styles.pill}>🚀 Em breve</span>
         <h1 className={styles.title}>O App da Feira do Rolo está chegando</h1>
         <p className={styles.subtitle}>
-          Estamos finalizando o aplicativo para <strong>Android</strong> e <strong>iOS</strong>.
-          Em breve você terá a melhor experiência de compra e venda na palma da mão.
+          O aplicativo <strong>ainda não foi lançado</strong>. Estamos finalizando a versão para{' '}
+          <strong>Android</strong> e <strong>iOS</strong> — em breve você terá a melhor experiência
+          de compra e venda na palma da mão.
         </p>
 
         <ul className={styles.features}>

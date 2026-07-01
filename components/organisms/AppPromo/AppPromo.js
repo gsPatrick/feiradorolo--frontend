@@ -11,8 +11,8 @@ export default function AppPromo() {
   const b = getBanners('app_promo', [])[0];
   const content = (b && b.content) || {};
 
-  const title = (b && b.title) || 'Baixe nosso App Feira do Rolo!';
-  const sub = (b && b.subtitle) || 'Melhor experiência de compras no seu celular';
+  const title = (b && b.title) || 'O App Feira do Rolo está chegando!';
+  const sub = (b && b.subtitle) || 'Ainda não foi lançado — estamos finalizando para Android e iOS. Enquanto isso, use a versão web pelo celular.';
   const features = Array.isArray(content.features) && content.features.length ? content.features : FALLBACK_FEATURES;
   const note = content.note || 'Funciona via Expo Go';
   const links = content.store_links || getSetting('app.store_links', { google_play: '#', app_store: '#' });
